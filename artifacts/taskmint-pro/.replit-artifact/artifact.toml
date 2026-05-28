@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "TaskMint Pro"
+version = "1.0.0"
+id = "artifacts/taskmint-pro"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19249
+
+[services.development]
+run = "pnpm --filter @workspace/taskmint-pro run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/taskmint-pro", "run", "build" ]
+publicDir = "artifacts/taskmint-pro/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19249"
+BASE_PATH = "/"

@@ -1,0 +1,342 @@
+Build a complete premium full-stack app called TaskMint Pro.
+
+Important:
+- Use Firebase Realtime Database only.
+- Do NOT use Firestore.
+- Use Google Sign-In.
+- Make the app look and feel like a real startup-level mobile app with premium UI, smooth animations, and modern design.
+- Generate all necessary files, components, pages, hooks, utilities, and folder structure.
+- The app must be production-style, scalable, and cleanly organized.
+
+Main Concept:
+TaskMint Pro is a student study + earning + competition platform where users can sign in, complete tasks, upload educational content, join quizzes, earn coins, chat in realtime, and track progress.
+
+Tech Stack:
+- React + Vite
+- Tailwind CSS
+- Framer Motion
+- React Router
+- Firebase Authentication
+- Firebase Realtime Database
+- Firebase Storage
+
+Use this Firebase config exactly:
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDEJ74wHklDp-7r0DvHDm4-Ea-pXty1fk4",
+  authDomain: "taskmitpro.firebaseapp.com",
+  projectId: "taskmitpro",
+  storageBucket: "taskmitpro.firebasestorage.app",
+  messagingSenderId: "887447967195",
+  appId: "1:887447967195:web:5f88f687398d89bae943fe",
+  measurementId: "G-RDSEQVJ7T3"
+};
+
+Create a src/firebase.js file and initialize:
+- Firebase App
+- Firebase Auth
+- GoogleAuthProvider
+- Realtime Database
+- Firebase Storage
+
+Firebase setup code should look like this:
+
+import { initializeApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getDatabase } from "firebase/database";
+import { getStorage } from "firebase/storage";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDEJ74wHklDp-7r0DvHDm4-Ea-pXty1fk4",
+  authDomain: "taskmitpro.firebaseapp.com",
+  projectId: "taskmitpro",
+  storageBucket: "taskmitpro.firebasestorage.app",
+  messagingSenderId: "887447967195",
+  appId: "1:887447967195:web:5f88f687398d89bae943fe",
+  measurementId: "G-RDSEQVJ7T3"
+};
+
+const app = initializeApp(firebaseConfig);
+
+export const auth = getAuth(app);
+export const provider = new GoogleAuthProvider();
+export const db = getDatabase(app);
+export const storage = getStorage(app);
+
+export default app;
+
+Authentication:
+- Add Google Sign-In as the main login method.
+- Make login page visually premium and mobile-friendly.
+- Support email/password structure too, but Google should be primary.
+- After first login, auto-create user profile in Realtime Database.
+
+Google login code:
+
+import { signInWithPopup } from "firebase/auth";
+import { auth, provider } from "./firebase";
+
+const googleLogin = async () => {
+  try {
+    const result = await signInWithPopup(auth, provider);
+    console.log(result.user);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+After successful login, save user data to Realtime Database under users/{uid}:
+
+import { ref, set } from "firebase/database";
+import { db } from "./firebase";
+
+await set(ref(db, "users/" + result.user.uid), {
+  uid: result.user.uid,
+  name: result.user.displayName,
+  email: result.user.email,
+  photoURL: result.user.photoURL,
+  coins: 0,
+  xp: 0,
+  level: 1,
+  streak: 0,
+  role: "student",
+  createdAt: Date.now(),
+  lastLogin: Date.now()
+});
+
+Database Usage:
+Use Firebase Realtime Database for:
+- users
+- leaderboard
+- chats
+- notifications
+- contests
+- tasks
+- earnings
+- streaks
+- achievements
+- activity logs
+- app stats
+
+Use Firebase Storage for:
+- profile photos
+- video thumbnails
+- uploaded educational files
+- other media assets
+
+App Pages:
+1. Splash screen
+2. Onboarding screen
+3. Login page
+4. Signup page
+5. Home dashboard
+6. Study section
+7. Competition page
+8. Upload page
+9. Chat page
+10. Wallet page
+11. Leaderboard page
+12. Notifications page
+13. Profile page
+14. Settings page
+15. Admin dashboard
+
+Design Requirements:
+- Premium black + purple + blue theme
+- Glassmorphism cards
+- Rounded corners
+- Soft shadows
+- Glowing buttons
+- Floating bottom navbar
+- Smooth transitions
+- Animated counters
+- Skeleton loaders
+- Beautiful empty states
+- Dark mode support
+- App-like mobile UI
+- Clean typography
+- Responsive layout
+- Premium loading screen
+- Polished modern visuals
+
+UI Inspiration:
+- TikTok-style feed
+- Discord-style chat
+- Notion-style cards
+- Duolingo-style gamification
+- Modern startup app feel
+
+Core Features:
+1. Google Sign-In
+2. Email/password login structure
+3. User profile auto-creation
+4. Daily streak system
+5. Coins and earnings system
+6. XP and level system
+7. Achievement badges
+8. Realtime leaderboard
+9. Realtime chat system
+10. Study competitions
+11. Quizzes and contests
+12. Video upload system
+13. Reward system
+14. Notifications system
+15. Admin dashboard
+16. Search and filters
+17. PWA-ready structure
+18. Smooth app transitions
+19. Protected routes
+20. Realtime updates with onValue
+
+Dashboard must show:
+- coins
+- XP
+- level
+- streak
+- completed tasks
+- recent activity
+- notifications preview
+- leaderboard preview
+- daily mission cards
+
+Study section must include:
+- class-wise study content
+- programming practice
+- contest cards
+- quiz cards
+- timed challenges
+- rewards after completion
+
+Chat section must include:
+- realtime messaging
+- online status
+- timestamps
+- typing indicator
+- clean chat bubbles
+- mobile chat layout
+
+Leaderboard must include:
+- rank
+- name
+- coins
+- XP
+- badges
+- weekly filter
+- monthly filter
+
+Upload section must support:
+- title
+- description
+- thumbnail
+- tags
+- category
+- publish status
+- file upload
+
+Wallet section must show:
+- balance
+- coin history
+- earning history
+- transaction history
+- withdrawal request UI
+
+Admin dashboard must include:
+- user management
+- content moderation
+- contest management
+- analytics cards
+- report handling
+- notification sending
+- video approval
+
+Realtime Database structure should be clean and organized:
+
+users/{uid}
+leaderboard/{uid}
+chats/{chatId}/messages/{messageId}
+notifications/{uid}
+contests/{contestId}
+tasks/{taskId}
+earnings/{uid}
+streaks/{uid}
+achievements/{uid}
+activity/{uid}
+
+Use realtime listeners with onValue so dashboard, chat, leaderboard, and notifications update instantly.
+
+Project folder structure:
+
+src/
+  components/
+  pages/
+  hooks/
+  context/
+  utils/
+  firebase.js
+  App.jsx
+  main.jsx
+
+Create reusable components for:
+- buttons
+- cards
+- modals
+- forms
+- navbar
+- loading spinner
+- chat bubble
+- leaderboard item
+- contest card
+- stats card
+- notification item
+- profile card
+
+Use modern React patterns:
+- reusable hooks
+- protected routes
+- async/await
+- loading and error states
+- lazy loading
+- clean code organization
+- responsive state handling
+
+Add premium motion effects:
+- fade in
+- slide up
+- scale on hover
+- smooth page transitions
+- animated counters
+- interactive cards
+- subtle hover glow
+
+Performance goals:
+- fast startup
+- clean bundle
+- optimized images
+- reusable UI blocks
+- scalable architecture
+- smooth mobile performance
+
+Security and reliability:
+- prepare the app for secure Firebase rules later
+- use user-specific writes
+- keep admin features separated
+- protect routes
+- validate data before saving
+
+Admin system:
+- users with role = "admin" can access admin panel
+- normal users cannot access admin features
+
+Make the app look premium, addictive, modern, trustworthy, and production-ready.
+
+Do not use Firestore.
+Use Firebase Realtime Database only.
+Generate the full project with a beautiful design and a clean professional architecture.
+
+When finished, make the code ready so I can later add:
+- Firebase Realtime Database Rules
+- Firebase Storage Rules
+- Admin security rules
+- Deployment checklist
+- PWA setup
+- APK build improvements
