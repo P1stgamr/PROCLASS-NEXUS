@@ -6,6 +6,7 @@ import { getStorage } from "firebase/storage";
 const firebaseConfig = {
   apiKey: "AIzaSyDEJ74wHklDp-7r0DvHDm4-Ea-pXty1fk4",
   authDomain: "taskmitpro.firebaseapp.com",
+  databaseURL: "https://taskmitpro-default-rtdb.firebaseio.com",
   projectId: "taskmitpro",
   storageBucket: "taskmitpro.firebasestorage.app",
   messagingSenderId: "887447967195",
