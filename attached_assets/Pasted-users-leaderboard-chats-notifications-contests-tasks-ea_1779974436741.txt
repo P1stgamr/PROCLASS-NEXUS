@@ -1,0 +1,142 @@
+users
+- leaderboard
+- chats
+- notifications
+- contests
+- tasks
+- earnings
+- streaks
+- achievements
+- activity logs
+- app stats
+
+Use Firebase Storage for:
+- profile photos
+- video thumbnails
+- uploaded educational files
+- other media assets
+
+App Pages:
+1. Splash screen
+2. Onboarding screen
+3. Login page
+4. Signup page
+5. Home dashboard
+6. Study section
+7. Competition page
+8. Upload page
+9. Chat page
+10. Wallet page
+11. Leaderboard page
+12. Notifications page
+13. Profile page
+14. Settings page
+15. Admin dashboard
+
+Design Requirements:
+- Premium black + purple + blue theme
+- Glassmorphism cards
+- Rounded corners
+- Soft shadows
+- Glowing buttons
+- Floating bottom navbar
+- Smooth transitions
+- Animated counters
+- Skeleton loaders
+- Beautiful empty states
+- Dark mode support
+- App-like mobile UI
+- Clean typography
+- Responsive layout
+- Premium loading screen
+- Polished modern visuals
+
+UI Inspiration:
+- TikTok-style feed
+- Discord-style chat
+- Notion-style cards
+- Duolingo-style gamification
+- Modern startup app feel
+
+Core Features:
+1. Google Sign-In
+2. Email/password login structure
+3. User profile auto-creation
+4. Daily streak system
+5. Coins and earnings system
+6. XP and level system
+7. Achievement badges
+8. Realtime leaderboard
+9. Realtime chat system
+10. Study competitions
+11. Quizzes and contests
+12. Video upload system
+13. Reward system
+14. Notifications system
+15. Admin dashboard
+16. Search and filters
+17. PWA-ready structure
+18. Smooth app transitions
+19. Protected routes
+20. Realtime updates with onValue
+
+Dashboard must show:
+- coins
+- XP
+- level
+- streak
+- completed tasks
+- recent activity
+- notifications preview
+- leaderboard preview
+- daily mission cards
+
+Study section must include:
+- class-wise study content
+- programming practice
+- contest cards
+- quiz cards
+- timed challenges
+- rewards after completion
+
+Chat section must include:
+- realtime messaging
+- online status
+- timestamps
+- typing indicator
+- clean chat bubbles
+- mobile chat layout
+
+Leaderboard must include:
+- rank
+- name
+- coins
+- XP
+- badges
+- weekly filter
+- monthly filter
+
+Upload section must support:
+- title
+- description
+- thumbnail
+- tags
+- category
+- publish status
+- file upload
+
+Wallet section must show:
+- balance
+- coin history
+- earning history
+- transaction history
+- withdrawal request UI
+
+Admin dashboard must include:
+- user management
+- content moderation
+- contest management
+- analytics cards
+- report handling
+- notification sending
+- video approval

@@ -21,6 +21,9 @@ import NotificationsPage from "@/pages/NotificationsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import SettingsPage from "@/pages/SettingsPage";
 import AdminPage from "@/pages/AdminPage";
+import PremiumExamPage from "@/pages/PremiumExamPage";
+import PaymentPage from "@/pages/PaymentPage";
+import ExamRoomPage from "@/pages/ExamRoomPage";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -42,6 +45,15 @@ function Router() {
         </Route>
         <Route path="/competitions">
           <ProtectedRoute><CompetitionsPage /></ProtectedRoute>
+        </Route>
+        <Route path="/premium-exams">
+          <ProtectedRoute><PremiumExamPage /></ProtectedRoute>
+        </Route>
+        <Route path="/payment/:examId">
+          {(params) => <ProtectedRoute><PaymentPage /></ProtectedRoute>}
+        </Route>
+        <Route path="/exam-room/:examId">
+          {(params) => <ProtectedRoute><ExamRoomPage /></ProtectedRoute>}
         </Route>
         <Route path="/upload">
           <ProtectedRoute><UploadPage /></ProtectedRoute>
