@@ -201,7 +201,7 @@ export default function WalletPage() {
                   />
                   {withdrawAmount && (
                     <p className="text-xs text-primary mt-1">
-                      ≈ ৳{parseInt(withdrawAmount) || 0} (1 coin = ৳1)
+                      ≈ ৳{((parseInt(withdrawAmount) || 0) * 0.000001).toFixed(6)} (1 coin = ৳0.000001)
                     </p>
                   )}
                 </div>
