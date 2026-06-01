@@ -1,0 +1,110 @@
+Add a world-class AI Assistant to TaskMint Pro.
+
+The AI should be the most advanced feature of the platform and be available from every page through a floating AI button.
+
+Requirements:
+
+- Modern ChatGPT-style interface
+- Beautiful glassmorphism AI chat window
+- Mobile-first responsive design
+- Dark mode support
+- Typing animation
+- Streaming responses
+- Conversation history
+- Search previous chats
+- Pin important chats
+- Delete chats
+- Export chats
+
+Capabilities:
+
+1. Study Assistant
+- Answer academic questions
+- Explain concepts simply
+- Generate notes
+- Summarize chapters
+- Create quizzes
+- Create practice exams
+- Solve math step-by-step
+- Help with science, ICT, English, and programming
+
+2. Programming Assistant
+- Write code
+- Debug code
+- Explain code
+- Optimize code
+- Generate projects
+- Support Python, JavaScript, C++, Java, HTML, CSS, React
+
+3. Content Generator
+- Essays
+- Applications
+- Emails
+- Paragraphs
+- Stories
+- Reports
+- Presentations
+- Study notes
+
+4. Productivity Assistant
+- Create study plans
+- Create schedules
+- Manage tasks
+- Track goals
+- Generate daily missions
+
+5. Website Builder Assistant
+- Generate website code
+- Generate app code
+- Create UI components
+- Suggest improvements
+- Review project structure
+
+6. Competition Assistant
+- NHSPC preparation
+- Programming practice
+- Mock contests
+- Problem explanations
+- Algorithm guidance
+
+AI Features:
+- Context memory per conversation
+- Markdown support
+- Code blocks with syntax highlighting
+- Copy button
+- Download response
+- Regenerate response
+- Continue generation
+- Voice input
+- Image upload support (future-ready)
+
+UI Requirements:
+- Premium startup-quality design
+- Floating AI button
+- Full-screen AI mode
+- Smooth animations
+- Beautiful loading states
+- Fast performance
+
+Architecture:
+- Separate AI page
+- AI sidebar
+- Chat history database
+- User-specific conversations
+- Realtime updates
+
+Database Structure:
+aiChats/{uid}/{chatId}
+aiMessages/{chatId}/{messageId}
+
+Admin Features:
+- AI usage analytics
+- Message count tracking
+- User activity tracking
+
+Make the AI system feel like a premium combination of:
+- ChatGPT
+- Claude
+- Gemini
+
+Generate clean, scalable, production-ready code and architecture.
