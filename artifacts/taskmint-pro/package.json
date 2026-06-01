@@ -75,6 +75,10 @@
     "zod": "catalog:"
   },
   "dependencies": {
-    "firebase": "^12.13.0"
+    "firebase": "^12.13.0",
+    "marked": "^18.0.4",
+    "openai": "^6.39.1",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
   }
 }

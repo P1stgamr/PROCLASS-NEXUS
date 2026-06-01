@@ -24,6 +24,8 @@ import AdminPage from "@/pages/AdminPage";
 import PremiumExamPage from "@/pages/PremiumExamPage";
 import PaymentPage from "@/pages/PaymentPage";
 import ExamRoomPage from "@/pages/ExamRoomPage";
+import AIAssistantPage from "@/pages/AIAssistantPage";
+import { FloatingAIButton } from "@/components/FloatingAIButton";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -79,10 +81,14 @@ function Router() {
         <Route path="/admin">
           <ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>
         </Route>
+        <Route path="/ai">
+          <ProtectedRoute><AIAssistantPage /></ProtectedRoute>
+        </Route>
 
         <Route component={NotFound} />
       </Switch>
       <BottomNav />
+      <FloatingAIButton />
     </>
   );
 }
