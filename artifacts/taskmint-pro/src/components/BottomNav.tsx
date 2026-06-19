@@ -1,60 +1,54 @@
 import { Link, useLocation } from "wouter";
 import { Home, BookOpen, Crown, MessageSquare, Wallet } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+
+const NAV_ITEMS = [
+  { href: "/home", label: "Home", icon: Home },
+  { href: "/study", label: "Study", icon: BookOpen },
+  { href: "/competitions", label: "Exams", icon: Crown, highlight: true },
+  { href: "/chat", label: "Chat", icon: MessageSquare },
+  { href: "/wallet", label: "Wallet", icon: Wallet },
+];
+
+const HIDDEN_PATHS = ["/", "/login", "/signup", "/onboarding", "/admin", "/forgot-password"];
 
 export function BottomNav() {
-  const [location] = useLocation();
   const { currentUser } = useAuth();
+  const [location] = useLocation();
 
-  const hiddenPaths = ["/", "/login", "/signup", "/onboarding", "/admin"];
-  const isHidden = hiddenPaths.includes(location) ||
+  const hidden = HIDDEN_PATHS.includes(location) ||
     location.startsWith("/payment/") ||
     location.startsWith("/exam-room/");
 
-  if (!currentUser || isHidden) return null;
-
-  const navItems = [
-    { name: "Home", path: "/home", icon: Home },
-    { name: "Study", path: "/study", icon: BookOpen },
-    { name: "Exams", path: "/premium-exams", icon: Crown },
-    { name: "Chat", path: "/chat", icon: MessageSquare },
-    { name: "Wallet", path: "/wallet", icon: Wallet },
-  ];
+  if (!currentUser || hidden) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-white/10 pb-safe pt-2 px-4">
-      <div className="flex justify-between items-center max-w-md mx-auto">
-        {navItems.map((item) => {
-          const isActive = location === item.path || location.startsWith(item.path + "/");
-          const isExam = item.path === "/premium-exams";
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bottom-nav-blur safe-area-bottom">
+      <div className="flex items-center justify-around px-2 py-2 max-w-md mx-auto">
+        {NAV_ITEMS.map((item) => {
+          const active = location === item.href;
           return (
-            <Link key={item.name} href={item.path}>
-              <div
-                className={cn(
-                  "flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-300 min-w-[56px]",
-                  isActive ? (isExam ? "text-yellow-400" : "text-primary") : "text-muted-foreground hover:text-white"
+            <Link key={item.href} href={item.href}>
+              <button className={`relative flex flex-col items-center justify-center gap-1 min-w-[60px] py-2 px-3 rounded-2xl transition-all duration-200 ${
+                active ? "text-primary" : "text-muted-foreground"
+              } ${item.highlight && !active ? "text-yellow-400" : ""}`}>
+                {active && (
+                  <motion.div
+                    layoutId="nav-indicator"
+                    className="absolute inset-0 rounded-2xl bg-primary/15"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
                 )}
-                data-testid={`nav-${item.name.toLowerCase()}`}
-              >
-                <item.icon
-                  className={cn(
-                    "w-6 h-6 mb-1",
-                    isActive && isExam && "drop-shadow-[0_0_8px_rgba(234,179,8,0.6)]",
-                    isActive && !isExam && "drop-shadow-[0_0_8px_rgba(124,58,237,0.5)]"
-                  )}
-                />
-                <span className={cn("text-[10px] font-medium", isActive && isExam && "text-yellow-400")}>
-                  {item.name}
-                </span>
-                {isExam && isActive && (
-                  <div className="absolute bottom-1 w-1 h-1 rounded-full bg-yellow-400" />
-                )}
-              </div>
+                <div className={`relative z-10 ${item.highlight ? `w-12 h-12 rounded-2xl flex items-center justify-center -mt-6 ${active ? "gradient-primary glow-purple" : "bg-yellow-500/20 border border-yellow-500/30"}` : ""}`}>
+                  <item.icon className={`${item.highlight ? "w-5 h-5" : "w-5 h-5"} ${item.highlight && active ? "text-white" : item.highlight ? "text-yellow-400" : ""}`} />
+                </div>
+                <span className={`relative z-10 text-[10px] font-semibold ${item.highlight ? "mt-1" : ""}`}>{item.label}</span>
+              </button>
             </Link>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }

@@ -10,6 +10,7 @@ import SplashPage from "@/pages/SplashPage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignupPage";
+import ForgotPasswordPage from "@/pages/ForgotPasswordPage";
 import HomePage from "@/pages/HomePage";
 import StudyPage from "@/pages/StudyPage";
 import CompetitionsPage from "@/pages/CompetitionsPage";
@@ -38,6 +39,7 @@ function Router() {
         <Route path="/onboarding" component={OnboardingPage} />
         <Route path="/login" component={LoginPage} />
         <Route path="/signup" component={SignupPage} />
+        <Route path="/forgot-password" component={ForgotPasswordPage} />
 
         <Route path="/home">
           <ProtectedRoute><HomePage /></ProtectedRoute>

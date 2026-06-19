@@ -146,12 +146,17 @@ export default function LoginPage() {
           </GlowButton>
         </form>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          New here?{" "}
-          <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors" data-testid="link-signup">
-            Create account
+        <div className="flex items-center justify-between mt-6">
+          <p className="text-sm text-muted-foreground">
+            New here?{" "}
+            <Link href="/signup" className="text-primary hover:text-primary/80 font-medium transition-colors" data-testid="link-signup">
+              Sign up
+            </Link>
+          </p>
+          <Link href="/forgot-password" className="text-sm text-muted-foreground hover:text-white transition-colors">
+            Forgot password?
           </Link>
-        </p>
+        </div>
       </motion.div>
     </div>
   );
