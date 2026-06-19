@@ -191,7 +191,7 @@ export default function AIAssistantPage() {
     const history = [...messages, { id: "tmp", ...userMsg }];
     try {
       const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-1.5-flash",
         systemInstruction: AI_SYSTEM_PROMPT,
       });
       const geminiHistory = history.slice(0, -1).map((m) => ({
@@ -378,7 +378,7 @@ export default function AIAssistantPage() {
               </button>
             </div>
             <p className="text-center text-[10px] text-muted-foreground/50 mt-2">
-              Powered by Gemini 2.0 Flash · TaskMint AI
+              Powered by Gemini 1.5 Flash · TaskMint AI
             </p>
           </div>
         </div>
