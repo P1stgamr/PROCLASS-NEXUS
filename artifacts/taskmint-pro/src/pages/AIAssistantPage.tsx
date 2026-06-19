@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ref, onValue, off, push, set, remove, update } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
-import { openai, AI_SYSTEM_PROMPT } from "@/lib/openai";
+import { genAI, AI_SYSTEM_PROMPT } from "@/lib/gemini";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
@@ -189,20 +189,20 @@ export default function AIAssistantPage() {
     setStreaming(true);
     setStreamingContent("");
     const history = [...messages, { id: "tmp", ...userMsg }];
-    const apiMessages = [
-      { role: "system" as const, content: AI_SYSTEM_PROMPT },
-      ...history.map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
-    ];
     try {
-      const stream = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: apiMessages,
-        max_tokens: 2048,
-        stream: true,
+      const model = genAI.getGenerativeModel({
+        model: "gemini-2.0-flash",
+        systemInstruction: AI_SYSTEM_PROMPT,
       });
+      const geminiHistory = history.slice(0, -1).map((m) => ({
+        role: m.role === "assistant" ? "model" : "user",
+        parts: [{ text: m.content }],
+      }));
+      const chat = model.startChat({ history: geminiHistory });
+      const result = await chat.sendMessageStream(userMsg.content);
       let full = "";
-      for await (const chunk of stream) {
-        const delta = chunk.choices[0]?.delta?.content || "";
+      for await (const chunk of result.stream) {
+        const delta = chunk.text();
         full += delta;
         setStreamingContent(full);
       }
@@ -378,7 +378,7 @@ export default function AIAssistantPage() {
               </button>
             </div>
             <p className="text-center text-[10px] text-muted-foreground/50 mt-2">
-              Powered by GPT-4o mini · TaskMint AI
+              Powered by Gemini 2.0 Flash · TaskMint AI
             </p>
           </div>
         </div>
