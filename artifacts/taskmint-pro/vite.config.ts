@@ -28,6 +28,11 @@ if (!basePath) {
 
 export default defineConfig({
   base: basePath,
+  define: {
+    "import.meta.env.VITE_OPENAI_API_KEY": JSON.stringify(
+      process.env.OPENAI_API_KEY1 ?? process.env.OPENAI_API_KEY ?? "",
+    ),
+  },
   plugins: [
     react(),
     tailwindcss(),
