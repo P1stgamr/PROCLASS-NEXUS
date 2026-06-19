@@ -30,7 +30,9 @@ const SUBJECTS = [
   { id: "gk", label: "General Knowledge", icon: Globe, color: "text-indigo-400", bg: "bg-indigo-500/15", cat: "general" },
 ];
 
-const QUIZZES = [
+type Quiz = { id: string; title: string; subject: string; difficulty: string; questions: number; duration: number; reward: number; rating: number; attempts: number; cat: string; tags: string[]; premium?: boolean };
+
+const QUIZZES: Quiz[] = [
   { id: "q1", title: "SSC Math: Algebra", subject: "Mathematics", difficulty: "Easy", questions: 10, duration: 15, reward: 50, rating: 4.8, attempts: 234, cat: "ssc", tags: ["Algebra", "Equations"] },
   { id: "q2", title: "HSC Physics: Mechanics", subject: "Physics", difficulty: "Medium", questions: 15, duration: 20, reward: 80, rating: 4.6, attempts: 189, cat: "hsc", tags: ["Newton", "Motion"] },
   { id: "q3", title: "Python Basics", subject: "Programming", difficulty: "Easy", questions: 12, duration: 18, reward: 60, rating: 4.9, attempts: 412, cat: "code", tags: ["Python", "Basics"] },
@@ -39,7 +41,7 @@ const QUIZZES = [
   { id: "q6", title: "Bangladesh: History & Culture", subject: "General Knowledge", difficulty: "Medium", questions: 15, duration: 20, reward: 50, rating: 4.4, attempts: 203, cat: "general", tags: ["History", "Culture"] },
   { id: "q7", title: "HSC Chemistry: Organic", subject: "Chemistry", difficulty: "Hard", questions: 20, duration: 30, reward: 120, rating: 4.8, attempts: 98, cat: "hsc", tags: ["Organic", "Reactions"], premium: true },
   { id: "q8", title: "C++: Data Structures", subject: "Programming", difficulty: "Hard", questions: 15, duration: 25, reward: 100, rating: 4.9, attempts: 87, cat: "code", tags: ["DSA", "C++"], premium: true },
-] as const;
+];
 
 const CODING_CHALLENGES = [
   { id: "c1", title: "Two Sum", difficulty: "Easy", xp: 50, solved: true, tag: "Array" },

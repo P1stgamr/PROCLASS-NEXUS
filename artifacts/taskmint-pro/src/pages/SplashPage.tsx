@@ -9,15 +9,25 @@ export default function SplashPage() {
   const { currentUser, loading } = useAuth();
 
   useEffect(() => {
-    if (loading) return;
+    const maxWait = setTimeout(() => {
+      setLocation("/onboarding");
+    }, 6000);
+
+    if (loading) return () => clearTimeout(maxWait);
+
     const timer = setTimeout(() => {
+      clearTimeout(maxWait);
       if (currentUser) {
         setLocation("/home");
       } else {
         setLocation("/onboarding");
       }
-    }, 2800);
-    return () => clearTimeout(timer);
+    }, 2000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(maxWait);
+    };
   }, [currentUser, loading, setLocation]);
 
   return (
