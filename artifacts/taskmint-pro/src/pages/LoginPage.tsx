@@ -18,7 +18,10 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  const createUserProfile = async (user: any) => {
+  const ADMIN_EMAIL = "priommojumdar@gmail.com";
+
+  const createUserProfile = async (user: any): Promise<"admin" | "student"> => {
+    const isAdmin = user.email === ADMIN_EMAIL;
     const userRef = ref(db, `users/${user.uid}`);
     const snapshot = await get(userRef);
     if (!snapshot.exists()) {
@@ -27,25 +30,29 @@ export default function LoginPage() {
         name: user.displayName || user.email?.split("@")[0] || "Student",
         email: user.email,
         photoURL: user.photoURL || null,
-        coins: 100,
-        xp: 0,
-        level: 1,
-        streak: 1,
-        role: "student",
+        coins: isAdmin ? 999999 : 100,
+        xp: isAdmin ? 99999 : 0,
+        level: isAdmin ? 99 : 1,
+        streak: isAdmin ? 365 : 1,
+        role: isAdmin ? "admin" : "student",
         createdAt: Date.now(),
         lastLogin: Date.now(),
       });
     } else {
       await set(ref(db, `users/${user.uid}/lastLogin`), Date.now());
+      if (isAdmin) {
+        await set(ref(db, `users/${user.uid}/role`), "admin");
+      }
     }
+    return isAdmin ? "admin" : "student";
   };
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     try {
       const result = await signInWithPopup(auth, provider);
-      await createUserProfile(result.user);
-      setLocation("/home");
+      const role = await createUserProfile(result.user);
+      setLocation(role === "admin" ? "/admin" : "/home");
     } catch (err: any) {
       toast({ title: "Login failed", description: err.message, variant: "destructive" });
     } finally {
@@ -59,8 +66,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
-      await createUserProfile(result.user);
-      setLocation("/home");
+      const role = await createUserProfile(result.user);
+      setLocation(role === "admin" ? "/admin" : "/home");
     } catch (err: any) {
       toast({ title: "Login failed", description: err.message, variant: "destructive" });
     } finally {
