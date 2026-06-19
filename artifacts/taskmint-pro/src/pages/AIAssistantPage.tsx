@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ref, onValue, off, push, set, remove, update } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
-import { genAI, AI_SYSTEM_PROMPT } from "@/lib/gemini";
+import { streamGemini } from "@/lib/gemini";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
@@ -188,21 +188,9 @@ export default function AIAssistantPage() {
     setInput("");
     setStreaming(true);
     setStreamingContent("");
-    const history = [...messages, { id: "tmp", ...userMsg }];
     try {
-      const model = genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        systemInstruction: AI_SYSTEM_PROMPT,
-      });
-      const geminiHistory = history.slice(0, -1).map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
-      const chat = model.startChat({ history: geminiHistory });
-      const result = await chat.sendMessageStream(userMsg.content);
       let full = "";
-      for await (const chunk of result.stream) {
-        const delta = chunk.text();
+      for await (const delta of streamGemini(messages, userMsg.content)) {
         full += delta;
         setStreamingContent(full);
       }
