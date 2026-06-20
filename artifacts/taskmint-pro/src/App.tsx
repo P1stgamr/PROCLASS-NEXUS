@@ -26,6 +26,7 @@ import PremiumExamPage from "@/pages/PremiumExamPage";
 import PaymentPage from "@/pages/PaymentPage";
 import ExamRoomPage from "@/pages/ExamRoomPage";
 import AIAssistantPage from "@/pages/AIAssistantPage";
+import GiftsPage from "@/pages/GiftsPage";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 import NotFound from "@/pages/not-found";
 
@@ -85,6 +86,9 @@ function Router() {
         </Route>
         <Route path="/ai">
           <ProtectedRoute><AIAssistantPage /></ProtectedRoute>
+        </Route>
+        <Route path="/gifts">
+          <ProtectedRoute><GiftsPage /></ProtectedRoute>
         </Route>
 
         <Route component={NotFound} />

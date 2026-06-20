@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { GlowButton } from "@/components/GlowButton";
 import { Badge } from "@/components/ui/badge";
+import { AdModal } from "@/components/AdModal";
+import { useToast } from "@/hooks/use-toast";
 import {
   BookOpen, Code2, FlaskConical, Globe, Calculator, Cpu,
   Clock, Star, Zap, Target, Play, Lock,
@@ -59,17 +61,41 @@ const diffColor: Record<string, string> = {
 
 export default function StudyPage() {
   const { userProfile } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("quiz");
   const [activeCat, setActiveCat] = useState("all");
+  const [adTarget, setAdTarget] = useState<Quiz | null>(null);
 
-  const filteredQuizzes = activeCat === "all"
-    ? [...QUIZZES]
-    : [...QUIZZES].filter(q => q.cat === activeCat);
-
+  const filteredQuizzes = activeCat === "all" ? [...QUIZZES] : [...QUIZZES].filter(q => q.cat === activeCat);
   const totalXP = CODING_CHALLENGES.filter(c => c.solved).reduce((s, c) => s + c.xp, 0);
+
+  const handleStartQuiz = (quiz: Quiz) => {
+    if (quiz.premium) {
+      toast({ title: "Premium Quiz", description: "এই quiz টি premium — unlock করতে হবে", variant: "destructive" });
+      return;
+    }
+    setAdTarget(quiz);
+  };
+
+  const handleAdComplete = () => {
+    if (!adTarget) return;
+    setAdTarget(null);
+    toast({
+      title: `${adTarget.title} শুরু হচ্ছে!`,
+      description: `${adTarget.questions}টি প্রশ্ন · ${adTarget.duration} মিনিট · +${adTarget.reward} coins`,
+    });
+  };
 
   return (
     <div className="min-h-screen bg-background pb-28">
+      {/* Ad modal — shows before starting any free quiz */}
+      <AdModal
+        open={!!adTarget}
+        title="Ad দেখুন — তারপর quiz শুরু হবে"
+        onComplete={handleAdComplete}
+        onClose={() => setAdTarget(null)}
+      />
+
       <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-2xl border-b border-white/[0.06] px-5 py-3.5">
         <div className="max-w-md mx-auto">
           <div className="flex items-center gap-3 mb-3">
@@ -87,11 +113,10 @@ export default function StudyPage() {
               { id: "coding", label: "Coding" },
               { id: "subjects", label: "Subjects" },
             ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${activeTab === tab.id ? "gradient-primary text-white shadow-lg" : "text-muted-foreground hover:text-white"}`}
-              >
+              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
+                  activeTab === tab.id ? "gradient-primary text-white shadow-lg" : "text-muted-foreground hover:text-white"
+                }`}>
                 {tab.label}
               </button>
             ))}
@@ -101,21 +126,29 @@ export default function StudyPage() {
 
       <div className="px-5 py-5 max-w-md mx-auto">
         <AnimatePresence mode="wait">
-
           {activeTab === "quiz" && (
             <motion.div key="quiz" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
+              {/* Ad notice */}
+              <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-2.5">
+                <span className="text-sm">📺</span>
+                <p className="text-xs text-yellow-300">Free quiz শুরু করতে একটি Ad দেখতে হবে</p>
+              </div>
+
               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                 {CATEGORIES.map(cat => (
                   <button key={cat.id} onClick={() => setActiveCat(cat.id)}
-                    className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${activeCat === cat.id ? "gradient-primary text-white" : "glass-card text-muted-foreground hover:text-white"}`}>
+                    className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                      activeCat === cat.id ? "gradient-primary text-white" : "glass-card text-muted-foreground hover:text-white"
+                    }`}>
                     {cat.label}
                   </button>
                 ))}
               </div>
+
               <div className="space-y-3">
                 {filteredQuizzes.map((quiz, i) => (
                   <motion.div key={quiz.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                    className="glass-card-hover rounded-2xl overflow-hidden cursor-pointer">
+                    className="glass-card-hover rounded-2xl overflow-hidden">
                     <div className="h-0.5 gradient-primary" />
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-2 mb-3">
@@ -141,11 +174,10 @@ export default function StudyPage() {
                           <Zap className="w-3.5 h-3.5 text-yellow-400" />
                           <span className="text-xs font-bold text-yellow-400">+{quiz.reward} coins</span>
                         </div>
-                        <GlowButton size="sm" className="h-8 px-4 text-xs">
+                        <GlowButton size="sm" className="h-8 px-4 text-xs" onClick={() => handleStartQuiz(quiz)}>
                           {quiz.premium
                             ? <span className="flex items-center gap-1"><Lock className="w-3 h-3" />Premium</span>
-                            : <span className="flex items-center gap-1"><Play className="w-3 h-3" />Start</span>
-                          }
+                            : <span className="flex items-center gap-1"><Play className="w-3 h-3" />📺 Start</span>}
                         </GlowButton>
                       </div>
                     </div>
@@ -178,10 +210,7 @@ export default function StudyPage() {
                   <motion.div key={ch.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                     className={`flex items-center gap-3 p-4 rounded-2xl transition-all ${ch.solved ? "glass-card border border-green-500/20" : "glass-card-hover cursor-pointer"}`}>
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${ch.solved ? "bg-green-500/20" : "bg-white/5"}`}>
-                      {ch.solved
-                        ? <CheckCircle2 className="w-5 h-5 text-green-400" />
-                        : <Code2 className="w-5 h-5 text-muted-foreground" />
-                      }
+                      {ch.solved ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <Code2 className="w-5 h-5 text-muted-foreground" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`font-semibold text-sm ${ch.solved ? "text-muted-foreground line-through" : ""}`}>{ch.title}</p>

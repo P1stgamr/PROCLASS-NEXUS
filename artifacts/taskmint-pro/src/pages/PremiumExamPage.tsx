@@ -8,15 +8,41 @@ import { GlowButton } from "@/components/GlowButton";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Crown, Clock, Users, Trophy, Lock, Zap, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { Crown, Clock, Users, Trophy, Lock, Zap, CheckCircle2, ChevronDown, ChevronUp, Radio, CalendarClock, CalendarX } from "lucide-react";
 import { calcPrizes } from "@/lib/prizeUtils";
 
 const SAMPLE_EXAMS = [
-  { id: "exam1", title: "SSC Math Championship", description: "SSC level math exam — top scorer wins prize pool. 30 MCQ questions.", entryFee: 20, duration: 30, totalQuestions: 30, participants: 24, maxParticipants: 100, category: "Math", status: "open", startTime: Date.now() + 3600000, level: "SSC" },
-  { id: "exam2", title: "HSC Physics Showdown", description: "Advanced physics exam for HSC students.", entryFee: 50, duration: 45, totalQuestions: 40, participants: 18, maxParticipants: 50, category: "Physics", status: "open", startTime: Date.now() + 7200000, level: "HSC" },
-  { id: "exam3", title: "Programming Quiz Cup", description: "Python & JS quiz for programmers. Top 3 win prizes.", entryFee: 30, duration: 25, totalQuestions: 25, participants: 41, maxParticipants: 100, category: "Programming", status: "open", startTime: Date.now() + 1800000, level: "All" },
-  { id: "exam4", title: "General Knowledge Grand Prix", description: "Test your general knowledge across all subjects.", entryFee: 10, duration: 20, totalQuestions: 20, participants: 67, maxParticipants: 200, category: "General", status: "open", startTime: Date.now() + 900000, level: "All" },
+  { id: "exam1", title: "SSC Math Championship", description: "SSC level math exam — top scorer wins prize pool. 30 MCQ questions.", entryFee: 20, duration: 30, totalQuestions: 30, participants: 24, maxParticipants: 100, category: "Math", startTime: Date.now() - 600000, endTime: Date.now() + 3600000, level: "SSC" },
+  { id: "exam2", title: "HSC Physics Showdown", description: "Advanced physics exam for HSC students.", entryFee: 50, duration: 45, totalQuestions: 40, participants: 18, maxParticipants: 50, category: "Physics", startTime: Date.now() + 7200000, endTime: Date.now() + 10800000, level: "HSC" },
+  { id: "exam3", title: "Programming Quiz Cup", description: "Python & JS quiz for programmers. Top 3 win prizes.", entryFee: 30, duration: 25, totalQuestions: 25, participants: 41, maxParticipants: 100, category: "Programming", startTime: Date.now() - 7200000, endTime: Date.now() - 3600000, level: "All" },
+  { id: "exam4", title: "General Knowledge Grand Prix", description: "Test your general knowledge across all subjects.", entryFee: 10, duration: 20, totalQuestions: 20, participants: 67, maxParticipants: 200, category: "General", startTime: Date.now() + 900000, endTime: Date.now() + 3600000, level: "All" },
 ];
+
+type ExamStatus = "upcoming" | "live" | "ended";
+function getExamStatus(exam: any): ExamStatus {
+  const now = Date.now();
+  if (exam.endTime && now > exam.endTime) return "ended";
+  if (exam.startTime && now < exam.startTime) return "upcoming";
+  return "live";
+}
+
+function StatusBadge({ status }: { status: ExamStatus }) {
+  if (status === "live") return (
+    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-bold">
+      <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />LIVE
+    </span>
+  );
+  if (status === "upcoming") return (
+    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/30 text-blue-400 text-[10px] font-bold">
+      <CalendarClock className="w-3 h-3" />শীঘ্রই
+    </span>
+  );
+  return (
+    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/10 border border-white/10 text-muted-foreground text-[10px] font-bold">
+      <CalendarX className="w-3 h-3" />শেষ হয়েছে
+    </span>
+  );
+}
 
 function PrizeBreakdown({ exam }: { exam: any }) {
   const totalPool = (exam.participants || 0) * (exam.entryFee || 0);
@@ -85,6 +111,16 @@ export default function PremiumExamPage() {
 
   const handleJoin = (exam: any) => {
     if (!currentUser) return;
+    const status = getExamStatus(exam);
+    if (status === "ended") {
+      toast({ title: "Exam শেষ হয়েছে", description: "এই exam-এ আর যোগ দেওয়া যাবে না", variant: "destructive" });
+      return;
+    }
+    if (status === "upcoming") {
+      const mins = Math.round((exam.startTime - Date.now()) / 60000);
+      toast({ title: "Exam এখনো শুরু হয়নি", description: `${mins} মিনিট পরে শুরু হবে`, variant: "destructive" });
+      return;
+    }
     if (joinedExams.includes(exam.id)) {
       setLocation(`/exam-room/${exam.id}`);
     } else {
@@ -95,11 +131,12 @@ export default function PremiumExamPage() {
   const filters = ["all", "Math", "Physics", "Programming", "General"];
   const filtered = activeFilter === "all" ? exams : exams.filter((e) => e.category === activeFilter);
 
-  const formatTime = (ms: number) => {
-    const mins = Math.floor((ms - Date.now()) / 60000);
-    if (mins < 0) return "শুরু হয়েছে";
-    if (mins < 60) return `${mins}m`;
-    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  const formatCountdown = (ms: number) => {
+    const diff = ms - Date.now();
+    if (diff <= 0) return null;
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins} মিনিটে`;
+    return `${Math.floor(mins / 60)}ঘণ্টা ${mins % 60}মিনিটে`;
   };
 
   return (
@@ -164,19 +201,37 @@ export default function PremiumExamPage() {
               const totalPool = exam.participants * exam.entryFee;
               const prizes = calcPrizes(totalPool);
               const isExpanded = expandedPrize === exam.id;
+              const examStatus = getExamStatus(exam);
+              const isDisabled = examStatus !== "live";
 
               return (
                 <motion.div key={exam.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.07 }} className="glass-card rounded-2xl overflow-hidden">
-                  <div className="h-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500" />
-                  <div className="p-5 space-y-4">
+                  <div className={`h-1 ${examStatus === "live" ? "bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500" : examStatus === "upcoming" ? "bg-gradient-to-r from-blue-500 to-blue-700" : "bg-white/10"}`} />
+                  <div className={`p-5 space-y-4 ${isDisabled ? "opacity-70" : ""}`}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <h3 className="font-bold text-base">{exam.title}</h3>
                           {isJoined && <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />}
+                          <StatusBadge status={examStatus} />
                         </div>
                         <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">{exam.description}</p>
+                        {examStatus === "upcoming" && exam.startTime && (
+                          <p className="text-xs text-blue-400 mt-1 flex items-center gap-1">
+                            <CalendarClock className="w-3 h-3" />
+                            {formatCountdown(exam.startTime)} শুরু হবে
+                          </p>
+                        )}
+                        {examStatus === "live" && exam.endTime && (
+                          <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatCountdown(exam.endTime)} পর শেষ হবে
+                          </p>
+                        )}
+                        {examStatus === "ended" && (
+                          <p className="text-xs text-muted-foreground mt-1">এই exam শেষ হয়েছে</p>
+                        )}
                       </div>
                       <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 shrink-0 text-xs">
                         {exam.level}
@@ -237,13 +292,32 @@ export default function PremiumExamPage() {
                     </AnimatePresence>
 
                     <div className="flex items-center justify-between pt-1">
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Clock className="w-3.5 h-3.5 text-primary" />
-                        <span>শুরু: {formatTime(exam.startTime)}</span>
+                      <div className="text-xs">
+                        {examStatus === "live" && exam.endTime && (
+                          <span className="flex items-center gap-1 text-green-400">
+                            <Radio className="w-3 h-3 animate-pulse" />
+                            শেষ: {new Date(exam.endTime).toLocaleTimeString("bn-BD", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        )}
+                        {examStatus === "upcoming" && exam.startTime && (
+                          <span className="flex items-center gap-1 text-blue-400">
+                            <Clock className="w-3 h-3" />
+                            শুরু: {formatCountdown(exam.startTime)}
+                          </span>
+                        )}
+                        {examStatus === "ended" && (
+                          <span className="text-muted-foreground">Exam শেষ</span>
+                        )}
                       </div>
-                      <GlowButton size="sm" glowColor={isJoined ? "blue" : "purple"} className="h-9 px-5 text-xs"
+                      <GlowButton size="sm"
+                        glowColor={isJoined && !isDisabled ? "blue" : "purple"}
+                        className={`h-9 px-5 text-xs ${isDisabled ? "opacity-50" : ""}`}
                         onClick={() => handleJoin(exam)}>
-                        {isJoined
+                        {examStatus === "ended"
+                          ? <><CalendarX className="w-3.5 h-3.5 mr-1" />শেষ হয়েছে</>
+                          : examStatus === "upcoming"
+                          ? <><CalendarClock className="w-3.5 h-3.5 mr-1" />শীঘ্রই</>
+                          : isJoined
                           ? <><Zap className="w-3.5 h-3.5 mr-1" />Exam দিন</>
                           : <><Lock className="w-3.5 h-3.5 mr-1" />৳{exam.entryFee} দিয়ে ঢুকুন</>}
                       </GlowButton>

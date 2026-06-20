@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Users, BarChart3, Bell, FileCheck, ArrowLeft, Trash2, CheckCircle2, XCircle, Crown, Smartphone, Plus, Trophy, Send } from "lucide-react";
+import { Shield, Users, BarChart3, Bell, FileCheck, ArrowLeft, Trash2, CheckCircle2, XCircle, Crown, Smartphone, Plus, Trophy, Send, Gift, Calendar } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { calcPrizes, getRankPrize } from "@/lib/prizeUtils";
 
@@ -35,8 +35,11 @@ export default function AdminPage() {
   const [newExam, setNewExam] = useState({
     title: "", description: "", entryFee: "", prizePool: "",
     duration: "30", totalQuestions: "20", category: "Math", level: "All",
-    maxParticipants: "100",
+    maxParticipants: "100", startTimeStr: "", endTimeStr: "",
   });
+
+  const [gift, setGift] = useState({ uid: "", coins: "", message: "" });
+  const [sendingGift, setSendingGift] = useState(false);
 
   useEffect(() => {
     if (userProfile && userProfile.role !== "admin") {
@@ -138,24 +141,63 @@ export default function AdminPage() {
   };
 
   const createExam = async () => {
-    if (!newExam.title || !newExam.entryFee || !newExam.prizePool) {
-      toast({ title: "সব field পূরণ করুন", variant: "destructive" });
+    if (!newExam.title || !newExam.entryFee || !newExam.startTimeStr || !newExam.endTimeStr) {
+      toast({ title: "Title, Entry Fee, Start Time ও End Time দিন", variant: "destructive" });
+      return;
+    }
+    const startTs = new Date(newExam.startTimeStr).getTime();
+    const endTs = new Date(newExam.endTimeStr).getTime();
+    if (endTs <= startTs) {
+      toast({ title: "End time, Start time-এর পরে হতে হবে", variant: "destructive" });
       return;
     }
     await push(ref(db, "premiumExams"), {
-      ...newExam,
+      title: newExam.title,
+      description: newExam.description,
       entryFee: parseInt(newExam.entryFee),
-      prizePool: parseInt(newExam.prizePool),
+      prizePool: parseInt(newExam.prizePool || "0"),
       duration: parseInt(newExam.duration),
       totalQuestions: parseInt(newExam.totalQuestions),
       maxParticipants: parseInt(newExam.maxParticipants),
+      category: newExam.category,
+      level: newExam.level,
       participants: 0,
-      status: "open",
-      startTime: Date.now() + 3600000,
+      status: "scheduled",
+      startTime: startTs,
+      endTime: endTs,
       createdAt: Date.now(),
     });
-    toast({ title: "Exam created!" });
-    setNewExam({ title: "", description: "", entryFee: "", prizePool: "", duration: "30", totalQuestions: "20", category: "Math", level: "All", maxParticipants: "100" });
+    toast({ title: "Exam created! ✅" });
+    setNewExam({ title: "", description: "", entryFee: "", prizePool: "", duration: "30", totalQuestions: "20", category: "Math", level: "All", maxParticipants: "100", startTimeStr: "", endTimeStr: "" });
+  };
+
+  const sendGift = async () => {
+    if (!gift.uid || !gift.coins) {
+      toast({ title: "User ও coins amount দিন", variant: "destructive" });
+      return;
+    }
+    setSendingGift(true);
+    try {
+      const giftRef = await push(ref(db, `gifts/${gift.uid}`), {
+        coins: parseInt(gift.coins),
+        message: gift.message || "Admin থেকে বিশেষ উপহার 🎁",
+        sentAt: Date.now(),
+        claimed: false,
+        senderName: userProfile?.name || "Admin",
+      });
+      await push(ref(db, `notifications/${gift.uid}`), {
+        type: "gift",
+        message: `🎁 আপনার জন্য একটি gift এসেছে! Gifts page-এ গিয়ে claim করুন।`,
+        timestamp: Date.now(),
+        read: false,
+      });
+      toast({ title: `${gift.coins} coins gift পাঠানো হয়েছে!` });
+      setGift({ uid: "", coins: "", message: "" });
+    } catch (err: any) {
+      toast({ title: "Failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSendingGift(false);
+    }
   };
 
   const markPrizePaid = async (examId: string, winner: any, rank: number, prize: number) => {
@@ -223,6 +265,9 @@ export default function AdminPage() {
                   {pendingWithdraws.length}
                 </span>
               )}
+            </TabsTrigger>
+            <TabsTrigger value="gifts">
+              <Gift className="w-3.5 h-3.5 mr-1" />Gifts
             </TabsTrigger>
             <TabsTrigger value="results" className="relative">
               Prizes
@@ -324,6 +369,49 @@ export default function AdminPage() {
                 )}
               </motion.div>
             ))}
+          </TabsContent>
+
+          {/* ── GIFTS TAB ── */}
+          <TabsContent value="gifts" className="mt-4 space-y-4">
+            <div className="glass-card p-5 rounded-2xl space-y-4">
+              <div className="flex items-center gap-2">
+                <Gift className="w-5 h-5 text-purple-400" />
+                <h3 className="font-bold">User-কে Gift পাঠান</h3>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">User বেছে নিন *</Label>
+                <select
+                  value={gift.uid}
+                  onChange={e => setGift(p => ({ ...p, uid: e.target.value }))}
+                  className="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
+                  <option value="" className="bg-gray-900">-- User select করুন --</option>
+                  {users.filter(u => u.uid !== currentUser?.uid).map(u => (
+                    <option key={u.uid} value={u.uid} className="bg-gray-900">
+                      {u.name || "Unknown"} ({u.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Coins Amount *</Label>
+                <Input type="number" value={gift.coins}
+                  onChange={e => setGift(p => ({ ...p, coins: e.target.value }))}
+                  placeholder="যেমন: 100" className="h-10 bg-white/5 border-white/10" />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1 block">Message (optional)</Label>
+                <Input value={gift.message}
+                  onChange={e => setGift(p => ({ ...p, message: e.target.value }))}
+                  placeholder="বিশেষ বার্তা..." className="h-10 bg-white/5 border-white/10" />
+              </div>
+              <GlowButton className="w-full h-10" onClick={sendGift} disabled={sendingGift}>
+                <Gift className="w-4 h-4 mr-2" />
+                {sendingGift ? "পাঠানো হচ্ছে..." : "Gift পাঠান"}
+              </GlowButton>
+              <p className="text-[11px] text-muted-foreground text-center">
+                User একটি Ad দেখার পর gift claim করতে পারবে
+              </p>
+            </div>
           </TabsContent>
 
           <TabsContent value="results" className="mt-4 space-y-5">
@@ -445,6 +533,29 @@ export default function AdminPage() {
                       placeholder={placeholder} className="h-10 bg-white/5 border-white/10" />
                   </div>
                 ))}
+                <div className="col-span-2 border-t border-white/10 pt-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    <p className="text-xs font-semibold text-primary uppercase tracking-widest">Exam Schedule *</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1 block">🟢 Start Time</Label>
+                      <Input type="datetime-local" value={newExam.startTimeStr}
+                        onChange={e => setNewExam(p => ({ ...p, startTimeStr: e.target.value }))}
+                        className="h-10 bg-white/5 border-white/10 text-xs" />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1 block">🔴 End Time</Label>
+                      <Input type="datetime-local" value={newExam.endTimeStr}
+                        onChange={e => setNewExam(p => ({ ...p, endTimeStr: e.target.value }))}
+                        className="h-10 bg-white/5 border-white/10 text-xs" />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-2">
+                    Start → End সময়ের মধ্যে users join ও exam দিতে পারবে
+                  </p>
+                </div>
               </div>
               <GlowButton className="w-full h-10" onClick={createExam} data-testid="btn-create-exam">
                 <Plus className="w-4 h-4 mr-2" />Exam Create করুন
