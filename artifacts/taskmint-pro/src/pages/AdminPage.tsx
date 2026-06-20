@@ -13,8 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Users, BarChart3, Bell, FileCheck, ArrowLeft, Trash2, CheckCircle2, XCircle, Crown, Smartphone, Plus } from "lucide-react";
+import { Shield, Users, BarChart3, Bell, FileCheck, ArrowLeft, Trash2, CheckCircle2, XCircle, Crown, Smartphone, Plus, Trophy, Send } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { calcPrizes, getRankPrize } from "@/lib/prizeUtils";
 
 export default function AdminPage() {
   const { currentUser, userProfile } = useAuth();
@@ -25,6 +26,8 @@ export default function AdminPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [paymentRequests, setPaymentRequests] = useState<any[]>([]);
   const [withdrawRequests, setWithdrawRequests] = useState<any[]>([]);
+  const [examResults, setExamResults] = useState<Record<string, any[]>>({});
+  const [allExams, setAllExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [notifMsg, setNotifMsg] = useState("");
   const [sending, setSending] = useState(false);
@@ -52,7 +55,30 @@ export default function AdminPage() {
         setLoading(false);
       })
     );
-    return () => refs.forEach((_, i) => off(ref(db, refs[i].path)));
+
+    // load exams
+    const examRef = ref(db, "premiumExams");
+    onValue(examRef, (snap) => {
+      if (snap.val()) setAllExams(Object.entries(snap.val()).map(([id, v]: [string, any]) => ({ id, ...v })));
+    });
+
+    // load exam results grouped by examId
+    const resultsRef = ref(db, "examResults");
+    onValue(resultsRef, (snap) => {
+      const data = snap.val();
+      if (!data) return;
+      const grouped: Record<string, any[]> = {};
+      Object.entries(data).forEach(([examId, resultsByUid]: [string, any]) => {
+        grouped[examId] = Object.values(resultsByUid).sort((a: any, b: any) => b.score - a.score || a.submittedAt - b.submittedAt);
+      });
+      setExamResults(grouped);
+    });
+
+    return () => {
+      refs.forEach((_, i) => off(ref(db, refs[i].path)));
+      off(examRef);
+      off(resultsRef);
+    };
   }, [userProfile, setLocation]);
 
   const approvePayment = async (req: any) => {
@@ -132,6 +158,17 @@ export default function AdminPage() {
     setNewExam({ title: "", description: "", entryFee: "", prizePool: "", duration: "30", totalQuestions: "20", category: "Math", level: "All", maxParticipants: "100" });
   };
 
+  const markPrizePaid = async (examId: string, winner: any, rank: number, prize: number) => {
+    await update(ref(db, `examResults/${examId}/${winner.uid}`), { prizePaid: true, paidAt: Date.now() });
+    await push(ref(db, `notifications/${winner.uid}`), {
+      type: "contest",
+      message: `🏆 অভিনন্দন! "${winner.name}" আপনি ${rank} স্থান পেয়েছেন। ৳${prize} prize আপনার বিকাশে (${winner.bkashNumber || "—"}) পাঠানো হয়েছে।`,
+      timestamp: Date.now(),
+      read: false,
+    });
+    toast({ title: `৳${prize} prize paid to ${winner.name}!` });
+  };
+
   const pendingPayments = paymentRequests.filter(r => r.status === "pending");
   const pendingWithdraws = withdrawRequests.filter(r => r.status === "pending");
 
@@ -185,6 +222,12 @@ export default function AdminPage() {
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] flex items-center justify-center font-bold">
                   {pendingWithdraws.length}
                 </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="results" className="relative">
+              Prizes
+              {Object.values(examResults).some(rs => rs.some((r: any) => !r.prizePaid && rs.indexOf(r) < 10 && getRankPrize(rs.indexOf(r)+1, (allExams.find(e=>e.id===Object.keys(examResults)[Object.values(examResults).indexOf(rs)])?.participants||0)*(allExams.find(e=>e.id===Object.keys(examResults)[Object.values(examResults).indexOf(rs)])?.entryFee||0)) > 0)) && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
               )}
             </TabsTrigger>
             <TabsTrigger value="exams">Exams</TabsTrigger>
@@ -281,6 +324,95 @@ export default function AdminPage() {
                 )}
               </motion.div>
             ))}
+          </TabsContent>
+
+          <TabsContent value="results" className="mt-4 space-y-5">
+            <p className="text-xs text-muted-foreground">Exam শেষে prize distribute করুন — বিকাশে পাঠিয়ে "Prize Paid" চাপুন</p>
+            {Object.keys(examResults).length === 0 ? (
+              <div className="text-center py-10 text-muted-foreground text-sm">
+                <Trophy className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                এখনো কোনো exam result নেই।
+              </div>
+            ) : Object.entries(examResults).map(([examId, results]) => {
+              const exam = allExams.find(e => e.id === examId);
+              const participants = exam?.participants || results.length;
+              const entryFee = exam?.entryFee || 0;
+              const totalPool = participants * entryFee;
+              const prizes = calcPrizes(totalPool);
+              const top10 = results.slice(0, 10);
+
+              return (
+                <motion.div key={examId} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                  className="glass-card rounded-2xl overflow-hidden">
+                  {/* Exam header */}
+                  <div className="p-4 border-b border-white/10 bg-yellow-500/5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold text-sm">{exam?.title || examId}</h3>
+                        <p className="text-xs text-muted-foreground">{results.length} participants</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Total Pool</p>
+                        <p className="font-extrabold text-yellow-400">৳{totalPool.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    {/* Prize summary */}
+                    <div className="grid grid-cols-4 gap-1.5 mt-3">
+                      {[
+                        { l: "🥇 1st", v: prizes.first },
+                        { l: "🥈 2nd", v: prizes.second },
+                        { l: "🥉 3rd", v: prizes.third },
+                        { l: "🏅 4–10 ea.", v: prizes.fourth10Each },
+                      ].map(r => (
+                        <div key={r.l} className="bg-white/5 rounded-lg p-1.5 text-center">
+                          <p className="text-[10px] text-muted-foreground">{r.l}</p>
+                          <p className="text-xs font-bold text-green-400">৳{r.v}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground bg-white/5 rounded-lg px-3 py-1.5">
+                      <span>🏦 Admin cut (২০%)</span>
+                      <span className="font-bold text-red-400">৳{prizes.admin.toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  {/* Leaderboard with prize paid buttons */}
+                  <div className="divide-y divide-white/5">
+                    {top10.map((r: any, i: number) => {
+                      const rank = i + 1;
+                      const prize = getRankPrize(rank, totalPool);
+                      const rankEmoji = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : `🏅`;
+                      return (
+                        <div key={r.uid} className={`flex items-center gap-3 px-4 py-3 ${r.prizePaid ? "opacity-60" : ""}`}>
+                          <span className="text-lg w-7">{rankEmoji}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{r.name}</p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {r.score} pts · {r.bkashNumber ? `বিকাশ: ${r.bkashNumber}` : "বিকাশ নম্বর নেই"}
+                            </p>
+                          </div>
+                          {prize > 0 ? (
+                            r.prizePaid ? (
+                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs shrink-0">
+                                <CheckCircle2 className="w-3 h-3 mr-1" />Paid ৳{prize}
+                              </Badge>
+                            ) : (
+                              <button
+                                onClick={() => markPrizePaid(examId, r, rank, prize)}
+                                className="shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 text-xs font-semibold transition-colors border border-yellow-500/20">
+                                <Send className="w-3 h-3" />৳{prize} দিন
+                              </button>
+                            )
+                          ) : (
+                            <span className="text-xs text-muted-foreground shrink-0">No prize</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              );
+            })}
           </TabsContent>
 
           <TabsContent value="exams" className="mt-4 space-y-4">

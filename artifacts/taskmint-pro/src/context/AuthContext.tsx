@@ -13,6 +13,7 @@ export interface UserProfile {
   level: number;
   streak: number;
   role: "student" | "admin";
+  bkashNumber?: string;
   createdAt: number;
   lastLogin: number;
 }
