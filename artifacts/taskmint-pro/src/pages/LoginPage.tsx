@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Zap, Mail, Lock, Chrome, Eye, EyeOff } from "lucide-react";
 
-const ADMIN_EMAIL = "priommojumdar@gmail.com";
+const ADMIN_EMAIL = "priommozumder@gmail.com";
 
 async function createOrUpdateProfile(user: any): Promise<"admin" | "student"> {
   const isAdmin = user.email === ADMIN_EMAIL;
