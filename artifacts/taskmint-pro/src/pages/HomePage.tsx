@@ -10,7 +10,7 @@ import { SkeletonCard } from "@/components/SkeletonCard";
 import {
   Bell, Coins, Zap, Flame, Trophy, Crown, BookOpen,
   MessageSquare, Bot, ChevronRight, Star, Target,
-  TrendingUp, Sword, CheckCircle2, Lock, Sparkles, Gift
+  TrendingUp, Sword, CheckCircle2, Lock, Sparkles, Gift, Code2
 } from "lucide-react";
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.07 } } };
@@ -37,7 +37,7 @@ const QUICK_ACTIONS = [
   { icon: Crown, label: "Exams", path: "/premium-exams", gradient: "from-yellow-600/30 to-yellow-500/10", border: "border-yellow-500/20", iconColor: "text-yellow-400" },
   { icon: Bot, label: "AI", path: "/ai", gradient: "from-violet-600/30 to-violet-500/10", border: "border-violet-500/20", iconColor: "text-violet-400" },
   { icon: MessageSquare, label: "Chat", path: "/chat", gradient: "from-emerald-600/30 to-emerald-500/10", border: "border-emerald-500/20", iconColor: "text-emerald-400" },
-  { icon: Trophy, label: "Contest", path: "/competitions", gradient: "from-orange-600/30 to-orange-500/10", border: "border-orange-500/20", iconColor: "text-orange-400" },
+  { icon: Code2, label: "Code", path: "/programming", gradient: "from-orange-600/30 to-orange-500/10", border: "border-orange-500/20", iconColor: "text-orange-400" },
   { icon: TrendingUp, label: "Wallet", path: "/wallet", gradient: "from-pink-600/30 to-pink-500/10", border: "border-pink-500/20", iconColor: "text-pink-400" },
   { icon: Gift, label: "Gifts", path: "/gifts", gradient: "from-green-600/30 to-green-500/10", border: "border-green-500/20", iconColor: "text-green-400" },
   { icon: Sparkles, label: "Courses", path: "/courses", gradient: "from-cyan-600/30 to-cyan-500/10", border: "border-cyan-500/20", iconColor: "text-cyan-400" },

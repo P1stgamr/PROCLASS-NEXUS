@@ -43,7 +43,8 @@ export default function AdminPage() {
   const [sendingGift, setSendingGift] = useState(false);
 
   useEffect(() => {
-    if (userProfile && userProfile.role !== "admin") {
+    const adminRoles = ["admin", "super_admin", "owner"];
+    if (userProfile && !adminRoles.includes(userProfile.role)) {
       setLocation("/home");
       return;
     }

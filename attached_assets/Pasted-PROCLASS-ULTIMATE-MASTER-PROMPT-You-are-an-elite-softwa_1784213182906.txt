@@ -1,0 +1,610 @@
+PROCLASS ULTIMATE MASTER PROMPT
+
+You are an elite software engineering team consisting of a Senior Software Architect, Full Stack Developer, UI/UX Designer, AI Engineer, Firebase Engineer, Security Engineer, DevOps Engineer, QA Engineer, Product Manager, and Performance Engineer.
+
+Your mission is to analyze my existing project completely and transform it into a world-class, production-ready educational platform called ProClass.
+
+IMPORTANT RULES
+
+- Analyze the existing project before changing anything.
+- Never remove working features.
+- Improve existing code instead of rewriting everything.
+- Fix every bug.
+- Keep the code clean, scalable, reusable, and production-ready.
+- Maintain a mobile-first responsive design.
+- Use Firebase Realtime Database only.
+- Do NOT migrate to Firestore.
+
+---
+
+PROJECT GOAL
+
+Build the best student ecosystem by combining the strengths of modern learning, AI, coding, community, and gamification.
+
+Inspired by:
+
+- ChatGPT
+- Duolingo
+- Discord
+- Khan Academy
+- Coursera
+- Udemy
+- GitHub
+- Replit
+- ACS Academy
+
+---
+
+PROJECT AUDIT
+
+Before generating code:
+
+Analyze every page.
+
+Analyze every component.
+
+Analyze every route.
+
+Analyze every Firebase connection.
+
+Analyze every database path.
+
+Analyze every API call.
+
+Analyze every UI element.
+
+Analyze every animation.
+
+Analyze every button.
+
+Analyze every form.
+
+Analyze every image.
+
+Analyze every icon.
+
+Analyze every dependency.
+
+Find:
+
+- Broken buttons
+- Broken routes
+- Missing pages
+- Missing images
+- Firebase errors
+- Authentication errors
+- Performance issues
+- Mobile issues
+- Duplicate code
+- Unused files
+- Console errors
+- Accessibility issues
+
+Fix every issue without breaking existing functionality.
+
+---
+
+DESIGN
+
+Create a premium startup-quality interface.
+
+Requirements:
+
+- Apple-quality UI
+- Google-quality UX
+- Glassmorphism
+- Beautiful gradients
+- Modern typography
+- Premium icons
+- Rounded cards
+- Soft shadows
+- Smooth animations
+- Skeleton loading
+- Beautiful empty states
+- Responsive on every device
+- Dark mode
+- Light mode
+
+---
+
+AUTHENTICATION
+
+Implement and improve:
+
+- Google Sign-In
+- Email Login
+- Email Signup
+- Forgot Password
+- Remember Me
+- Persistent Login
+- Protected Routes
+- Role-based Authentication
+
+Roles:
+
+- Student
+- Moderator
+- Admin
+- Super Admin
+- Owner
+
+Automatically create a user profile after first login.
+
+---
+
+HOME
+
+Create a modern homepage including:
+
+- Hero Banner
+- Animated Statistics
+- Trending Courses
+- AI Assistant
+- Programming Section
+- Competition Section
+- Leaderboard Preview
+- Student Reviews
+- Announcements
+- Premium Footer
+
+---
+
+DASHBOARD
+
+Display:
+
+- Coins
+- XP
+- Level
+- Daily Streak
+- Wallet
+- Learning Progress
+- Recent Activity
+- Daily Mission
+- Notifications
+- AI Suggestions
+- Continue Learning
+
+Update everything in real time.
+
+---
+
+AI ASSISTANT
+
+Create a premium AI system.
+
+Features:
+
+- ChatGPT-style interface
+- Conversation history
+- Markdown support
+- Code highlighting
+- Typing animation
+- Search chats
+- Pin chats
+- Delete chats
+- Copy responses
+- Voice-ready architecture
+
+AI Capabilities:
+
+- Homework Helper
+- Programming Assistant
+- Website Builder
+- App Builder
+- Game Builder
+- Bug Fixer
+- Code Reviewer
+- Note Generator
+- Quiz Generator
+- Essay Writer
+- Resume Builder
+- Study Planner
+- Career Advisor
+
+---
+
+STUDY PLATFORM
+
+Include:
+
+- SSC
+- HSC
+- NHSPC
+- Olympiad
+- Programming
+- Notes
+- PDF Library
+- Video Courses
+- Practice Questions
+- Mock Tests
+- Flashcards
+- Revision Planner
+
+---
+
+PROGRAMMING
+
+Create:
+
+- Problem Solving
+- Online Code Editor
+- Coding Challenges
+- Contest System
+- Topic-wise Problems
+- AI Explanation
+- Difficulty Levels
+- Progress Tracking
+
+---
+
+COURSE PLATFORM
+
+Support:
+
+- Free Courses
+- Premium Courses
+- Instructor Dashboard
+- Video Lessons
+- PDF Lessons
+- Assignments
+- Quizzes
+- Certificates
+- Ratings
+- Reviews
+
+---
+
+MEMBERSHIP
+
+Plans:
+
+- Free
+- Silver
+- Gold
+- Platinum
+
+Premium Benefits:
+
+- Premium AI
+- Premium Courses
+- Premium Badge
+- Exclusive Content
+
+---
+
+PAYMENT
+
+Support:
+
+- bKash
+- Nagad
+- Rocket
+- Upay
+- SSLCommerz
+
+Features:
+
+- Payment History
+- Subscription
+- Invoice
+- Membership Renewal
+
+---
+
+WALLET
+
+Include:
+
+- Coins
+- Earnings
+- Rewards
+- Transactions
+- Referral Bonus
+- Withdrawal Requests
+
+---
+
+COMMUNITY
+
+Create:
+
+- Private Chat
+- Group Chat
+- Study Groups
+- Comments
+- Likes
+- Follow Users
+- Discussion Forum
+
+---
+
+LEADERBOARD
+
+Create:
+
+- Daily
+- Weekly
+- Monthly
+- Global
+- Bangladesh
+- XP Ranking
+- Coin Ranking
+- Programming Ranking
+
+---
+
+PROFILE
+
+Allow users to manage:
+
+- Profile Photo
+- Cover Photo
+- Name
+- Username
+- Email
+- Password
+- Bio
+- Skills
+- Portfolio
+- GitHub
+- LinkedIn
+- Certificates
+- Achievements
+- Privacy
+- Notifications
+
+---
+
+ADMIN PANEL
+
+Only Super Admin can:
+
+- Add Admin
+- Remove Admin
+- Manage Roles
+- Manage Membership
+- Manage Users
+- Manage Courses
+- Manage Payments
+- Manage Ads
+- Manage AI
+- Manage Contests
+- Manage Reports
+
+Create analytics for:
+
+- Revenue
+- Active Users
+- Online Users
+- Device Statistics
+- User Growth
+- Course Analytics
+- AI Usage
+
+---
+
+ADS
+
+Support:
+
+- Banner Ads
+- Popup Ads
+- Native Ads
+
+Each ad must support:
+
+- Image
+- Title
+- Description
+- Destination URL
+- Enable/Disable
+- Click Counter
+- View Counter
+
+---
+
+NOTIFICATIONS
+
+Support:
+
+- Real-time Notifications
+- Announcement System
+- Email-ready Notifications
+
+---
+
+SECURITY
+
+Implement:
+
+- Protected Routes
+- Input Validation
+- Secure Firebase Usage
+- Activity Logs
+- Role-based Permissions
+
+---
+
+DATABASE
+
+Use Firebase Realtime Database only.
+
+Organize:
+
+users
+courses
+lessons
+videos
+notes
+leaderboard
+chat
+messages
+notifications
+wallet
+earnings
+withdrawals
+ads
+membership
+achievements
+streaks
+activity
+analytics
+settings
+
+---
+
+FINAL QUALITY
+
+Before finishing:
+
+- Test every page
+- Test every button
+- Test every route
+- Test every Firebase action
+- Test mobile responsiveness
+- Remove unused code
+- Fix console errors
+- Optimize performance
+
+The final result should feel like a premium startup-quality application that is fast, beautiful, secure, scalable, mobile-first, and production-ready while preserving all existing working functionality.
+
+
+You are a team of elite software architects, senior full stack developers, senior UI/UX designers, AI engineers, security engineers, DevOps engineers, and QA engineers. Your task is to fully analyze, redesign, and develop my existing educational platform on Replit into a top-tier, startup-quality, scalable app called ProClass. Follow these steps precisely:
+
+1. Project Audit:  
+   Before making any changes, analyze the entire project thoroughly. Inspect every file, component, page, route, Firebase integration, database structure, API call, UI element, animation, and button. Identify broken routes, missing pages, Firebase errors, performance bottlenecks, responsiveness issues, security risks, and accessibility gaps. Provide a detailed audit report.
+
+2. Core Technology:  
+   Use React, Vite, Tailwind CSS, Framer Motion, React Router. Use Firebase Authentication and Firebase Realtime Database ONLY (do not use Firestore). Maintain a modular architecture with reusable components and hooks.
+
+3. Authentication:  
+   Implement robust authentication with Google Sign-In, Email Login, Email Signup, Forgot Password, Remember Me, Persistent Login, and role-based authorization. Automatically create user profiles after first login. Roles: Student, Moderator, Admin, Super Admin, Owner.
+
+4. Home Page:  
+   Design a premium landing page with a hero section, animated statistics, trending courses, AI assistant, programming section, competition section, leaderboard preview, testimonials, and a premium footer. Ensure the design is Apple-quality and Google-material inspired.
+
+5. Dashboard:  
+   Create a user dashboard with real-time updates. Show coins, XP, levels, daily streak, wallet balance, learning progress, recent activity, AI suggestions, notifications, and a daily mission tracker.
+
+6. AI Assistant:  
+   Build a premium AI assistant with a ChatGPT-style interface. Features: conversation history, markdown support, code highlighting, pin/delete chats, search, voice input ready, and AI capabilities like homework help, programming assistant, website/app builder, bug fixer, and career advisor.
+
+7. Study Platform:  
+   Include study sections for SSC, HSC, NHSPC, Olympiad, programming, with notes, PDFs, video courses, mock tests, flashcards, and revision tools.
+
+8. Programming:  
+   Implement a full online code editor with support for multiple languages, real-time execution, contests, difficulty levels, and AI explanations.
+
+9. Courses:  
+   Build a course system with free and premium courses, instructor dashboards, video/PDF uploads, quizzes, certificates, and reviews.
+
+10. Payment System:  
+    Integrate a flexible payment system that supports bKash, Nagad, Rocket, Upay, SSLCommerz, Visa, MasterCard. Allow admin to define payment options for each course, exam, or membership. Users should be able to see payment history, invoices, and automatic subscription renewal. Ensure all payment actions are logged securely.
+
+11. Membership:  
+    Create free, silver, gold, and platinum tiers. Premium
+
+[06/07, 1:24 pm] Ma: Analyze my TaskMint app (currently on Replit) and help me transform it into a top-tier, globally competitive platform that is not only educational but also profitable. Follow these steps:
+
+1. Current Features Assessment: List all features currently implemented—such as Google Sign-In, Firebase Auth, basic dashboard, subject sections, and admin panel—and identify what is working and what isn’t.
+
+2. Required Features: Add premium course functionality (like ACS Academy), where users can browse free courses, pay for premium courses, and track progress. Enable a marketplace where instructors can upload and sell courses later.
+
+3. Design Excellence: Ensure a world-class UI/UX: use glassmorphism, soft shadows, modern gradients, and a clean, mobile-first design. Ensure smooth animations, fast performance, and a seamless user journey (inspired by top apps like Duolingo, LinkedIn, and Facebook).
+
+4. Business Model & Monetization: Implement a tiered subscription model (freemium + premium courses), ad placements, and a referral/affiliate program. Ensure users can track earnings and rewards. Add in-app purchases for special content or features.
+
+5. Publicity & Growth: Integrate social sharing, referral incentives, and viral challenges (e.g., users compete in weekly quizzes). Optimize for SEO, and ensure the app is PWA-ready so it can be installed on mobile.
+
+6. AI-Powered Personalization: Use AI to provide personalized learning pathways, recommend courses based on user progress, and automate progress tracking. 
+
+Generate a step-by-step roadmap so that every feature is built with scalability, mobile responsiveness, and a secure backend. Ensure the final app is not only educationally empowering but also a business powerhouse, allowing for scalable monetization and broad user adoption, so that both users and you as a creator benefit greatly.
+
+ Analyze and redesign my current TaskMint app project (on Replit) into a premium, globally competitive educational platform called ProClass. Follow these steps:
+
+1. Rename the app: Change all references from "TaskMint" to "ProClass" across branding, UI, and URLs.
+2. Current Features Assessment: Identify all implemented features—Google Sign-In, Firebase Auth, profile, dashboard, subject sections, admin panel—and note which are working and which need fixing.
+3. Required Features: Add a premium course marketplace like ACS Academy, where users can browse free courses, purchase premium courses, and track progress. Later, add a marketplace for course instructors to sell content.
+4. Membership System: Implement a membership model where users can subscribe for additional benefits, like exclusive courses, early access, or special content. Allow users to purchase memberships easily.
+5. UI/UX Excellence: Design a premium, mobile-first interface with glassmorphism, smooth animations, soft gradients, and responsive layout. Ensure fast performance, intuitive navigation, and top-tier aesthetics inspired by LinkedIn, Duolingo, and Khan Academy.
+6. Business Model: Create a freemium model (free basic courses + premium subscription). Add ad placements, a referral program, and track user earnings. Ensure users can easily purchase memberships or special content.
+7. Publicity & Growth: Integrate social sharing, referral bonuses, and viral challenges (like weekly quizzes or leaderboard contests). Optimize for SEO so organic traffic increases. Make the app a Progressive Web App (PWA) so users can install it on their mobile devices.
+8. AI Personalization: Use AI to personalize course suggestions, track progress, and recommend next steps. AI should guide users based on their skill, performance, and goals.
+
+Provide a detailed implementation roadmap, ensuring scalability, mobile responsiveness, and a secure backend. Ensure the app is ready for local launch, so that users can easily access it and love using it. Aim for a business model that benefits both users and you as the creator, ensuring long-term growth and profitability.
+
+ Analyze and redesign the admin panel of my educational platform (ProClass) to ensure complete administrative control and security. Follow these instructions:
+
+1. Admin Roles: Implement a dual admin system. A "Super Admin" (selected by me) will have full control over all features, including adding and removing other admins, creating memberships, managing courses, and editing all content. A "Basic Admin" will have limited access: they can view user numbers, track payments, check activities, and handle basic moderation, but cannot alter critical settings or add/remove other admins.
+
+2. Membership Control: Allow the Super Admin to create, update, or delete membership tiers. Users should be able to purchase memberships, and the Super Admin should manage all subscription settings.
+
+3. Feature Control: Ensure every feature (like ad placements, course publishing, or notifications) can be enabled, disabled, or edited by the Super Admin. The Basic Admin should only be able to view and report data, not alter critical settings.
+
+4. Data Monitoring: Implement a dashboard where the Basic Admin can see total users, active users, payment requests, and total earnings. The Super Admin should have a separate, advanced dashboard with complete data control, including the ability to add/remove admins, manage payments, and edit all course or membership details.
+
+5. Security: Ensure that only the Super Admin can edit admin roles and that all actions are logged (like who changed what). Use strong authentication for Super Admins and protect all sensitive actions.
+
+6. Roadmap: Provide a step-by-step guide so that the admin panel is easy to navigate, scalable, and secure. Make sure the app is fully protected, with a clear separation of permissions between Super Admin and Basic Admin. Ensure the app can grow with multiple admins while protecting the business logic and financial data.
+
+After this redesign, ensure that the app has the best possible admin experience: full control for the primary admin, secure operations, and a scalable, profitable business model that users love and that allows me to keep the app safe, profitable, and growing.
+
+ You are a team of senior software architects and admin system designers. Your task is to design and implement a secure, fully featured admin panel for my ProClass platform. Follow these steps precisely:
+
+1. Super Admin Control: Only the Super Admin can add or remove other admins, assign roles, and manage all critical settings. Super Admin must have full control over payment methods (e.g., adding bank numbers like bKash, Nagad, Rocket) so that users can pay directly to the chosen number. Super Admin can create, update, or delete payment methods as required.
+
+2. Payment Management: Admin panel must allow Super Admin to configure which payment options are available for each course, membership, or exam. Admin should be able to assign a specific number (e.g., bKash number) where users will send payments. Keep a log of all payment method changes for audit.
+
+3. Role Management: Allow Super Admin to assign roles to users (Student, Moderator, Admin, etc.). The Admin should only have limited control, such as viewing reports, managing basic users, and sending notifications. Super Admin is the only role who can alter core settings.
+
+4. Course and Exam Payments:  
+   Admin should define which courses or exams require payment. Admin can set individual prices, deadlines, and assign different payment methods per course or event.
+
+5. Admin Dashboard:  
+   Super Admin dashboard must show total revenue, active payments, pending withdrawals, and top earning users. Admin dashboard should show basic stats, like total users, pending payments, and user activity.
+
+6. Payment History:  
+   Admin must see all payment transactions. They must be able to export reports and view which users paid by which method (e.g., bKash number X, or Nagad number Y).
+
+7. Security & Audit:  
+   Log every action in the admin panel (who changed what, when, and why). Ensure only the Super Admin can alter payment settings and that all routes are protected by authentication.
+
+After designing, test every payment flow, every role action, and all admin controls. Ensure that the platform remains secure, flexible, and fully scalable as business needs grow.
+
+You are a team of elite software architects, senior full stack developers, senior UI/UX designers, AI engineers, security engineers, DevOps engineers, and QA engineers. Your task is to fully analyze, redesign, and develop my existing educational platform on Replit into a top-tier, startup-quality, scalable app called ProClass. Follow these steps precisely:
+
+1. Project Audit:  
+   Before making any changes, analyze the entire project thoroughly. Inspect every file, component, page, route, Firebase integration, database structure, API call, UI element, animation, and button. Identify broken routes, missing pages, Firebase errors, performance bottlenecks, responsiveness issues, security risks, and accessibility gaps. Provide a detailed audit report.
+
+2. Core Technology:  
+   Use React, Vite, Tailwind CSS, Framer Motion, React Router. Use Firebase Authentication and Firebase Realtime Database ONLY (do not use Firestore). Maintain a modular architecture with reusable components and hooks.
+
+3. Authentication:  
+   Implement robust authentication with Google Sign-In, Email Login, Email Signup, Forgot Password, Remember Me, Persistent Login, and role-based authorization. Automatically create user profiles after first login. Roles: Student, Moderator, Admin, Super Admin, Owner.
+
+4. Home Page:  
+   Design a premium landing page with a hero section, animated statistics, trending courses, AI assistant, programming section, competition section, leaderboard preview, testimonials, and a premium footer. Ensure the design is Apple-quality and Google-material inspired.
+
+5. Dashboard:  
+   Create a user dashboard with real-time updates. Show coins, XP, levels, daily streak, wallet balance, learning progress, recent activity, AI suggestions, notifications, and a daily mission tracker.
+
+6. AI Assistant:  
+   Build a premium AI assistant with a ChatGPT-style interface. Features: conversation history, markdown support, code highlighting, pin/delete chats, search, voice input ready, and AI capabilities like homework help, programming assistant, website/app builder, bug fixer, and career advisor.
+
+7. Study Platform:  
+   Include study sections for SSC, HSC, NHSPC, Olympiad, programming, with notes, PDFs, video courses, mock tests, flashcards, and revision tools.
+
+8. Programming:  
+   Implement a full online code editor with support for multiple languages, real-time execution, contests, difficulty levels, and AI explanations.
+
+9. Courses:  
+   Build a course system with free and premium courses, instructor dashboards, video/PDF uploads, quizzes, certificates, and reviews.
+
+10. Payment System:  
+    Integrate a flexible payment system that supports bKash, Nagad, Rocket, Upay, SSLCommerz, Visa, MasterCard. Allow admin to define payment options for each course, exam, or membership. Users should be able to see payment history, invoices, and automatic subscription renewal. Ensure all payment actions are logged securely.
+
+11. Membership:  
+    Create free, silver, gold, and platinum tiers. Premium
+
+website  এর নাম বদলে PROCLASS NEXUS রাখবা 

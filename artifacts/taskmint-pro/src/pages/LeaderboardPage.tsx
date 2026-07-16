@@ -6,15 +6,17 @@ import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonCard } from "@/components/SkeletonCard";
-import { Trophy, Coins, Zap, Flame, Crown, Medal } from "lucide-react";
+import { Trophy, Coins, Zap, Flame, Crown, Calendar, Globe } from "lucide-react";
 
 type FilterType = "xp" | "coins" | "streak";
+type PeriodType = "all" | "weekly" | "monthly";
 
 export default function LeaderboardPage() {
   const { currentUser } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("xp");
+  const [period, setPeriod] = useState<PeriodType>("all");
 
   useEffect(() => {
     const usersRef = ref(db, "users");
@@ -29,7 +31,19 @@ export default function LeaderboardPage() {
     return () => off(usersRef);
   }, []);
 
-  const sorted = [...users].sort((a: any, b: any) => (b[filter] || 0) - (a[filter] || 0));
+  // For weekly/monthly we filter by joinedAt or just show all (real impl would use activity logs)
+  const now = Date.now();
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const monthMs = 30 * 24 * 60 * 60 * 1000;
+
+  const filteredUsers = users.filter(u => {
+    if (period === "all") return true;
+    if (period === "weekly") return u.lastActive ? now - u.lastActive < weekMs : true;
+    if (period === "monthly") return u.lastActive ? now - u.lastActive < monthMs : true;
+    return true;
+  });
+
+  const sorted = [...filteredUsers].sort((a: any, b: any) => (b[filter] || 0) - (a[filter] || 0));
   const top3 = sorted.slice(0, 3);
   const rest = sorted.slice(3);
   const myRank = sorted.findIndex(u => u.uid === currentUser?.uid) + 1;
@@ -40,19 +54,25 @@ export default function LeaderboardPage() {
     { id: "streak" as const, label: "Streak", icon: Flame, color: "text-orange-400" },
   ];
 
+  const periodConfig = [
+    { id: "all" as const, label: "Global", icon: Globe },
+    { id: "weekly" as const, label: "Weekly", icon: Calendar },
+    { id: "monthly" as const, label: "Monthly", icon: Calendar },
+  ];
+
   const podiumOrder = [1, 0, 2] as const;
   const podiumConfig = [
-    { height: "h-24", size: "w-16 h-16", border: "ring-2 ring-silver", bg: "gradient-silver", label: "2nd", medal: "🥈" },
-    { height: "h-32", size: "w-20 h-20", border: "ring-2 ring-yellow-400", bg: "gradient-gold", label: "1st", medal: "🥇" },
-    { height: "h-20", size: "w-14 h-14", border: "ring-2 ring-amber-700", bg: "gradient-bronze", label: "3rd", medal: "🥉" },
+    { height: "h-24", size: "w-16 h-16", border: "ring-2 ring-slate-400", bg: "bg-gradient-to-t from-slate-600 to-slate-400", label: "2nd", medal: "🥈" },
+    { height: "h-32", size: "w-20 h-20", border: "ring-2 ring-yellow-400", bg: "bg-gradient-to-t from-yellow-700 to-yellow-400", label: "1st", medal: "🥇" },
+    { height: "h-20", size: "w-14 h-14", border: "ring-2 ring-amber-700", bg: "bg-gradient-to-t from-amber-900 to-amber-600", label: "3rd", medal: "🥉" },
   ];
 
   return (
     <div className="min-h-screen bg-background pb-28">
       <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-2xl border-b border-white/[0.06] px-5 py-3.5">
-        <div className="max-w-md mx-auto">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-xl gradient-gold flex items-center justify-center">
+        <div className="max-w-md mx-auto space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
               <Trophy className="w-4 h-4 text-white" />
             </div>
             <div>
@@ -62,11 +82,24 @@ export default function LeaderboardPage() {
               </p>
             </div>
           </div>
+
+          {/* Period tabs */}
+          <div className="flex gap-1 bg-white/5 rounded-xl p-1">
+            {periodConfig.map(p => (
+              <button key={p.id} onClick={() => setPeriod(p.id)}
+                className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${period === p.id ? "gradient-primary text-white shadow-lg" : "text-muted-foreground hover:text-white"}`}>
+                <p.icon className="w-3 h-3" />
+                {p.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Filter tabs */}
           <div className="flex gap-1 bg-white/5 rounded-xl p-1">
             {filterConfig.map(f => (
               <button key={f.id} onClick={() => setFilter(f.id)}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${filter === f.id ? "gradient-primary text-white shadow-lg" : "text-muted-foreground hover:text-white"}`}>
-                <f.icon className="w-3 h-3" />
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${filter === f.id ? "bg-white/10 text-white" : "text-muted-foreground hover:text-white"}`}>
+                <f.icon className={`w-3 h-3 ${filter === f.id ? f.color : ""}`} />
                 {f.label}
               </button>
             ))}
@@ -79,7 +112,7 @@ export default function LeaderboardPage() {
           <div className="py-5 space-y-3">{[0,1,2,3,4].map(i => <SkeletonCard key={i} />)}</div>
         ) : (
           <AnimatePresence mode="wait">
-            <motion.div key={filter} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key={`${filter}-${period}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
 
               {/* Podium */}
               {top3.length >= 3 && (
@@ -159,6 +192,11 @@ export default function LeaderboardPage() {
                         </p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <Badge className="badge-level text-[9px] px-1.5 py-0">Lv.{user.level || 1}</Badge>
+                          {(user.membership && user.membership !== "free") && (
+                            <Badge className="text-[9px] px-1.5 py-0 bg-yellow-500/20 text-yellow-400">
+                              <Crown className="w-2 h-2 mr-0.5" />{user.membership}
+                            </Badge>
+                          )}
                           {(user.streak || 0) > 3 && (
                             <span className="text-[10px] text-orange-400 flex items-center gap-0.5">
                               <Flame className="w-2.5 h-2.5" />{user.streak}d
