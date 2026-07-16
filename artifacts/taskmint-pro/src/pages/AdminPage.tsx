@@ -26,6 +26,7 @@ export default function AdminPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [paymentRequests, setPaymentRequests] = useState<any[]>([]);
   const [withdrawRequests, setWithdrawRequests] = useState<any[]>([]);
+  const [membershipRequests, setMembershipRequests] = useState<any[]>([]);
   const [examResults, setExamResults] = useState<Record<string, any[]>>({});
   const [allExams, setAllExams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,7 @@ export default function AdminPage() {
       { path: "tasks", setter: (d: any) => setTasks(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v }))) },
       { path: "paymentRequests", setter: (d: any) => setPaymentRequests(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v })).sort((a: any, b: any) => b.createdAt - a.createdAt)) },
       { path: "withdrawRequests", setter: (d: any) => setWithdrawRequests(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v })).sort((a: any, b: any) => b.createdAt - a.createdAt)) },
+      { path: "membershipRequests", setter: (d: any) => setMembershipRequests(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v })).sort((a: any, b: any) => b.requestedAt - a.requestedAt)) },
     ];
     const unsubs = refs.map(({ path, setter }) =>
       onValue(ref(db, path), (snap) => {
@@ -273,6 +275,14 @@ export default function AdminPage() {
               Prizes
               {Object.values(examResults).some(rs => rs.some((r: any) => !r.prizePaid && rs.indexOf(r) < 10 && getRankPrize(rs.indexOf(r)+1, (allExams.find(e=>e.id===Object.keys(examResults)[Object.values(examResults).indexOf(rs)])?.participants||0)*(allExams.find(e=>e.id===Object.keys(examResults)[Object.values(examResults).indexOf(rs)])?.entryFee||0)) > 0)) && (
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="membership" className="relative">
+              <Crown className="w-3.5 h-3.5 mr-1" />Plans
+              {membershipRequests.filter(r => r.status === "pending").length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-yellow-500 rounded-full text-[9px] flex items-center justify-center font-bold text-black">
+                  {membershipRequests.filter(r => r.status === "pending").length}
+                </span>
               )}
             </TabsTrigger>
             <TabsTrigger value="exams">Exams</TabsTrigger>
@@ -498,6 +508,67 @@ export default function AdminPage() {
                       );
                     })}
                   </div>
+                </motion.div>
+              );
+            })}
+          </TabsContent>
+
+          <TabsContent value="membership" className="mt-4 space-y-3">
+            <p className="text-xs text-muted-foreground">Membership payment verify করুন → Plan activate করুন</p>
+            {membershipRequests.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground text-sm">কোনো membership request নেই।</div>
+            ) : membershipRequests.map((req) => {
+              const isPending = req.status === "pending";
+              return (
+                <motion.div key={req.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                  className={`glass-card p-4 rounded-2xl border ${isPending ? "border-yellow-500/20" : req.status === "approved" ? "border-green-500/20" : "border-red-500/20"}`}>
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge className={`text-[10px] capitalize ${req.plan === "platinum" ? "bg-violet-500/20 text-violet-400" : req.plan === "gold" ? "badge-coin" : "bg-slate-400/20 text-slate-300"}`}>
+                          <Crown className="w-2.5 h-2.5 mr-1" />{req.plan}
+                        </Badge>
+                        <Badge className={`text-[10px] ${isPending ? "bg-yellow-500/20 text-yellow-400" : req.status === "approved" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}>
+                          {req.status}
+                        </Badge>
+                      </div>
+                      <p className="font-semibold text-sm">{req.name || "User"}</p>
+                      <p className="text-xs text-muted-foreground">{req.email}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-yellow-400">৳{req.price}</p>
+                      <p className="text-[10px] text-muted-foreground font-mono">{req.txnId}</p>
+                    </div>
+                  </div>
+                  {isPending && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={async () => {
+                          await update(ref(db, `membershipRequests/${req.id}`), { status: "approved", approvedAt: Date.now() });
+                          await update(ref(db, `users/${req.uid}`), { membership: req.plan, membershipExpiry: Date.now() + 30 * 24 * 60 * 60 * 1000 });
+                          await push(ref(db, `notifications/${req.uid}`), {
+                            type: "coin", message: `🎉 ${req.plan.charAt(0).toUpperCase() + req.plan.slice(1)} membership activate হয়েছে!`,
+                            timestamp: Date.now(), read: false,
+                          });
+                          toast({ title: `${req.plan} membership approved!` });
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-green-500/20 border border-green-500/30 text-green-400 text-xs font-semibold hover:bg-green-500/30 transition-colors">
+                        <CheckCircle2 className="w-3.5 h-3.5" />Approve
+                      </button>
+                      <button
+                        onClick={async () => {
+                          await update(ref(db, `membershipRequests/${req.id}`), { status: "rejected" });
+                          await push(ref(db, `notifications/${req.uid}`), {
+                            type: "system", message: `Membership request rejected. Transaction ID verify করা যায়নি।`,
+                            timestamp: Date.now(), read: false,
+                          });
+                          toast({ title: "Rejected." });
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-semibold hover:bg-red-500/30 transition-colors">
+                        <XCircle className="w-3.5 h-3.5" />Reject
+                      </button>
+                    </div>
+                  )}
                 </motion.div>
               );
             })}

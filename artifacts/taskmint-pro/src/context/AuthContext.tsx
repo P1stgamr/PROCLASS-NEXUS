@@ -12,7 +12,13 @@ export interface UserProfile {
   xp: number;
   level: number;
   streak: number;
-  role: "student" | "admin";
+  role: "student" | "moderator" | "admin" | "super_admin" | "owner";
+  membership?: "free" | "silver" | "gold" | "platinum";
+  membershipExpiry?: number;
+  bio?: string;
+  github?: string;
+  linkedin?: string;
+  username?: string;
   bkashNumber?: string;
   createdAt: number;
   lastLogin: number;

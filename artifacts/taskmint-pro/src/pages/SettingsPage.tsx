@@ -29,6 +29,11 @@ export default function SettingsPage() {
 
   const [editName, setEditName] = useState(userProfile?.name || "");
   const [editPhoto, setEditPhoto] = useState(userProfile?.photoURL || "");
+  const [editBio, setEditBio] = useState(userProfile?.bio || "");
+  const [editUsername, setEditUsername] = useState(userProfile?.username || "");
+  const [editGithub, setEditGithub] = useState(userProfile?.github || "");
+  const [editLinkedin, setEditLinkedin] = useState(userProfile?.linkedin || "");
+  const [editBkash, setEditBkash] = useState(userProfile?.bkashNumber || "");
   const [editLoading, setEditLoading] = useState(false);
 
   const [currentPw, setCurrentPw] = useState("");
@@ -51,11 +56,17 @@ export default function SettingsPage() {
         displayName: editName.trim(),
         photoURL: editPhoto.trim() || null,
       });
-      await update(ref(db, `users/${currentUser.uid}`), {
+      const updates: Record<string, any> = {
         name: editName.trim(),
         photoURL: editPhoto.trim() || null,
-      });
-      toast({ title: "Profile updated!", description: "Your changes have been saved." });
+      };
+      if (editBio.trim()) updates.bio = editBio.trim();
+      if (editUsername.trim()) updates.username = editUsername.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+      if (editGithub.trim()) updates.github = editGithub.trim();
+      if (editLinkedin.trim()) updates.linkedin = editLinkedin.trim();
+      if (editBkash.trim()) updates.bkashNumber = editBkash.trim();
+      await update(ref(db, `users/${currentUser.uid}`), updates);
+      toast({ title: "Profile updated! ✅", description: "সব পরিবর্তন save হয়েছে।" });
       setEditModal(false);
     } catch (err: any) {
       toast({ title: "Update failed", description: err.message, variant: "destructive" });
@@ -177,7 +188,7 @@ export default function SettingsPage() {
           </GlowButton>
         </motion.div>
 
-        <p className="text-center text-xs text-muted-foreground">TaskMint Pro v1.0.0 — Built to inspire</p>
+        <p className="text-center text-xs text-muted-foreground">ProClass v2.0 — Learn. Code. Compete.</p>
       </div>
 
       {/* Profile Edit Modal */}
@@ -208,18 +219,28 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3">
+                {[
+                  { label: "নাম *", value: editName, setter: setEditName, placeholder: "আপনার নাম" },
+                  { label: "Username", value: editUsername, setter: setEditUsername, placeholder: "proclass_user (lowercase)" },
+                  { label: "Photo URL", value: editPhoto, setter: setEditPhoto, placeholder: "https://example.com/photo.jpg" },
+                  { label: "GitHub username", value: editGithub, setter: setEditGithub, placeholder: "octocat" },
+                  { label: "LinkedIn URL", value: editLinkedin, setter: setEditLinkedin, placeholder: "https://linkedin.com/in/..." },
+                  { label: "bKash Number", value: editBkash, setter: setEditBkash, placeholder: "01XXXXXXXXX" },
+                ].map((f, i) => (
+                  <div key={i}>
+                    <Label className="text-xs text-muted-foreground mb-1 block">{f.label}</Label>
+                    <Input value={f.value} onChange={e => f.setter(e.target.value)}
+                      placeholder={f.placeholder}
+                      className="bg-white/5 border-white/10 focus:border-primary h-10" />
+                  </div>
+                ))}
                 <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">নাম</Label>
-                  <Input value={editName} onChange={e => setEditName(e.target.value)}
-                    placeholder="আপনার নাম লিখুন"
-                    className="bg-white/5 border-white/10 focus:border-primary h-12" />
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Photo URL (optional)</Label>
-                  <Input value={editPhoto} onChange={e => setEditPhoto(e.target.value)}
-                    placeholder="https://example.com/photo.jpg"
-                    className="bg-white/5 border-white/10 focus:border-primary h-12" />
+                  <Label className="text-xs text-muted-foreground mb-1 block">Bio</Label>
+                  <textarea value={editBio} onChange={e => setEditBio(e.target.value)}
+                    placeholder="নিজের সম্পর্কে কিছু লিখুন..."
+                    rows={3}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary resize-none placeholder:text-muted-foreground/50" />
                 </div>
               </div>
 

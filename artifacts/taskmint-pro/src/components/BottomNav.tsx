@@ -1,14 +1,14 @@
 import { Link, useLocation } from "wouter";
-import { Home, BookOpen, Crown, MessageSquare, Wallet } from "lucide-react";
+import { Home, BookOpen, Crown, MessageSquare, GraduationCap } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 
 const NAV_ITEMS = [
   { href: "/home", label: "Home", icon: Home },
   { href: "/study", label: "Study", icon: BookOpen },
-  { href: "/competitions", label: "Exams", icon: Crown, highlight: true },
+  { href: "/premium-exams", label: "Exams", icon: Crown, highlight: true },
+  { href: "/courses", label: "Courses", icon: GraduationCap },
   { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/wallet", label: "Wallet", icon: Wallet },
 ];
 
 const HIDDEN_PATHS = ["/", "/login", "/signup", "/onboarding", "/admin", "/forgot-password"];

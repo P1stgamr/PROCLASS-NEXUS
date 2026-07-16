@@ -57,10 +57,10 @@ export default function SplashPage() {
           transition={{ delay: 0.3, duration: 0.5 }}
         >
           <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-white to-secondary bg-clip-text text-transparent">
-            TaskMint Pro
+            ProClass
           </h1>
           <p className="text-muted-foreground mt-2 text-sm font-medium tracking-widest uppercase">
-            Study. Compete. Earn.
+            Learn. Code. Compete.
           </p>
         </motion.div>
 

@@ -110,8 +110,11 @@ export default function ProfilePage() {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-xl font-extrabold truncate">{profile.name || "Student"}</h2>
-              <p className="text-sm text-muted-foreground">{profile.email || ""}</p>
-              <div className="flex items-center gap-2 mt-2">
+              {profile.username && (
+                <p className="text-xs text-primary/80">@{profile.username}</p>
+              )}
+              <p className="text-xs text-muted-foreground">{profile.email || ""}</p>
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
                 <Badge className="badge-level text-[10px]">Level {profile.level || 1}</Badge>
                 {(profile.streak || 0) > 0 && (
                   <Badge className="badge-streak text-[10px]">
@@ -121,7 +124,32 @@ export default function ProfilePage() {
                 {profile.role === "admin" && (
                   <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px]">Admin</Badge>
                 )}
+                {profile.role === "super_admin" && (
+                  <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[10px]">Super Admin</Badge>
+                )}
+                {profile.membership && profile.membership !== "free" && (
+                  <Badge className={`text-[10px] ${
+                    profile.membership === "platinum" ? "bg-violet-500/20 text-violet-400 border-violet-500/30" :
+                    profile.membership === "gold" ? "badge-coin" :
+                    "bg-slate-400/20 text-slate-300 border-slate-400/30"
+                  }`}>
+                    <Crown className="w-2.5 h-2.5 mr-1" />{profile.membership}
+                  </Badge>
+                )}
               </div>
+              {profile.bio && (
+                <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">{profile.bio}</p>
+              )}
+              {(profile.github || profile.linkedin) && (
+                <div className="flex items-center gap-2 mt-1.5">
+                  {profile.github && (
+                    <a href={`https://github.com/${profile.github}`} target="_blank" rel="noopener noreferrer"
+                      className="text-[10px] text-muted-foreground hover:text-white flex items-center gap-0.5">
+                      <Code2 className="w-3 h-3" />github/{profile.github}
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -161,10 +189,10 @@ export default function ProfilePage() {
         {/* Tabs */}
         <div className="px-5 mb-4">
           <div className="flex gap-1 bg-white/5 rounded-xl p-1">
-            {["achievements", "activity"].map(tab => (
+            {["achievements", "activity", "about"].map(tab => (
               <button key={tab} onClick={() => setActiveTab(tab)}
                 className={`flex-1 py-2 rounded-lg text-xs font-semibold capitalize transition-all ${activeTab === tab ? "gradient-primary text-white" : "text-muted-foreground hover:text-white"}`}>
-                {tab === "achievements" ? "Achievements" : "Activity"}
+                {tab === "achievements" ? "Badges" : tab === "activity" ? "Activity" : "About"}
               </button>
             ))}
           </div>
@@ -214,6 +242,37 @@ export default function ProfilePage() {
                   </div>
                 </motion.div>
               ))}
+            </motion.div>
+          )}
+
+          {activeTab === "about" && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+              <div className="glass-card rounded-2xl p-4 space-y-3">
+                {[
+                  { label: "Full Name", value: profile.name, icon: "👤" },
+                  { label: "Email", value: profile.email, icon: "📧" },
+                  { label: "Username", value: profile.username ? `@${profile.username}` : null, icon: "🏷️" },
+                  { label: "Bio", value: profile.bio, icon: "📝" },
+                  { label: "GitHub", value: profile.github, icon: "💻" },
+                  { label: "LinkedIn", value: profile.linkedin, icon: "🔗" },
+                  { label: "Membership", value: profile.membership || "free", icon: "👑" },
+                  { label: "Member Since", value: profile.createdAt ? new Date(profile.createdAt).toLocaleDateString("en-BD", { year: "numeric", month: "long" }) : null, icon: "📅" },
+                ].filter(f => f.value).map((f, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-lg w-7">{f.icon}</span>
+                    <div>
+                      <p className="text-[10px] text-muted-foreground">{f.label}</p>
+                      <p className="text-sm font-medium capitalize">{f.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {isOwn && (
+                <button onClick={() => setLocation("/settings")}
+                  className="w-full py-3 rounded-2xl glass-card text-sm font-semibold text-primary hover:bg-primary/10 transition-colors flex items-center justify-center gap-2">
+                  <Settings className="w-4 h-4" />Edit Profile
+                </button>
+              )}
             </motion.div>
           )}
         </div>

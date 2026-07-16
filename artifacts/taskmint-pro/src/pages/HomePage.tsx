@@ -39,6 +39,9 @@ const QUICK_ACTIONS = [
   { icon: MessageSquare, label: "Chat", path: "/chat", gradient: "from-emerald-600/30 to-emerald-500/10", border: "border-emerald-500/20", iconColor: "text-emerald-400" },
   { icon: Trophy, label: "Contest", path: "/competitions", gradient: "from-orange-600/30 to-orange-500/10", border: "border-orange-500/20", iconColor: "text-orange-400" },
   { icon: TrendingUp, label: "Wallet", path: "/wallet", gradient: "from-pink-600/30 to-pink-500/10", border: "border-pink-500/20", iconColor: "text-pink-400" },
+  { icon: Gift, label: "Gifts", path: "/gifts", gradient: "from-green-600/30 to-green-500/10", border: "border-green-500/20", iconColor: "text-green-400" },
+  { icon: Sparkles, label: "Courses", path: "/courses", gradient: "from-cyan-600/30 to-cyan-500/10", border: "border-cyan-500/20", iconColor: "text-cyan-400" },
+  { icon: Star, label: "Plans", path: "/membership", gradient: "from-amber-600/30 to-amber-500/10", border: "border-amber-500/20", iconColor: "text-amber-400" },
 ];
 
 const MISSIONS = [

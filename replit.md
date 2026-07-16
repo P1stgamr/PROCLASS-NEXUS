@@ -1,45 +1,78 @@
-# [Project name]
+# ProClass
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Bangladesh's best student ecosystem — Learn, Code, Compete, Earn with AI.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/taskmint-pro run dev` — run the web app (via workflow)
+- `pnpm --filter @workspace/api-server run dev` — run API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- React + Vite + Tailwind CSS + Framer Motion
+- Firebase Auth + Firebase Realtime Database
+- Wouter (routing), TanStack Query
+- TypeScript 5.9, pnpm workspaces
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/taskmint-pro/src/pages/` — all pages (20+)
+- `artifacts/taskmint-pro/src/components/` — shared components
+- `artifacts/taskmint-pro/src/context/AuthContext.tsx` — auth + user profile
+- `artifacts/taskmint-pro/src/firebase.ts` — Firebase config
+- `artifacts/taskmint-pro/src/lib/prizeUtils.ts` — prize distribution logic
+
+## Firebase Paths
+
+- `users/{uid}` — user profiles (coins, xp, level, streak, role, membership)
+- `premiumExams/{examId}` — premium exam data
+- `examEntries/{uid}/{examId}` — exam enrollment
+- `examResults/{examId}/{uid}` — exam results + scores
+- `paymentRequests/{id}` — bKash exam payment requests
+- `membershipRequests/{uid}` — membership upgrade requests
+- `withdrawRequests/{id}` — coin withdrawal requests
+- `notifications/{uid}/{id}` — user notifications
+- `gifts/{uid}/{giftId}` — admin gifts to users
+- `courses/{courseId}` — course data
+- `chat/{roomId}/messages` — chat messages
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- wouter for routing (lightweight, no history API issues with Replit proxy)
+- Firebase Realtime DB only (no Firestore) — real-time sync across all pages
+- Gemini API key injected via vite.config.ts define block from GEMINI_API_KEY secret
+- bKash manual payment flow: user sends → submits txn ID → admin approves
+- Prize distribution: 1st 40%, 2nd 20%, 3rd 10%, 4th-10th 10% split, admin 20%
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+ProClass is a premium educational platform for Bangladeshi students:
+
+- **Study** — SSC, HSC, Olympiad, Programming quizzes with XP/coins rewards
+- **Courses** — Free and premium courses (SSC/HSC/Programming/Olympiad)
+- **Membership** — Free / Silver (৳99) / Gold (৳199) / Platinum (৳499) plans
+- **Premium Exams** — Paid entry, real prizes via bKash, live leaderboard
+- **AI Assistant** — Gemini-powered homework/coding/career help
+- **Leaderboard** — XP, Coins, Streak rankings
+- **Wallet** — Coin earnings, bKash withdrawals
+- **Chat** — Real-time community chat
+- **Gifts** — Admin sends coins/gifts to users
+- **Admin Panel** — Payments, Withdrawals, Membership, Exams, Gifts, Users, Notify
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- App name: ProClass
+- Firebase project: taskmitpro
+- Admin email: priommozumder@gmail.com
+- bKash number: 01757098701
+- Conversion: 1000 coins = ৳1 BDT
+- Language: Bangla UI preferred
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Gemini API key is `GEMINI_API_KEY` secret, injected as `VITE_GEMINI_API_KEY` in vite.config.ts
+- Firebase database URL: `https://taskmitpro-default-rtdb.asia-southeast1.firebasedatabase.app`
+- Admin check: `userProfile.role === "admin"` (or "super_admin")
+- ProtectedRoute with `requireAdmin` redirects non-admins to /home
+- PremiumExamPage icons `CalendarX`, `CalendarClock`, `Radio` must be imported from lucide-react

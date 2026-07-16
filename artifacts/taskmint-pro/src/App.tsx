@@ -27,6 +27,8 @@ import PaymentPage from "@/pages/PaymentPage";
 import ExamRoomPage from "@/pages/ExamRoomPage";
 import AIAssistantPage from "@/pages/AIAssistantPage";
 import GiftsPage from "@/pages/GiftsPage";
+import CoursesPage from "@/pages/CoursesPage";
+import MembershipPage from "@/pages/MembershipPage";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 import NotFound from "@/pages/not-found";
 
@@ -89,6 +91,12 @@ function Router() {
         </Route>
         <Route path="/gifts">
           <ProtectedRoute><GiftsPage /></ProtectedRoute>
+        </Route>
+        <Route path="/courses">
+          <ProtectedRoute><CoursesPage /></ProtectedRoute>
+        </Route>
+        <Route path="/membership">
+          <ProtectedRoute><MembershipPage /></ProtectedRoute>
         </Route>
 
         <Route component={NotFound} />
