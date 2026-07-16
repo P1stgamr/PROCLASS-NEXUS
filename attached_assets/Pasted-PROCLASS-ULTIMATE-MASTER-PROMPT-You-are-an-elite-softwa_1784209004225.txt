@@ -1,0 +1,470 @@
+PROCLASS ULTIMATE MASTER PROMPT
+
+You are an elite software engineering team consisting of a Senior Software Architect, Full Stack Developer, UI/UX Designer, AI Engineer, Firebase Engineer, Security Engineer, DevOps Engineer, QA Engineer, Product Manager, and Performance Engineer.
+
+Your mission is to analyze my existing project completely and transform it into a world-class, production-ready educational platform called ProClass.
+
+IMPORTANT RULES
+
+- Analyze the existing project before changing anything.
+- Never remove working features.
+- Improve existing code instead of rewriting everything.
+- Fix every bug.
+- Keep the code clean, scalable, reusable, and production-ready.
+- Maintain a mobile-first responsive design.
+- Use Firebase Realtime Database only.
+- Do NOT migrate to Firestore.
+
+---
+
+PROJECT GOAL
+
+Build the best student ecosystem by combining the strengths of modern learning, AI, coding, community, and gamification.
+
+Inspired by:
+
+- ChatGPT
+- Duolingo
+- Discord
+- Khan Academy
+- Coursera
+- Udemy
+- GitHub
+- Replit
+- ACS Academy
+
+---
+
+PROJECT AUDIT
+
+Before generating code:
+
+Analyze every page.
+
+Analyze every component.
+
+Analyze every route.
+
+Analyze every Firebase connection.
+
+Analyze every database path.
+
+Analyze every API call.
+
+Analyze every UI element.
+
+Analyze every animation.
+
+Analyze every button.
+
+Analyze every form.
+
+Analyze every image.
+
+Analyze every icon.
+
+Analyze every dependency.
+
+Find:
+
+- Broken buttons
+- Broken routes
+- Missing pages
+- Missing images
+- Firebase errors
+- Authentication errors
+- Performance issues
+- Mobile issues
+- Duplicate code
+- Unused files
+- Console errors
+- Accessibility issues
+
+Fix every issue without breaking existing functionality.
+
+---
+
+DESIGN
+
+Create a premium startup-quality interface.
+
+Requirements:
+
+- Apple-quality UI
+- Google-quality UX
+- Glassmorphism
+- Beautiful gradients
+- Modern typography
+- Premium icons
+- Rounded cards
+- Soft shadows
+- Smooth animations
+- Skeleton loading
+- Beautiful empty states
+- Responsive on every device
+- Dark mode
+- Light mode
+
+---
+
+AUTHENTICATION
+
+Implement and improve:
+
+- Google Sign-In
+- Email Login
+- Email Signup
+- Forgot Password
+- Remember Me
+- Persistent Login
+- Protected Routes
+- Role-based Authentication
+
+Roles:
+
+- Student
+- Moderator
+- Admin
+- Super Admin
+- Owner
+
+Automatically create a user profile after first login.
+
+---
+
+HOME
+
+Create a modern homepage including:
+
+- Hero Banner
+- Animated Statistics
+- Trending Courses
+- AI Assistant
+- Programming Section
+- Competition Section
+- Leaderboard Preview
+- Student Reviews
+- Announcements
+- Premium Footer
+
+---
+
+DASHBOARD
+
+Display:
+
+- Coins
+- XP
+- Level
+- Daily Streak
+- Wallet
+- Learning Progress
+- Recent Activity
+- Daily Mission
+- Notifications
+- AI Suggestions
+- Continue Learning
+
+Update everything in real time.
+
+---
+
+AI ASSISTANT
+
+Create a premium AI system.
+
+Features:
+
+- ChatGPT-style interface
+- Conversation history
+- Markdown support
+- Code highlighting
+- Typing animation
+- Search chats
+- Pin chats
+- Delete chats
+- Copy responses
+- Voice-ready architecture
+
+AI Capabilities:
+
+- Homework Helper
+- Programming Assistant
+- Website Builder
+- App Builder
+- Game Builder
+- Bug Fixer
+- Code Reviewer
+- Note Generator
+- Quiz Generator
+- Essay Writer
+- Resume Builder
+- Study Planner
+- Career Advisor
+
+---
+
+STUDY PLATFORM
+
+Include:
+
+- SSC
+- HSC
+- NHSPC
+- Olympiad
+- Programming
+- Notes
+- PDF Library
+- Video Courses
+- Practice Questions
+- Mock Tests
+- Flashcards
+- Revision Planner
+
+---
+
+PROGRAMMING
+
+Create:
+
+- Problem Solving
+- Online Code Editor
+- Coding Challenges
+- Contest System
+- Topic-wise Problems
+- AI Explanation
+- Difficulty Levels
+- Progress Tracking
+
+---
+
+COURSE PLATFORM
+
+Support:
+
+- Free Courses
+- Premium Courses
+- Instructor Dashboard
+- Video Lessons
+- PDF Lessons
+- Assignments
+- Quizzes
+- Certificates
+- Ratings
+- Reviews
+
+---
+
+MEMBERSHIP
+
+Plans:
+
+- Free
+- Silver
+- Gold
+- Platinum
+
+Premium Benefits:
+
+- Premium AI
+- Premium Courses
+- Premium Badge
+- Exclusive Content
+
+---
+
+PAYMENT
+
+Support:
+
+- bKash
+- Nagad
+- Rocket
+- Upay
+- SSLCommerz
+
+Features:
+
+- Payment History
+- Subscription
+- Invoice
+- Membership Renewal
+
+---
+
+WALLET
+
+Include:
+
+- Coins
+- Earnings
+- Rewards
+- Transactions
+- Referral Bonus
+- Withdrawal Requests
+
+---
+
+COMMUNITY
+
+Create:
+
+- Private Chat
+- Group Chat
+- Study Groups
+- Comments
+- Likes
+- Follow Users
+- Discussion Forum
+
+---
+
+LEADERBOARD
+
+Create:
+
+- Daily
+- Weekly
+- Monthly
+- Global
+- Bangladesh
+- XP Ranking
+- Coin Ranking
+- Programming Ranking
+
+---
+
+PROFILE
+
+Allow users to manage:
+
+- Profile Photo
+- Cover Photo
+- Name
+- Username
+- Email
+- Password
+- Bio
+- Skills
+- Portfolio
+- GitHub
+- LinkedIn
+- Certificates
+- Achievements
+- Privacy
+- Notifications
+
+---
+
+ADMIN PANEL
+
+Only Super Admin can:
+
+- Add Admin
+- Remove Admin
+- Manage Roles
+- Manage Membership
+- Manage Users
+- Manage Courses
+- Manage Payments
+- Manage Ads
+- Manage AI
+- Manage Contests
+- Manage Reports
+
+Create analytics for:
+
+- Revenue
+- Active Users
+- Online Users
+- Device Statistics
+- User Growth
+- Course Analytics
+- AI Usage
+
+---
+
+ADS
+
+Support:
+
+- Banner Ads
+- Popup Ads
+- Native Ads
+
+Each ad must support:
+
+- Image
+- Title
+- Description
+- Destination URL
+- Enable/Disable
+- Click Counter
+- View Counter
+
+---
+
+NOTIFICATIONS
+
+Support:
+
+- Real-time Notifications
+- Announcement System
+- Email-ready Notifications
+
+---
+
+SECURITY
+
+Implement:
+
+- Protected Routes
+- Input Validation
+- Secure Firebase Usage
+- Activity Logs
+- Role-based Permissions
+
+---
+
+DATABASE
+
+Use Firebase Realtime Database only.
+
+Organize:
+
+users
+courses
+lessons
+videos
+notes
+leaderboard
+chat
+messages
+notifications
+wallet
+earnings
+withdrawals
+ads
+membership
+achievements
+streaks
+activity
+analytics
+settings
+
+---
+
+FINAL QUALITY
+
+Before finishing:
+
+- Test every page
+- Test every button
+- Test every route
+- Test every Firebase action
+- Test mobile responsiveness
+- Remove unused code
+- Fix console errors
+- Optimize performance
+
+The final result should feel like a premium startup-quality application that is fast, beautiful, secure, scalable, mobile-first, and production-ready while preserving all existing working functionality.
