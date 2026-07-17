@@ -76,6 +76,14 @@ export default function AdminPage() {
     maxParticipants: "100", startTimeStr: "", endTimeStr: "",
   });
 
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [newQuiz, setNewQuiz] = useState({ title: "", subject: "", difficulty: "Easy", questions: "10", duration: "15", reward: "50", cat: "ssc" });
+  const [editingQuiz, setEditingQuiz] = useState<any>(null);
+
+  const [challenges, setChallenges] = useState<any[]>([]);
+  const [newChallenge, setNewChallenge] = useState({ title: "", difficulty: "Easy", xp: "50", tag: "Array" });
+  const [editingChallenge, setEditingChallenge] = useState<any>(null);
+
   const [editingUser, setEditingUser] = useState<any>(null);
   const [userEdit, setUserEdit] = useState({ coins: "", role: "" });
 
@@ -103,6 +111,16 @@ export default function AdminPage() {
     const examRef = ref(db, "premiumExams");
     onValue(examRef, (snap) => {
       if (snap.val()) setAllExams(Object.entries(snap.val()).map(([id, v]: [string, any]) => ({ id, ...v })));
+    });
+    const quizRef = ref(db, "quizzes");
+    onValue(quizRef, (snap) => {
+      const d = snap.val();
+      setQuizzes(d ? Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v })) : []);
+    });
+    const challengeRef = ref(db, "codingChallenges");
+    onValue(challengeRef, (snap) => {
+      const d = snap.val();
+      setChallenges(d ? Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v })) : []);
     });
     const resultsRef = ref(db, "examResults");
     onValue(resultsRef, (snap) => {
@@ -177,6 +195,42 @@ export default function AdminPage() {
   const deleteCourse = async (id: string) => {
     await remove(ref(db, `courses/${id}`));
     toast({ title: "Course deleted." });
+  };
+
+  // ── Quiz CRUD ──
+  const createQuiz = async () => {
+    if (!newQuiz.title.trim()) { toast({ title: "Title দিন", variant: "destructive" }); return; }
+    await push(ref(db, "quizzes"), { ...newQuiz, questions: parseInt(newQuiz.questions), duration: parseInt(newQuiz.duration), reward: parseInt(newQuiz.reward), attempts: 0, rating: 5.0, createdAt: Date.now() });
+    toast({ title: "Quiz created! ✅" });
+    setNewQuiz({ title: "", subject: "", difficulty: "Easy", questions: "10", duration: "15", reward: "50", cat: "ssc" });
+  };
+  const saveQuiz = async () => {
+    if (!editingQuiz) return;
+    await update(ref(db, `quizzes/${editingQuiz.id}`), { title: editingQuiz.title, subject: editingQuiz.subject, difficulty: editingQuiz.difficulty, reward: parseInt(editingQuiz.reward) });
+    setEditingQuiz(null);
+    toast({ title: "Quiz updated!" });
+  };
+  const deleteQuiz = async (id: string) => {
+    await remove(ref(db, `quizzes/${id}`));
+    toast({ title: "Quiz deleted." });
+  };
+
+  // ── Coding Challenge CRUD ──
+  const createChallenge = async () => {
+    if (!newChallenge.title.trim()) { toast({ title: "Title দিন", variant: "destructive" }); return; }
+    await push(ref(db, "codingChallenges"), { ...newChallenge, xp: parseInt(newChallenge.xp), solved: false, createdAt: Date.now() });
+    toast({ title: "Challenge created! ✅" });
+    setNewChallenge({ title: "", difficulty: "Easy", xp: "50", tag: "Array" });
+  };
+  const saveChallenge = async () => {
+    if (!editingChallenge) return;
+    await update(ref(db, `codingChallenges/${editingChallenge.id}`), { title: editingChallenge.title, difficulty: editingChallenge.difficulty, xp: parseInt(editingChallenge.xp), tag: editingChallenge.tag });
+    setEditingChallenge(null);
+    toast({ title: "Challenge updated!" });
+  };
+  const deleteChallenge = async (id: string) => {
+    await remove(ref(db, `codingChallenges/${id}`));
+    toast({ title: "Challenge deleted." });
   };
 
   // ── Exam CRUD ──
@@ -312,6 +366,8 @@ export default function AdminPage() {
               { v: "tasks", label: "Tasks", icon: FileCheck },
               { v: "missions", label: "Missions", icon: Target },
               { v: "courses", label: "Courses", icon: BookOpen },
+              { v: "quizzes", label: "Quizzes", icon: BookOpen },
+              { v: "challenges", label: "Coding", icon: Code2 },
               { v: "payments", label: "Payments", badge: pendingPayments.length },
               { v: "withdraw", label: "Withdraw", badge: pendingWithdraws.length },
               { v: "membership", label: "Plans", badge: pendingMemberships.length },
@@ -550,6 +606,159 @@ export default function AdminPage() {
                       <div className="flex gap-1.5 shrink-0">
                         <button onClick={() => setEditingCourse({ ...c })} className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
                         <button onClick={() => deleteCourse(c.id)} className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* ─── QUIZZES TAB ─── */}
+          <TabsContent value="quizzes" className="mt-4 space-y-4">
+            <div className={CARD + " space-y-3"}>
+              <div className="flex items-center gap-2">
+                <Plus className="w-4 h-4 text-blue-400" />
+                <h3 className="font-bold text-sm">নতুন Quiz তৈরি করুন</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <Input value={newQuiz.title} onChange={e => setNewQuiz(p => ({ ...p, title: e.target.value }))} placeholder="Quiz title *" className={FIELD} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Subject</Label>
+                  <Input value={newQuiz.subject} onChange={e => setNewQuiz(p => ({ ...p, subject: e.target.value }))} placeholder="Mathematics" className={FIELD} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Category</Label>
+                  <select value={newQuiz.cat} onChange={e => setNewQuiz(p => ({ ...p, cat: e.target.value }))}
+                    className="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
+                    {["ssc","hsc","code","general"].map(t => <option key={t} value={t} className="bg-gray-900">{t.toUpperCase()}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Difficulty</Label>
+                  <select value={newQuiz.difficulty} onChange={e => setNewQuiz(p => ({ ...p, difficulty: e.target.value }))}
+                    className="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
+                    {["Easy","Medium","Hard"].map(d => <option key={d} value={d} className="bg-gray-900">{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Questions</Label>
+                  <Input type="number" value={newQuiz.questions} onChange={e => setNewQuiz(p => ({ ...p, questions: e.target.value }))} className={FIELD} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Duration (min)</Label>
+                  <Input type="number" value={newQuiz.duration} onChange={e => setNewQuiz(p => ({ ...p, duration: e.target.value }))} className={FIELD} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Coins Reward</Label>
+                  <Input type="number" value={newQuiz.reward} onChange={e => setNewQuiz(p => ({ ...p, reward: e.target.value }))} className={FIELD} />
+                </div>
+              </div>
+              <GlowButton className="w-full h-9 text-sm" onClick={createQuiz}><Plus className="w-3.5 h-3.5 mr-1" />Quiz Create করুন</GlowButton>
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">Quizzes ({quizzes.length})</p>
+              {quizzes.length === 0 ? <p className="text-center py-6 text-sm text-muted-foreground">কোনো quiz নেই। উপরে তৈরি করুন।</p> :
+               quizzes.map(q => (
+                <motion.div key={q.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={CARD}>
+                  {editingQuiz?.id === q.id ? (
+                    <div className="space-y-2">
+                      <Input value={editingQuiz.title} onChange={e => setEditingQuiz((p: any) => ({ ...p, title: e.target.value }))} className={FIELD} />
+                      <Input value={editingQuiz.subject} onChange={e => setEditingQuiz((p: any) => ({ ...p, subject: e.target.value }))} className={FIELD} placeholder="Subject" />
+                      <div className="flex gap-2">
+                        <Input type="number" value={editingQuiz.reward} onChange={e => setEditingQuiz((p: any) => ({ ...p, reward: e.target.value }))} className={FIELD + " w-28"} placeholder="Reward" />
+                        <select value={editingQuiz.difficulty} onChange={e => setEditingQuiz((p: any) => ({ ...p, difficulty: e.target.value }))}
+                          className="flex-1 h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white">
+                          {["Easy","Medium","Hard"].map(d => <option key={d} value={d} className="bg-gray-900">{d}</option>)}
+                        </select>
+                        <GlowButton size="sm" className="h-10 px-4 text-xs shrink-0" onClick={saveQuiz}><Save className="w-3 h-3 mr-1" />Save</GlowButton>
+                        <button onClick={() => setEditingQuiz(null)} className="h-10 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs shrink-0"><X className="w-3 h-3" /></button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{q.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge className="text-[9px] px-1.5 py-0 bg-blue-500/15 text-blue-400">{q.difficulty}</Badge>
+                          <span className="text-[10px] text-muted-foreground">{q.subject}</span>
+                          <span className="text-[10px] text-yellow-400">+{q.reward} coins</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button onClick={() => setEditingQuiz({ ...q })} className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => deleteQuiz(q.id)} className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* ─── CODING CHALLENGES TAB ─── */}
+          <TabsContent value="challenges" className="mt-4 space-y-4">
+            <div className={CARD + " space-y-3"}>
+              <div className="flex items-center gap-2">
+                <Code2 className="w-4 h-4 text-green-400" />
+                <h3 className="font-bold text-sm">নতুন Coding Challenge তৈরি করুন</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <Input value={newChallenge.title} onChange={e => setNewChallenge(p => ({ ...p, title: e.target.value }))} placeholder="Challenge title *" className={FIELD} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Difficulty</Label>
+                  <select value={newChallenge.difficulty} onChange={e => setNewChallenge(p => ({ ...p, difficulty: e.target.value }))}
+                    className="w-full h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
+                    {["Easy","Medium","Hard"].map(d => <option key={d} value={d} className="bg-gray-900">{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">XP Reward</Label>
+                  <Input type="number" value={newChallenge.xp} onChange={e => setNewChallenge(p => ({ ...p, xp: e.target.value }))} className={FIELD} />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Tag (topic)</Label>
+                  <Input value={newChallenge.tag} onChange={e => setNewChallenge(p => ({ ...p, tag: e.target.value }))} placeholder="Array, String, DP..." className={FIELD} />
+                </div>
+              </div>
+              <GlowButton className="w-full h-9 text-sm" onClick={createChallenge}><Plus className="w-3.5 h-3.5 mr-1" />Challenge Create করুন</GlowButton>
+            </div>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">Challenges ({challenges.length})</p>
+              {challenges.length === 0 ? <p className="text-center py-6 text-sm text-muted-foreground">কোনো challenge নেই। উপরে তৈরি করুন।</p> :
+               challenges.map(ch => (
+                <motion.div key={ch.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={CARD}>
+                  {editingChallenge?.id === ch.id ? (
+                    <div className="space-y-2">
+                      <Input value={editingChallenge.title} onChange={e => setEditingChallenge((p: any) => ({ ...p, title: e.target.value }))} className={FIELD} />
+                      <div className="flex gap-2">
+                        <Input type="number" value={editingChallenge.xp} onChange={e => setEditingChallenge((p: any) => ({ ...p, xp: e.target.value }))} className={FIELD + " w-24"} placeholder="XP" />
+                        <Input value={editingChallenge.tag} onChange={e => setEditingChallenge((p: any) => ({ ...p, tag: e.target.value }))} className={FIELD} placeholder="Tag" />
+                        <select value={editingChallenge.difficulty} onChange={e => setEditingChallenge((p: any) => ({ ...p, difficulty: e.target.value }))}
+                          className="flex-1 h-10 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white">
+                          {["Easy","Medium","Hard"].map(d => <option key={d} value={d} className="bg-gray-900">{d}</option>)}
+                        </select>
+                        <GlowButton size="sm" className="h-10 px-4 text-xs shrink-0" onClick={saveChallenge}><Save className="w-3 h-3 mr-1" />Save</GlowButton>
+                        <button onClick={() => setEditingChallenge(null)} className="h-10 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs shrink-0"><X className="w-3 h-3" /></button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{ch.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge className={`text-[9px] px-1.5 py-0 ${ch.difficulty === "Easy" ? "bg-green-500/15 text-green-400" : ch.difficulty === "Medium" ? "bg-yellow-500/15 text-yellow-400" : "bg-red-500/15 text-red-400"}`}>{ch.difficulty}</Badge>
+                          <span className="text-[10px] text-muted-foreground">{ch.tag}</span>
+                          <span className="text-[10px] text-primary">+{ch.xp} XP</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5 shrink-0">
+                        <button onClick={() => setEditingChallenge({ ...ch })} className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => deleteChallenge(ch.id)} className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                       </div>
                     </div>
                   )}

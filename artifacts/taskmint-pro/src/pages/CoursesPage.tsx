@@ -19,16 +19,6 @@ const CATEGORY_ICONS: Record<string, any> = {
   english: Globe, design: Palette, general: BookOpen, music: Music,
 };
 
-const DEMO_COURSES = [
-  { id: "c1", title: "SSC Math Master", desc: "সম্পূর্ণ SSC গণিত প্রস্তুতি", category: "math", tag: "ssc", type: "free", instructor: "NEXUS Team", students: 1240, duration: "40 hrs", rating: 4.8, lessons: 64, emoji: "📐" },
-  { id: "c2", title: "HSC Physics Complete", desc: "HSC পদার্থবিজ্ঞান সব অধ্যায়", category: "science", tag: "hsc", type: "premium", price: 299, instructor: "Dr. Rahman", students: 856, duration: "55 hrs", rating: 4.9, lessons: 90, emoji: "⚛️" },
-  { id: "c3", title: "Python for Beginners", desc: "Zero to hero Python programming", category: "programming", tag: "programming", type: "free", instructor: "NEXUS Team", students: 3200, duration: "20 hrs", rating: 4.7, lessons: 45, emoji: "🐍" },
-  { id: "c4", title: "Web Development Bootcamp", desc: "HTML, CSS, JS, React সব একসাথে", category: "programming", tag: "programming", type: "premium", price: 499, instructor: "Prion Dev", students: 620, duration: "80 hrs", rating: 4.9, lessons: 120, emoji: "🌐" },
-  { id: "c5", title: "Math Olympiad Prep", desc: "BdMO ও IMO প্রস্তুতির জন্য", category: "math", tag: "olympiad", type: "premium", price: 399, instructor: "Olympiad Team", students: 340, duration: "35 hrs", rating: 4.95, lessons: 55, emoji: "🏅" },
-  { id: "c6", title: "English for SSC/HSC", desc: "Grammar, writing ও literature", category: "english", tag: "ssc", type: "free", instructor: "NEXUS Team", students: 2100, duration: "25 hrs", rating: 4.6, lessons: 38, emoji: "📖" },
-  { id: "c7", title: "C++ Programming", desc: "Competitive programming শুরু করুন", category: "programming", tag: "programming", type: "free", instructor: "NEXUS Team", students: 980, duration: "30 hrs", rating: 4.7, lessons: 50, emoji: "💻" },
-  { id: "c8", title: "HSC Chemistry Complete", desc: "HSC রসায়ন সম্পূর্ণ কোর্স", category: "science", tag: "hsc", type: "premium", price: 299, instructor: "Dr. Karim", students: 720, duration: "50 hrs", rating: 4.8, lessons: 80, emoji: "🧪" },
-];
 
 const FILTERS: { id: CourseFilter; label: string }[] = [
   { id: "all", label: "সব" },
@@ -59,7 +49,7 @@ export default function CoursesPage() {
     return () => off(coursesRef);
   }, []);
 
-  const allCourses = fbCourses.length > 0 ? fbCourses : DEMO_COURSES;
+  const allCourses = fbCourses;
 
   const filtered = allCourses.filter((c: any) => {
     if (filter === "all") return true;
@@ -109,25 +99,29 @@ export default function CoursesPage() {
       </div>
 
       <div className="px-5 py-4 max-w-md mx-auto">
-        {/* Featured Banner */}
-        {filter === "all" && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="mb-5 p-5 rounded-3xl relative overflow-hidden"
-            style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(124,58,237,0.2) 100%)", border: "1px solid rgba(124,58,237,0.2)" }}>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl" />
-            <div className="relative z-10">
-              <Badge className="badge-coin text-[10px] mb-2"><Zap className="w-2.5 h-2.5 mr-1" />Featured</Badge>
-              <h3 className="font-extrabold text-lg mb-1">Python for Beginners</h3>
-              <p className="text-xs text-muted-foreground mb-3">Zero থেকে Python শিখুন — সম্পূর্ণ বিনামূল্যে</p>
-              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><Users className="w-3 h-3" />3.2k students</span>
-                <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400" />4.7</span>
-                <span className="flex items-center gap-1"><Clock className="w-3 h-3" />20 hrs</span>
+        {/* Featured Banner — only shown when there are courses */}
+        {filter === "all" && allCourses.length > 0 && (() => {
+          const featured = allCourses.find((c: any) => c.featured) || allCourses[0];
+          if (!featured) return null;
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              className="mb-5 p-5 rounded-3xl relative overflow-hidden"
+              style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(124,58,237,0.2) 100%)", border: "1px solid rgba(124,58,237,0.2)" }}>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl" />
+              <div className="relative z-10">
+                <Badge className="badge-coin text-[10px] mb-2"><Zap className="w-2.5 h-2.5 mr-1" />Featured</Badge>
+                <h3 className="font-extrabold text-lg mb-1">{featured.title}</h3>
+                <p className="text-xs text-muted-foreground mb-3">{featured.desc}</p>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  {featured.students > 0 && <span className="flex items-center gap-1"><Users className="w-3 h-3" />{(featured.students || 0).toLocaleString()} students</span>}
+                  {featured.rating && <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400" />{featured.rating}</span>}
+                  {featured.duration && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{featured.duration}</span>}
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          );
+        })()}
 
         {loading ? (
           <div className="space-y-3">{[0,1,2,3].map(i => <SkeletonCard key={i} />)}</div>

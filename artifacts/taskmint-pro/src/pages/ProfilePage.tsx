@@ -25,12 +25,6 @@ const ACHIEVEMENTS_DEF = [
   { id: "referrer", title: "Connector", desc: "Refer 3 friends", icon: "🤝", earned: false },
 ];
 
-const RECENT_ACTIVITY = [
-  { type: "quiz", text: "Completed Python Basics quiz", time: "2h ago", xp: 60, icon: BookOpen, color: "text-blue-400" },
-  { type: "ai", text: "Used AI Assistant", time: "4h ago", xp: 30, icon: Star, color: "text-violet-400" },
-  { type: "code", text: "Solved Two Sum challenge", time: "Yesterday", xp: 50, icon: Code2, color: "text-green-400" },
-  { type: "contest", text: "Entered SSC Math Contest", time: "2 days ago", xp: 0, icon: Trophy, color: "text-yellow-400" },
-];
 
 export default function ProfilePage() {
   const { uid } = useParams<{ uid: string }>();
@@ -223,25 +217,11 @@ export default function ProfilePage() {
 
           {activeTab === "activity" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2.5">
-              {RECENT_ACTIVITY.map((act, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.06 }}
-                  className="glass-card rounded-2xl p-4 flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0`}>
-                    <act.icon className={`w-5 h-5 ${act.color}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{act.text}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[10px] text-muted-foreground">{act.time}</span>
-                      {act.xp > 0 && (
-                        <span className="text-[10px] text-primary font-bold flex items-center gap-0.5">
-                          <Zap className="w-2.5 h-2.5" />+{act.xp} XP
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+              <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
+                <span className="text-4xl">📭</span>
+                <p className="text-sm font-semibold text-muted-foreground">কোনো activity নেই</p>
+                <p className="text-xs text-muted-foreground/60">Quiz দিন, task করুন — activity এখানে দেখাবে</p>
+              </div>
             </motion.div>
           )}
 

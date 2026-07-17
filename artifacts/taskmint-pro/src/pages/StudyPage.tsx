@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ref, onValue, off } from "firebase/database";
+import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { GlowButton } from "@/components/GlowButton";
 import { Badge } from "@/components/ui/badge";
 import { AdModal } from "@/components/AdModal";
+import { SkeletonCard } from "@/components/SkeletonCard";
 import { useToast } from "@/hooks/use-toast";
 import {
   BookOpen, Code2, FlaskConical, Globe, Calculator, Cpu,
@@ -32,27 +35,6 @@ const SUBJECTS = [
   { id: "gk", label: "General Knowledge", icon: Globe, color: "text-indigo-400", bg: "bg-indigo-500/15", cat: "general" },
 ];
 
-type Quiz = { id: string; title: string; subject: string; difficulty: string; questions: number; duration: number; reward: number; rating: number; attempts: number; cat: string; tags: string[]; premium?: boolean };
-
-const QUIZZES: Quiz[] = [
-  { id: "q1", title: "SSC Math: Algebra", subject: "Mathematics", difficulty: "Easy", questions: 10, duration: 15, reward: 50, rating: 4.8, attempts: 234, cat: "ssc", tags: ["Algebra", "Equations"] },
-  { id: "q2", title: "HSC Physics: Mechanics", subject: "Physics", difficulty: "Medium", questions: 15, duration: 20, reward: 80, rating: 4.6, attempts: 189, cat: "hsc", tags: ["Newton", "Motion"] },
-  { id: "q3", title: "Python Basics", subject: "Programming", difficulty: "Easy", questions: 12, duration: 18, reward: 60, rating: 4.9, attempts: 412, cat: "code", tags: ["Python", "Basics"] },
-  { id: "q4", title: "JavaScript: DOM & Events", subject: "Programming", difficulty: "Medium", questions: 10, duration: 20, reward: 70, rating: 4.7, attempts: 156, cat: "code", tags: ["JS", "DOM"] },
-  { id: "q5", title: "English Grammar Mastery", subject: "English", difficulty: "Easy", questions: 20, duration: 25, reward: 60, rating: 4.5, attempts: 378, cat: "ssc", tags: ["Grammar", "Vocabulary"] },
-  { id: "q6", title: "Bangladesh: History & Culture", subject: "General Knowledge", difficulty: "Medium", questions: 15, duration: 20, reward: 50, rating: 4.4, attempts: 203, cat: "general", tags: ["History", "Culture"] },
-  { id: "q7", title: "HSC Chemistry: Organic", subject: "Chemistry", difficulty: "Hard", questions: 20, duration: 30, reward: 120, rating: 4.8, attempts: 98, cat: "hsc", tags: ["Organic", "Reactions"], premium: true },
-  { id: "q8", title: "C++: Data Structures", subject: "Programming", difficulty: "Hard", questions: 15, duration: 25, reward: 100, rating: 4.9, attempts: 87, cat: "code", tags: ["DSA", "C++"], premium: true },
-];
-
-const CODING_CHALLENGES = [
-  { id: "c1", title: "Two Sum", difficulty: "Easy", xp: 50, solved: true, tag: "Array" },
-  { id: "c2", title: "Palindrome Check", difficulty: "Easy", xp: 50, solved: true, tag: "String" },
-  { id: "c3", title: "Binary Search", difficulty: "Medium", xp: 100, solved: false, tag: "Search" },
-  { id: "c4", title: "Fibonacci DP", difficulty: "Medium", xp: 100, solved: false, tag: "DP" },
-  { id: "c5", title: "Graph BFS/DFS", difficulty: "Hard", xp: 200, solved: false, tag: "Graph" },
-];
-
 const diffColor: Record<string, string> = {
   Easy: "bg-green-500/20 text-green-400",
   Medium: "bg-yellow-500/20 text-yellow-400",
@@ -64,12 +46,51 @@ export default function StudyPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("quiz");
   const [activeCat, setActiveCat] = useState("all");
-  const [adTarget, setAdTarget] = useState<Quiz | null>(null);
+  const [adTarget, setAdTarget] = useState<any | null>(null);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
+  const [challenges, setChallenges] = useState<any[]>([]);
+  const [quizLoading, setQuizLoading] = useState(true);
+  const [challengeLoading, setChallengeLoading] = useState(true);
 
-  const filteredQuizzes = activeCat === "all" ? [...QUIZZES] : [...QUIZZES].filter(q => q.cat === activeCat);
-  const totalXP = CODING_CHALLENGES.filter(c => c.solved).reduce((s, c) => s + c.xp, 0);
+  useEffect(() => {
+    const qRef = ref(db, "quizzes");
+    const unsub = onValue(qRef, (snap) => {
+      const data = snap.val();
+      if (data) {
+        const arr = Object.entries(data).map(([id, v]: [string, any]) => ({ id, ...v }));
+        setQuizzes(arr);
+      } else {
+        setQuizzes([]);
+      }
+      setQuizLoading(false);
+    });
+    return () => off(qRef);
+  }, []);
 
-  const handleStartQuiz = (quiz: Quiz) => {
+  useEffect(() => {
+    const cRef = ref(db, "codingChallenges");
+    const unsub = onValue(cRef, (snap) => {
+      const data = snap.val();
+      if (data) {
+        const arr = Object.entries(data).map(([id, v]: [string, any]) => ({ id, ...v }));
+        arr.sort((a: any, b: any) => (a.order || 0) - (b.order || 0));
+        setChallenges(arr);
+      } else {
+        setChallenges([]);
+      }
+      setChallengeLoading(false);
+    });
+    return () => off(cRef);
+  }, []);
+
+  const filteredQuizzes = activeCat === "all"
+    ? quizzes
+    : quizzes.filter((q) => q.cat === activeCat);
+
+  const solvedCount = challenges.filter((c) => c.solved).length;
+  const totalXP = challenges.filter((c) => c.solved).reduce((s, c) => s + (c.xp || 0), 0);
+
+  const handleStartQuiz = (quiz: any) => {
     if (quiz.premium) {
       toast({ title: "Premium Quiz", description: "এই quiz টি premium — unlock করতে হবে", variant: "destructive" });
       return;
@@ -88,7 +109,6 @@ export default function StudyPage() {
 
   return (
     <div className="min-h-screen bg-background pb-28">
-      {/* Ad modal — shows before starting any free quiz */}
       <AdModal
         open={!!adTarget}
         title="Ad দেখুন — তারপর quiz শুরু হবে"
@@ -126,9 +146,9 @@ export default function StudyPage() {
 
       <div className="px-5 py-5 max-w-md mx-auto">
         <AnimatePresence mode="wait">
+
           {activeTab === "quiz" && (
             <motion.div key="quiz" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-              {/* Ad notice */}
               <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-3 py-2.5">
                 <span className="text-sm">📺</span>
                 <p className="text-xs text-yellow-300">Free quiz শুরু করতে একটি Ad দেখতে হবে</p>
@@ -145,45 +165,59 @@ export default function StudyPage() {
                 ))}
               </div>
 
-              <div className="space-y-3">
-                {filteredQuizzes.map((quiz, i) => (
-                  <motion.div key={quiz.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                    className="glass-card-hover rounded-2xl overflow-hidden">
-                    <div className="h-0.5 gradient-primary" />
-                    <div className="p-4">
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-sm mb-0.5">{quiz.title}</h3>
-                          <p className="text-xs text-muted-foreground">{quiz.subject}</p>
+              {quizLoading ? (
+                <div className="space-y-3">{[0,1,2].map(i => <SkeletonCard key={i} />)}</div>
+              ) : filteredQuizzes.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+                  <span className="text-5xl">📝</span>
+                  <p className="text-base font-bold text-muted-foreground">কোনো quiz নেই</p>
+                  <p className="text-xs text-muted-foreground/60">Admin এখনো কোনো quiz তৈরি করেননি।<br/>শীঘ্রই আসছে!</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredQuizzes.map((quiz, i) => (
+                    <motion.div key={quiz.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                      className="glass-card-hover rounded-2xl overflow-hidden">
+                      <div className="h-0.5 gradient-primary" />
+                      <div className="p-4">
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-sm mb-0.5">{quiz.title}</h3>
+                            <p className="text-xs text-muted-foreground">{quiz.subject}</p>
+                          </div>
+                          <Badge className={`text-[10px] shrink-0 ${diffColor[quiz.difficulty] || "bg-white/10 text-muted-foreground"}`}>
+                            {quiz.difficulty}
+                          </Badge>
                         </div>
-                        <Badge className={`text-[10px] shrink-0 ${diffColor[quiz.difficulty]}`}>{quiz.difficulty}</Badge>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
-                        <span className="flex items-center gap-1"><Target className="w-3 h-3" />{quiz.questions} Q</span>
-                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{quiz.duration} min</span>
-                        <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400" />{quiz.rating}</span>
-                        <span className="flex items-center gap-1"><BarChart3 className="w-3 h-3" />{quiz.attempts}</span>
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap mb-3">
-                        {quiz.tags.map(t => (
-                          <span key={t} className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-muted-foreground">{t}</span>
-                        ))}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                          <Zap className="w-3.5 h-3.5 text-yellow-400" />
-                          <span className="text-xs font-bold text-yellow-400">+{quiz.reward} coins</span>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                          <span className="flex items-center gap-1"><Target className="w-3 h-3" />{quiz.questions} Q</span>
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{quiz.duration} min</span>
+                          {quiz.rating && <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-400" />{quiz.rating}</span>}
+                          {quiz.attempts && <span className="flex items-center gap-1"><BarChart3 className="w-3 h-3" />{quiz.attempts}</span>}
                         </div>
-                        <GlowButton size="sm" className="h-8 px-4 text-xs" onClick={() => handleStartQuiz(quiz)}>
-                          {quiz.premium
-                            ? <span className="flex items-center gap-1"><Lock className="w-3 h-3" />Premium</span>
-                            : <span className="flex items-center gap-1"><Play className="w-3 h-3" />📺 Start</span>}
-                        </GlowButton>
+                        {quiz.tags && quiz.tags.length > 0 && (
+                          <div className="flex items-center gap-2 flex-wrap mb-3">
+                            {quiz.tags.map((t: string) => (
+                              <span key={t} className="px-2 py-0.5 rounded-full bg-white/5 text-[10px] text-muted-foreground">{t}</span>
+                            ))}
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1">
+                            <Zap className="w-3.5 h-3.5 text-yellow-400" />
+                            <span className="text-xs font-bold text-yellow-400">+{quiz.reward || 0} coins</span>
+                          </div>
+                          <GlowButton size="sm" className="h-8 px-4 text-xs" onClick={() => handleStartQuiz(quiz)}>
+                            {quiz.premium
+                              ? <span className="flex items-center gap-1"><Lock className="w-3 h-3" />Premium</span>
+                              : <span className="flex items-center gap-1"><Play className="w-3 h-3" />📺 Start</span>}
+                          </GlowButton>
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -192,7 +226,7 @@ export default function StudyPage() {
               <div className="glass-card rounded-2xl p-4 flex items-center justify-between">
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground mb-0.5">Solved</p>
-                  <p className="text-2xl font-extrabold">{CODING_CHALLENGES.filter(c => c.solved).length}/{CODING_CHALLENGES.length}</p>
+                  <p className="text-2xl font-extrabold">{solvedCount}/{challenges.length}</p>
                 </div>
                 <div className="w-px h-10 bg-white/10" />
                 <div className="text-center">
@@ -205,27 +239,38 @@ export default function StudyPage() {
                   <p className="text-2xl font-extrabold text-orange-400">{userProfile?.streak || 0}d</p>
                 </div>
               </div>
-              <div className="space-y-2.5">
-                {CODING_CHALLENGES.map((ch, i) => (
-                  <motion.div key={ch.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-                    className={`flex items-center gap-3 p-4 rounded-2xl transition-all ${ch.solved ? "glass-card border border-green-500/20" : "glass-card-hover cursor-pointer"}`}>
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${ch.solved ? "bg-green-500/20" : "bg-white/5"}`}>
-                      {ch.solved ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <Code2 className="w-5 h-5 text-muted-foreground" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`font-semibold text-sm ${ch.solved ? "text-muted-foreground line-through" : ""}`}>{ch.title}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <Badge className={`text-[10px] ${diffColor[ch.difficulty]}`}>{ch.difficulty}</Badge>
-                        <span className="text-[10px] text-muted-foreground">{ch.tag}</span>
+
+              {challengeLoading ? (
+                <div className="space-y-3">{[0,1,2].map(i => <SkeletonCard key={i} />)}</div>
+              ) : challenges.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
+                  <span className="text-5xl">💻</span>
+                  <p className="text-base font-bold text-muted-foreground">কোনো coding challenge নেই</p>
+                  <p className="text-xs text-muted-foreground/60">Admin এখনো কোনো challenge তৈরি করেননি।<br/>শীঘ্রই আসছে!</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {challenges.map((ch, i) => (
+                    <motion.div key={ch.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                      className={`flex items-center gap-3 p-4 rounded-2xl transition-all ${ch.solved ? "glass-card border border-green-500/20" : "glass-card-hover cursor-pointer"}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${ch.solved ? "bg-green-500/20" : "bg-white/5"}`}>
+                        {ch.solved ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <Code2 className="w-5 h-5 text-muted-foreground" />}
                       </div>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Zap className="w-3.5 h-3.5 text-primary" />
-                      <span className="text-xs font-bold text-primary">+{ch.xp} XP</span>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-semibold text-sm ${ch.solved ? "text-muted-foreground line-through" : ""}`}>{ch.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge className={`text-[10px] ${diffColor[ch.difficulty] || "bg-white/10 text-muted-foreground"}`}>{ch.difficulty}</Badge>
+                          {ch.tag && <span className="text-[10px] text-muted-foreground">{ch.tag}</span>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Zap className="w-3.5 h-3.5 text-primary" />
+                        <span className="text-xs font-bold text-primary">+{ch.xp} XP</span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
 
@@ -249,6 +294,7 @@ export default function StudyPage() {
               </div>
             </motion.div>
           )}
+
         </AnimatePresence>
       </div>
     </div>

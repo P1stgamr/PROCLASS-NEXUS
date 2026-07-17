@@ -12,13 +12,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Coins, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Smartphone, X, CheckCircle2, Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
-const SAMPLE_EARNINGS = [
-  { id: "e1", type: "task", amount: 50, description: "Completed: Algebra Fundamentals", timestamp: Date.now() - 3600000 },
-  { id: "e2", type: "contest", amount: 200, description: "Won: Speed Coding Challenge (1st place)", timestamp: Date.now() - 86400000 },
-  { id: "e3", type: "bonus", amount: 100, description: "Sign-up bonus", timestamp: Date.now() - 172800000 },
-  { id: "e4", type: "exam", amount: 500, description: "Won: SSC Math Championship", timestamp: Date.now() - 259200000 },
-];
-
 const typeConfig: Record<string, { icon: any; color: string; label: string }> = {
   task: { icon: ArrowDownLeft, color: "text-green-400", label: "Task Reward" },
   contest: { icon: ArrowDownLeft, color: "text-yellow-400", label: "Contest Win" },
@@ -48,7 +41,7 @@ export default function WalletPage() {
         arr.sort((a: any, b: any) => b.timestamp - a.timestamp);
         setEarnings(arr);
       } else {
-        setEarnings(SAMPLE_EARNINGS);
+        setEarnings([]);
       }
       setLoading(false);
     });

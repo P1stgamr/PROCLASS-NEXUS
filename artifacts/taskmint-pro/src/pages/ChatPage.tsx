@@ -12,10 +12,10 @@ import {
 } from "lucide-react";
 
 const CHANNELS = [
-  { id: "general", name: "general", icon: Hash, desc: "সবার জন্য সাধারণ আলোচনা", online: 42 },
-  { id: "study", name: "study-help", icon: Hash, desc: "পড়াশোনার সাহায্য", online: 18 },
-  { id: "coding", name: "coding", icon: Hash, desc: "Programming আলোচনা", online: 25 },
-  { id: "contest", name: "contest", icon: Hash, desc: "Contest tips & tricks", online: 11 },
+  { id: "general", name: "general", icon: Hash, desc: "সবার জন্য সাধারণ আলোচনা" },
+  { id: "study", name: "study-help", icon: Hash, desc: "পড়াশোনার সাহায্য" },
+  { id: "coding", name: "coding", icon: Hash, desc: "Programming আলোচনা" },
+  { id: "contest", name: "contest", icon: Hash, desc: "Contest tips & tricks" },
 ];
 
 interface Message {
@@ -134,9 +134,6 @@ export default function ChatPage() {
                     className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all ${activeChannel.id === ch.id ? "bg-primary/20 text-white" : "text-muted-foreground hover:bg-white/5 hover:text-white"}`}>
                     <Hash className={`w-4 h-4 shrink-0 ${activeChannel.id === ch.id ? "text-primary" : ""}`} />
                     <span className="text-sm font-medium truncate">{ch.name}</span>
-                    <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded-full shrink-0 ${activeChannel.id === ch.id ? "bg-primary/30 text-primary" : "bg-white/5 text-muted-foreground"}`}>
-                      {ch.online}
-                    </span>
                   </button>
                 ))}
               </div>
@@ -180,7 +177,7 @@ export default function ChatPage() {
           <div className="flex items-center gap-2">
             <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-[10px]">
               <div className="w-1.5 h-1.5 rounded-full bg-green-400 mr-1" />
-              {activeChannel.online} online
+              {onlineUsers.length} online
             </Badge>
           </div>
         </div>

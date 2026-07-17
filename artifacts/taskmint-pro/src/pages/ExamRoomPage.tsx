@@ -11,13 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Clock, CheckCircle2, XCircle, Trophy, ArrowRight, Medal, Crown } from "lucide-react";
 import { calcPrizes, getRankPrize } from "@/lib/prizeUtils";
 
-const SAMPLE_QUESTIONS = [
-  { id: "q1", question: "নিচের কোনটি মৌলিক সংখ্যা?", options: ["1", "4", "7", "9"], correct: 2, points: 10 },
-  { id: "q2", question: "বাংলাদেশের রাজধানীর নাম কি?", options: ["চট্টগ্রাম", "ঢাকা", "সিলেট", "রাজশাহী"], correct: 1, points: 10 },
-  { id: "q3", question: "পানির রাসায়নিক সংকেত কি?", options: ["CO2", "H2O", "O2", "NaCl"], correct: 1, points: 10 },
-  { id: "q4", question: "Python কোন ধরনের programming language?", options: ["Compiled", "Machine-level", "Interpreted", "Assembly"], correct: 2, points: 10 },
-  { id: "q5", question: "2^10 = ?", options: ["512", "1024", "2048", "256"], correct: 1, points: 10 },
-];
 
 function RankBadge({ rank }: { rank: number }) {
   if (rank === 1) return <span className="text-3xl">🥇</span>;
@@ -34,7 +27,7 @@ export default function ExamRoomPage() {
   const { toast } = useToast();
   const examId = params?.examId || "";
 
-  const [questions, setQuestions] = useState(SAMPLE_QUESTIONS);
+  const [questions, setQuestions] = useState<any[]>([]);
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [selected, setSelected] = useState<number | null>(null);
@@ -304,7 +297,7 @@ export default function ExamRoomPage() {
             </div>
 
             <div className="space-y-3">
-              {q.options.map((option, i) => {
+              {q.options.map((option: string, i: number) => {
                 const isSelected = selected === i;
                 const isCorrect = selected !== null && i === q.correct;
                 const isWrong = selected !== null && isSelected && i !== q.correct;

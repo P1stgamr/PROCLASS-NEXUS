@@ -8,13 +8,6 @@ import { SkeletonCard } from "@/components/SkeletonCard";
 import { GlowButton } from "@/components/GlowButton";
 import { Bell, CheckCheck } from "lucide-react";
 
-const SAMPLE_NOTIFS = [
-  { id: "n1", type: "contest", message: "Weekend Math Olympiad starts in 1 hour! Don't miss out.", timestamp: Date.now() - 3600000, read: false },
-  { id: "n2", type: "coin", message: "You earned 50 coins for completing Algebra Fundamentals.", timestamp: Date.now() - 7200000, read: false },
-  { id: "n3", type: "xp", message: "Level up! You reached Level 2. Keep going!", timestamp: Date.now() - 86400000, read: true },
-  { id: "n4", type: "message", message: "3 new messages in Global Chat.", timestamp: Date.now() - 172800000, read: true },
-  { id: "n5", type: "system", message: "Welcome to TaskMint Pro! Complete your first task to earn 50 coins.", timestamp: Date.now() - 259200000, read: true },
-];
 
 export default function NotificationsPage() {
   const { currentUser } = useAuth();
@@ -31,7 +24,7 @@ export default function NotificationsPage() {
         arr.sort((a: any, b: any) => b.timestamp - a.timestamp);
         setNotifs(arr);
       } else {
-        setNotifs(SAMPLE_NOTIFS);
+        setNotifs([]);
       }
       setLoading(false);
     });

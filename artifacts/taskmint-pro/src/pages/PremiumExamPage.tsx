@@ -11,12 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Crown, Clock, Users, Trophy, Lock, Zap, CheckCircle2, ChevronDown, ChevronUp, Radio, CalendarClock, CalendarX } from "lucide-react";
 import { calcPrizes } from "@/lib/prizeUtils";
 
-const SAMPLE_EXAMS = [
-  { id: "exam1", title: "SSC Math Championship", description: "SSC level math exam — top scorer wins prize pool. 30 MCQ questions.", entryFee: 20, duration: 30, totalQuestions: 30, participants: 24, maxParticipants: 100, category: "Math", startTime: Date.now() - 600000, endTime: Date.now() + 3600000, level: "SSC" },
-  { id: "exam2", title: "HSC Physics Showdown", description: "Advanced physics exam for HSC students.", entryFee: 50, duration: 45, totalQuestions: 40, participants: 18, maxParticipants: 50, category: "Physics", startTime: Date.now() + 7200000, endTime: Date.now() + 10800000, level: "HSC" },
-  { id: "exam3", title: "Programming Quiz Cup", description: "Python & JS quiz for programmers. Top 3 win prizes.", entryFee: 30, duration: 25, totalQuestions: 25, participants: 41, maxParticipants: 100, category: "Programming", startTime: Date.now() - 7200000, endTime: Date.now() - 3600000, level: "All" },
-  { id: "exam4", title: "General Knowledge Grand Prix", description: "Test your general knowledge across all subjects.", entryFee: 10, duration: 20, totalQuestions: 20, participants: 67, maxParticipants: 200, category: "General", startTime: Date.now() + 900000, endTime: Date.now() + 3600000, level: "All" },
-];
 
 type ExamStatus = "upcoming" | "live" | "ended";
 function getExamStatus(exam: any): ExamStatus {
@@ -93,7 +87,7 @@ export default function PremiumExamPage() {
     const examRef = ref(db, "premiumExams");
     const unsub = onValue(examRef, (snap) => {
       const data = snap.val();
-      setExams(data ? Object.values(data) : SAMPLE_EXAMS);
+      setExams(data ? Object.values(data) : []);
       setLoading(false);
     });
     return () => off(examRef);

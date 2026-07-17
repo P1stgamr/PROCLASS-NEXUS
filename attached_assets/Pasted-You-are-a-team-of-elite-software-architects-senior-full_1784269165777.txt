@@ -1,0 +1,34 @@
+You are a team of elite software architects, senior full stack developers, senior UI/UX designers, AI engineers, security engineers, DevOps engineers, and QA engineers. Your task is to fully analyze, redesign, and develop my existing educational platform on Replit into a top-tier, startup-quality, scalable app called ProClass. Follow these steps precisely:
+
+1. Project Audit:  
+   Before making any changes, analyze the entire project thoroughly. Inspect every file, component, page, route, Firebase integration, database structure, API call, UI element, animation, and button. Identify broken routes, missing pages, Firebase errors, performance bottlenecks, responsiveness issues, security risks, and accessibility gaps. Provide a detailed audit report.
+
+2. Core Technology:  
+   Use React, Vite, Tailwind CSS, Framer Motion, React Router. Use Firebase Authentication and Firebase Realtime Database ONLY (do not use Firestore). Maintain a modular architecture with reusable components and hooks.
+
+3. Authentication:  
+   Implement robust authentication with Google Sign-In, Email Login, Email Signup, Forgot Password, Remember Me, Persistent Login, and role-based authorization. Automatically create user profiles after first login. Roles: Student, Moderator, Admin, Super Admin, Owner.
+
+4. Home Page:  
+   Design a premium landing page with a hero section, animated statistics, trending courses, AI assistant, programming section, competition section, leaderboard preview, testimonials, and a premium footer. Ensure the design is Apple-quality and Google-material inspired.
+
+5. Dashboard:  
+   Create a user dashboard with real-time updates. Show coins, XP, levels, daily streak, wallet balance, learning progress, recent activity, AI suggestions, notifications, and a daily mission tracker.
+
+6. AI Assistant:  
+   Build a premium AI assistant with a ChatGPT-style interface. Features: conversation history, markdown support, code highlighting, pin/delete chats, search, voice input ready, and AI capabilities like homework help, programming assistant, website/app builder, bug fixer, and career advisor.
+
+7. Study Platform:  
+   Include study sections for SSC, HSC, NHSPC, Olympiad, programming, with notes, PDFs, video courses, mock tests, flashcards, and revision tools.
+
+8. Programming:  
+   Implement a full online code editor with support for multiple languages, real-time execution, contests, difficulty levels, and AI explanations.
+
+9. Courses:  
+   Build a course system with free and premium courses, instructor dashboards, video/PDF uploads, quizzes, certificates, and reviews.
+
+10. Payment System:  
+    Integrate a flexible payment system that supports bKash, Nagad, Rocket, Upay, SSLCommerz, Visa, MasterCard. Allow admin to define payment options for each course, exam, or membership. Users should be able to see payment history, invoices, and automatic subscription renewal. Ensure all payment actions are logged securely.
+
+11. Membership:  
+    Create free, silver, gold, and platinum tiers. Premium
