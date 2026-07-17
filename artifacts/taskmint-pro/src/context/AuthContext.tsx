@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
-import { ref, onValue, off } from "firebase/database";
+import { ref, onValue, off, update } from "firebase/database";
 import { auth, db } from "@/firebase";
 
 export interface UserProfile {
@@ -45,23 +45,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let unsubscribeDb: (() => void) | null = null;
+    let activeInterval: ReturnType<typeof setInterval> | null = null;
 
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
 
-      if (unsubscribeDb) {
-        unsubscribeDb();
-        unsubscribeDb = null;
-      }
+      if (unsubscribeDb) { unsubscribeDb(); unsubscribeDb = null; }
+      if (activeInterval) { clearInterval(activeInterval); activeInterval = null; }
 
       if (user) {
+        // Track lastActive so admin can see online users (green dot)
+        update(ref(db, `users/${user.uid}`), { lastActive: Date.now() });
+        activeInterval = setInterval(() => {
+          update(ref(db, `users/${user.uid}`), { lastActive: Date.now() });
+        }, 3 * 60 * 1000);
+
         const userRef = ref(db, `users/${user.uid}`);
         unsubscribeDb = onValue(userRef, (snapshot) => {
-          if (snapshot.exists()) {
-            setUserProfile(snapshot.val() as UserProfile);
-          } else {
-            setUserProfile(null);
-          }
+          setUserProfile(snapshot.exists() ? (snapshot.val() as UserProfile) : null);
           setLoading(false);
         });
       } else {
@@ -73,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       unsubscribeAuth();
       if (unsubscribeDb) unsubscribeDb();
+      if (activeInterval) clearInterval(activeInterval);
     };
   }, []);
 

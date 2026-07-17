@@ -13,7 +13,7 @@ const slides = [
     subtitle: "Bangladesh's #1 Student Platform",
     description: "SSC, HSC, Olympiad, Programming — সব কিছু এক জায়গায়। Interactive quizzes, video lessons, এবং AI-powered personalized learning path।",
     accent: "text-blue-400",
-    stats: [{ label: "Courses", value: "50+" }, { label: "Students", value: "10K+" }, { label: "Subjects", value: "15+" }],
+    stats: [{ label: "Subjects", value: "15+" }, { label: "Quizzes", value: "500+" }, { label: "Free Access", value: "✓" }],
   },
   {
     icon: Trophy,
@@ -23,7 +23,7 @@ const slides = [
     subtitle: "Real prizes, real competition",
     description: "Premium exams-এ অংশ নিন, leaderboard-এ শীর্ষে উঠুন, এবং bKash-এ real prizes জিতুন। Bangladesh-এর সেরা students-দের সাথে compete করুন।",
     accent: "text-yellow-400",
-    stats: [{ label: "Prize Pool", value: "৳5K+" }, { label: "Contests", value: "20+" }, { label: "Winners", value: "500+" }],
+    stats: [{ label: "Real Prizes", value: "bKash" }, { label: "Live", value: "Leaderboard" }, { label: "Entry", value: "Low" }],
   },
   {
     icon: Bot,
@@ -43,7 +43,7 @@ const slides = [
     subtitle: "Coins, rewards, bKash withdrawal",
     description: "প্রতিটি quiz জিততে coins earn করুন। Top leaderboard-এ উঠুন। Coins → bKash-এ withdraw করুন। Learning is now profitable!",
     accent: "text-emerald-400",
-    stats: [{ label: "Earn Coins", value: "1000+" }, { label: "Withdrawal", value: "bKash" }, { label: "Daily", value: "Free" }],
+    stats: [{ label: "Earn Daily", value: "Coins" }, { label: "Withdrawal", value: "bKash" }, { label: "Daily", value: "Free" }],
   },
 ];
 

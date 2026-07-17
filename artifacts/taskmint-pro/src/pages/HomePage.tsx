@@ -10,7 +10,7 @@ import { SkeletonCard } from "@/components/SkeletonCard";
 import {
   Bell, Coins, Zap, Flame, Trophy, Crown, BookOpen,
   MessageSquare, Bot, ChevronRight, Star, Target,
-  TrendingUp, Sword, CheckCircle2, Lock, Sparkles, Gift, Code2
+  TrendingUp, Sparkles, Gift, Code2
 } from "lucide-react";
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.07 } } };
@@ -44,13 +44,6 @@ const QUICK_ACTIONS = [
   { icon: Star, label: "Plans", path: "/membership", gradient: "from-amber-600/30 to-amber-500/10", border: "border-amber-500/20", iconColor: "text-amber-400" },
 ];
 
-const MISSIONS = [
-  { id: "m1", title: "৩টি study task শেষ করুন", reward: 50, icon: BookOpen, progress: 1, total: 3 },
-  { id: "m2", title: "একটি quiz জিতুন", reward: 100, icon: Sword, progress: 0, total: 1 },
-  { id: "m3", title: "AI Assistant ব্যবহার করুন", reward: 30, icon: Bot, progress: 0, total: 1 },
-  { id: "m4", title: "৫টি chat message পাঠান", reward: 20, icon: MessageSquare, progress: 2, total: 5 },
-];
-
 const ACHIEVEMENTS = [
   { title: "First Login", icon: "🎯", earned: true },
   { title: "Scholar", icon: "📚", earned: true },
@@ -67,6 +60,8 @@ export default function HomePage() {
   const [lbLoading, setLbLoading] = useState(true);
   const [notifCount, setNotifCount] = useState(0);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [fbMissions, setFbMissions] = useState<any[]>([]);
+  const [missionsLoading, setMissionsLoading] = useState(true);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -85,7 +80,18 @@ export default function HomePage() {
       const data = snap.val();
       if (data) setNotifCount(Object.values(data).filter((n: any) => !n.read).length);
     });
-    return () => { off(lbRef); off(notifRef); };
+    // Load daily missions from Firebase
+    const missionsRef = ref(db, "dailyMissions");
+    const unsubMissions = onValue(missionsRef, (snap) => {
+      const data = snap.val();
+      if (data) {
+        setFbMissions(Object.entries(data).map(([id, v]: [string, any]) => ({ id, ...v })));
+      } else {
+        setFbMissions([]);
+      }
+      setMissionsLoading(false);
+    });
+    return () => { off(lbRef); off(notifRef); off(missionsRef); };
   }, [currentUser]);
 
   const hour = new Date().getHours();
@@ -238,30 +244,37 @@ export default function HomePage() {
             </div>
             <Badge className="badge-coin text-[10px]">
               <Gift className="w-2.5 h-2.5 mr-1" />
-              {MISSIONS.filter(m => m.progress >= m.total).length}/{MISSIONS.length} done
+              {fbMissions.length} missions
             </Badge>
           </div>
-          <div className="space-y-2.5">
-            {MISSIONS.map((m, i) => {
-              const done = m.progress >= m.total;
-              return (
+          {missionsLoading ? (
+            <div className="space-y-2.5">{[0,1,2].map(i => <div key={i} className="h-16 rounded-2xl bg-white/5 animate-pulse" />)}</div>
+          ) : fbMissions.length === 0 ? (
+            <div className="glass-card rounded-2xl p-6 text-center">
+              <Target className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <p className="text-sm text-muted-foreground">Admin এখনো কোনো mission দেননি।</p>
+              <p className="text-xs text-muted-foreground mt-1">শীঘ্রই আসছে!</p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {fbMissions.map((m, i) => (
                 <motion.div
                   key={m.id}
                   initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.35 + i * 0.06 }}
-                  className={`flex items-center gap-3 p-4 rounded-2xl transition-all ${done ? "bg-green-500/10 border border-green-500/20" : "glass-card"}`}
+                  className="flex items-center gap-3 p-4 rounded-2xl glass-card"
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${done ? "bg-green-500/20" : "bg-white/5"}`}>
-                    {done ? <CheckCircle2 className="w-5 h-5 text-green-400" /> : <m.icon className="w-5 h-5 text-muted-foreground" />}
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-white/5 text-xl">
+                    {m.icon || "📚"}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium truncate ${done ? "line-through text-muted-foreground" : ""}`}>{m.title}</p>
+                    <p className="text-sm font-medium truncate">{m.title}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                        <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${(m.progress / m.total) * 100}%` }} />
+                        <div className="h-full bg-primary rounded-full" style={{ width: "0%" }} />
                       </div>
-                      <span className="text-[10px] text-muted-foreground shrink-0">{m.progress}/{m.total}</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">0/{m.total || 1}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
@@ -269,9 +282,9 @@ export default function HomePage() {
                     <span className="text-xs font-bold text-yellow-400">+{m.reward}</span>
                   </div>
                 </motion.div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
         </motion.section>
 
         {/* Achievements Preview */}
