@@ -175,7 +175,7 @@ export default function MembershipPage() {
                 <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mx-auto mb-3 shadow-lg">
                   <Crown className="w-8 h-8 text-white" />
                 </div>
-                <h2 className="text-2xl font-extrabold">ProClass Premium</h2>
+                <h2 className="text-2xl font-extrabold">PROCLASS NEXUS Premium</h2>
                 <p className="text-sm text-muted-foreground mt-1">আনলক করুন সব premium features</p>
               </motion.div>
 

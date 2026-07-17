@@ -56,8 +56,9 @@ export default function SplashPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-primary via-white to-secondary bg-clip-text text-transparent">
-            ProClass
+          <h1 className="text-4xl font-extrabold tracking-tight">
+            <span className="bg-gradient-to-r from-primary via-violet-400 to-secondary bg-clip-text text-transparent">PROCLASS</span>
+            <span className="text-white"> NEXUS</span>
           </h1>
           <p className="text-muted-foreground mt-2 text-sm font-medium tracking-widest uppercase">
             Learn. Code. Compete.

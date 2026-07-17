@@ -20,13 +20,13 @@ const CATEGORY_ICONS: Record<string, any> = {
 };
 
 const DEMO_COURSES = [
-  { id: "c1", title: "SSC Math Master", desc: "সম্পূর্ণ SSC গণিত প্রস্তুতি", category: "math", tag: "ssc", type: "free", instructor: "ProClass Team", students: 1240, duration: "40 hrs", rating: 4.8, lessons: 64, emoji: "📐" },
+  { id: "c1", title: "SSC Math Master", desc: "সম্পূর্ণ SSC গণিত প্রস্তুতি", category: "math", tag: "ssc", type: "free", instructor: "NEXUS Team", students: 1240, duration: "40 hrs", rating: 4.8, lessons: 64, emoji: "📐" },
   { id: "c2", title: "HSC Physics Complete", desc: "HSC পদার্থবিজ্ঞান সব অধ্যায়", category: "science", tag: "hsc", type: "premium", price: 299, instructor: "Dr. Rahman", students: 856, duration: "55 hrs", rating: 4.9, lessons: 90, emoji: "⚛️" },
-  { id: "c3", title: "Python for Beginners", desc: "Zero to hero Python programming", category: "programming", tag: "programming", type: "free", instructor: "ProClass Team", students: 3200, duration: "20 hrs", rating: 4.7, lessons: 45, emoji: "🐍" },
+  { id: "c3", title: "Python for Beginners", desc: "Zero to hero Python programming", category: "programming", tag: "programming", type: "free", instructor: "NEXUS Team", students: 3200, duration: "20 hrs", rating: 4.7, lessons: 45, emoji: "🐍" },
   { id: "c4", title: "Web Development Bootcamp", desc: "HTML, CSS, JS, React সব একসাথে", category: "programming", tag: "programming", type: "premium", price: 499, instructor: "Prion Dev", students: 620, duration: "80 hrs", rating: 4.9, lessons: 120, emoji: "🌐" },
   { id: "c5", title: "Math Olympiad Prep", desc: "BdMO ও IMO প্রস্তুতির জন্য", category: "math", tag: "olympiad", type: "premium", price: 399, instructor: "Olympiad Team", students: 340, duration: "35 hrs", rating: 4.95, lessons: 55, emoji: "🏅" },
-  { id: "c6", title: "English for SSC/HSC", desc: "Grammar, writing ও literature", category: "english", tag: "ssc", type: "free", instructor: "ProClass Team", students: 2100, duration: "25 hrs", rating: 4.6, lessons: 38, emoji: "📖" },
-  { id: "c7", title: "C++ Programming", desc: "Competitive programming শুরু করুন", category: "programming", tag: "programming", type: "free", instructor: "ProClass Team", students: 980, duration: "30 hrs", rating: 4.7, lessons: 50, emoji: "💻" },
+  { id: "c6", title: "English for SSC/HSC", desc: "Grammar, writing ও literature", category: "english", tag: "ssc", type: "free", instructor: "NEXUS Team", students: 2100, duration: "25 hrs", rating: 4.6, lessons: 38, emoji: "📖" },
+  { id: "c7", title: "C++ Programming", desc: "Competitive programming শুরু করুন", category: "programming", tag: "programming", type: "free", instructor: "NEXUS Team", students: 980, duration: "30 hrs", rating: 4.7, lessons: 50, emoji: "💻" },
   { id: "c8", title: "HSC Chemistry Complete", desc: "HSC রসায়ন সম্পূর্ণ কোর্স", category: "science", tag: "hsc", type: "premium", price: 299, instructor: "Dr. Karim", students: 720, duration: "50 hrs", rating: 4.8, lessons: 80, emoji: "🧪" },
 ];
 

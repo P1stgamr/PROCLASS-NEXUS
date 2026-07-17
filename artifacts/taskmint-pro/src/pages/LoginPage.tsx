@@ -106,7 +106,9 @@ export default function LoginPage() {
           <div className="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary items-center justify-center mb-4 glow-purple">
             <Zap className="w-8 h-8 text-white" fill="white" />
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight">ProClass</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">
+            <span className="text-primary">PROCLASS</span> NEXUS
+          </h1>
           <p className="text-muted-foreground mt-1 text-sm">Sign in to continue your journey</p>
         </div>
 

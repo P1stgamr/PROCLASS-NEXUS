@@ -1,4 +1,4 @@
-# ProClass
+# PROCLASS NEXUS
 
 Bangladesh's best student ecosystem — Learn, Code, Compete, Earn with AI.
 
@@ -62,7 +62,7 @@ ProClass is a premium educational platform for Bangladeshi students:
 
 ## User preferences
 
-- App name: ProClass
+- App name: PROCLASS NEXUS
 - Firebase project: taskmitpro
 - Admin email: priommozumder@gmail.com
 - bKash number: 01757098701

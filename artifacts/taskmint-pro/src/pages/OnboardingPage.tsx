@@ -31,7 +31,7 @@ const slides = [
     emoji: "🤖",
     title: "AI-Powered Study",
     subtitle: "Gemini AI আপনার study partner",
-    description: "Homework help, code debugging, essay writing — ProClass AI সব পারে। আপনার প্রশ্নের instant answer পান, যেকোনো সময়, যেকোনো জায়গা থেকে।",
+    description: "Homework help, code debugging, essay writing — PROCLASS NEXUS AI সব পারে। আপনার প্রশ্নের instant answer পান, যেকোনো সময়, যেকোনো জায়গা থেকে।",
     accent: "text-violet-400",
     stats: [{ label: "AI Answers", value: "∞" }, { label: "Subjects", value: "All" }, { label: "Response", value: "<2s" }],
   },
@@ -75,7 +75,7 @@ export default function OnboardingPage() {
               <Zap className="w-4 h-4 text-white" />
             </div>
             <span className="text-lg font-extrabold">
-              <span className="text-primary">Pro</span>Class
+              <span className="text-primary">PROCLASS</span> NEXUS
             </span>
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function OnboardingPage() {
         {/* Buttons */}
         <div className="flex flex-col gap-3 w-full">
           <GlowButton className="w-full h-14 text-base font-semibold" onClick={next}>
-            {current === slides.length - 1 ? "ProClass শুরু করুন 🚀" : "পরবর্তী"}
+            {current === slides.length - 1 ? "NEXUS শুরু করুন 🚀" : "পরবর্তী"}
             <ChevronRight className="w-5 h-5 ml-1" />
           </GlowButton>
           {current < slides.length - 1 && (

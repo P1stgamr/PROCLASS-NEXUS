@@ -188,7 +188,7 @@ export default function SettingsPage() {
           </GlowButton>
         </motion.div>
 
-        <p className="text-center text-xs text-muted-foreground">ProClass v2.0 — Learn. Code. Compete.</p>
+        <p className="text-center text-xs text-muted-foreground">PROCLASS NEXUS v2.0 — Learn. Code. Compete.</p>
       </div>
 
       {/* Profile Edit Modal */}
