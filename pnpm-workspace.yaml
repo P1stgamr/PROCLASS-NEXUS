@@ -75,6 +75,8 @@ onlyBuiltDependencies:
   - unrs-resolver
 
 overrides:
+  # websocket-driver 0.7.4 is blocked by Replit package firewall; bump to 0.7.5
+  websocket-driver: "0.7.5"
   # replit uses linux-x64 only, we can exclude all other platforms
   "esbuild>@esbuild/darwin-arm64": "-"
   "esbuild>@esbuild/darwin-x64": "-"
