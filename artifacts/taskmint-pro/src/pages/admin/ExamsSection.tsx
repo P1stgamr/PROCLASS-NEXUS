@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit2, Trash2, Save, X, Eye, EyeOff, Copy, Clock, Trophy } from "lucide-react";
+import { Plus, Edit2, Trash2, Save, X, Eye, EyeOff, Copy, Clock, Trophy, ListPlus } from "lucide-react";
 import { format } from "date-fns";
 
 const FIELD = "h-9 bg-white/5 border-white/10 text-sm";
@@ -27,6 +27,22 @@ const defaultExam = {
   passingMarks: "", certificateEnabled: false,
 };
 
+type ExamQuestion = {
+  id: string;
+  question: string;
+  options: string[];
+  correct: number;
+  points: number;
+};
+
+const createQuestion = (): ExamQuestion => ({
+  id: `question-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  question: "",
+  options: ["", "", "", ""],
+  correct: 0,
+  points: 1,
+});
+
 const categoryColor: Record<string, string> = {
   MCQ: "bg-blue-500/20 text-blue-400", CQ: "bg-purple-500/20 text-purple-400",
   Quiz: "bg-cyan-500/20 text-cyan-400", Practice: "bg-green-500/20 text-green-400",
@@ -38,14 +54,34 @@ export default function ExamsSection({ exams, examResults }: { exams: any[]; exa
   const { currentUser, userProfile } = useAuth();
   const { toast } = useToast();
   const [form, setForm] = useState(defaultExam);
+  const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
-  const resetForm = () => { setForm(defaultExam); setEditingId(null); setShowForm(false); };
+  const resetForm = () => { setForm(defaultExam); setQuestions([]); setEditingId(null); setShowForm(false); };
+
+  const updateQuestion = (questionId: string, patch: Partial<ExamQuestion>) => {
+    setQuestions(prev => prev.map(q => q.id === questionId ? { ...q, ...patch } : q));
+  };
+
+  const updateQuestionOption = (questionId: string, index: number, value: string) => {
+    setQuestions(prev => prev.map(q => {
+      if (q.id !== questionId) return q;
+      const options = [...q.options];
+      options[index] = value;
+      return { ...q, options };
+    }));
+  };
 
   const saveExam = async () => {
     if (!form.title || !form.startTimeStr || !form.endTimeStr) {
       toast({ title: "Title ও সময় আবশ্যক", variant: "destructive" }); return;
+    }
+    if (questions.length === 0) {
+      toast({ title: "কমপক্ষে ১টি প্রশ্ন যোগ করুন", variant: "destructive" }); return;
+    }
+    if (questions.some(q => !q.question.trim() || q.options.some(option => !option.trim()) || q.correct < 0 || q.correct > 3 || q.points < 1)) {
+      toast({ title: "প্রতিটি প্রশ্ন, ৪টি option এবং points পূরণ করুন", variant: "destructive" }); return;
     }
     const startTs = new Date(form.startTimeStr).getTime();
     const endTs = new Date(form.endTimeStr).getTime();
@@ -59,6 +95,13 @@ export default function ExamsSection({ exams, examResults }: { exams: any[]; exa
       negativeMarking: form.negativeMarking, randomQuestions: form.randomQuestions,
       passingMarks: parseInt(form.passingMarks) || 0,
       certificateEnabled: form.certificateEnabled,
+      questions: Object.fromEntries(questions.map(q => [q.id, {
+        id: q.id,
+        question: q.question.trim(),
+        options: q.options.map(option => option.trim()),
+        correct: q.correct,
+        points: q.points,
+      }])),
       updatedAt: Date.now(),
     };
 
@@ -89,6 +132,7 @@ export default function ExamsSection({ exams, examResults }: { exams: any[]; exa
       passingMarks: String(exam.passingMarks || ""),
       certificateEnabled: exam.certificateEnabled || false,
     });
+    setQuestions(exam.questions ? Object.values(exam.questions) as ExamQuestion[] : []);
     setShowForm(true);
   };
 
@@ -200,6 +244,90 @@ export default function ExamsSection({ exams, examResults }: { exams: any[]; exa
                 </label>
               ))}
             </div>
+          </div>
+
+          <div className="border-t border-white/10 pt-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ListPlus className="w-4 h-4 text-primary" />
+                <div>
+                  <h3 className="font-bold text-sm">Exam Questions</h3>
+                  <p className="text-[10px] text-muted-foreground">{questions.length} question{questions.length === 1 ? "" : "s"} added</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuestions(prev => [...prev, createQuestion()])}
+                className="inline-flex items-center rounded-lg bg-primary/15 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary/25"
+              >
+                <Plus className="w-3 h-3 mr-1" />Add Question
+              </button>
+            </div>
+
+            {questions.length === 0 && (
+              <div className="rounded-xl border border-dashed border-white/15 px-3 py-5 text-center text-xs text-muted-foreground">
+                Add questions so students can take this exam.
+              </div>
+            )}
+
+            {questions.map((question, index) => (
+              <div key={question.id} className="rounded-xl border border-white/10 bg-black/10 p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-primary">Question {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQuestions(prev => prev.filter(q => q.id !== question.id))}
+                    className="rounded-lg p-1.5 text-red-400 hover:bg-red-500/10"
+                    title="Remove question"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <Textarea
+                  value={question.question}
+                  onChange={e => updateQuestion(question.id, { question: e.target.value })}
+                  placeholder="Write the question…"
+                  className="min-h-16 resize-none bg-white/5 border-white/10 text-sm"
+                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {question.options.map((option, optionIndex) => (
+                    <Input
+                      key={optionIndex}
+                      value={option}
+                      onChange={e => updateQuestionOption(question.id, optionIndex, e.target.value)}
+                      placeholder={`Option ${String.fromCharCode(65 + optionIndex)}`}
+                      className={FIELD}
+                    />
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground mb-1 block">Correct option</Label>
+                    <select
+                      value={question.correct}
+                      onChange={e => updateQuestion(question.id, { correct: Number(e.target.value) })}
+                      className="w-full h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white"
+                    >
+                      {question.options.map((_, optionIndex) => (
+                        <option key={optionIndex} value={optionIndex} className="bg-gray-900">
+                          Option {String.fromCharCode(65 + optionIndex)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label className="text-[10px] text-muted-foreground mb-1 block">Points</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={question.points}
+                      onChange={e => updateQuestion(question.id, { points: Number(e.target.value) || 0 })}
+                      className={FIELD}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           <GlowButton className="w-full h-9 text-sm" onClick={saveExam}>

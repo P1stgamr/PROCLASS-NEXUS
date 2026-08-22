@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, BookOpen, Crown, MessageSquare, GraduationCap } from "lucide-react";
+import { Home, BookOpen, Crown, MessageSquare, GraduationCap, Wallet } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 
@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: "/premium-exams", label: "Exams", icon: Crown, highlight: true },
   { href: "/courses", label: "Courses", icon: GraduationCap },
   { href: "/chat", label: "Chat", icon: MessageSquare },
+  { href: "/wallet", label: "Withdraw", icon: Wallet },
 ];
 
 const HIDDEN_PATHS = ["/", "/login", "/signup", "/onboarding", "/admin", "/forgot-password"];
@@ -30,7 +31,7 @@ export function BottomNav() {
           const active = location === item.href;
           return (
             <Link key={item.href} href={item.href}>
-              <button className={`relative flex flex-col items-center justify-center gap-1 min-w-[60px] py-2 px-3 rounded-2xl transition-all duration-200 ${
+              <button className={`relative flex flex-col items-center justify-center gap-1 min-w-[52px] py-2 px-2 rounded-2xl transition-all duration-200 ${
                 active ? "text-primary" : "text-muted-foreground"
               } ${item.highlight && !active ? "text-yellow-400" : ""}`}>
                 {active && (
