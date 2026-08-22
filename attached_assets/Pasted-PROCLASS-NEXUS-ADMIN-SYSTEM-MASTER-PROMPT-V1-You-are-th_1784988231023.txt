@@ -1,0 +1,315 @@
+PROCLASS  NEXUS ADMIN SYSTEM MASTER PROMPT (V1)
+
+You are the lead software architect of the ProClass platform.
+
+Your task is to completely redesign and upgrade the Admin System. Do NOT create mock data, demo data, placeholder features, or fake statistics. Every feature must use Firebase Realtime Database and production-ready architecture.
+
+IMPORTANT
+
+Do not break any existing authentication or user data.
+
+Do not change the existing UI theme unless required.
+
+Only improve and extend the current system.
+
+---
+
+ADMIN ROLE SYSTEM
+
+Create two admin roles only.
+
+1. Super Admin
+
+Super Admin has unlimited permissions.
+
+Super Admin can:
+
+- Manage every user.
+- Create/Edit/Delete Admin accounts.
+- Promote Student → Basic Admin.
+- Promote Basic Admin → Super Admin.
+- Remove admin permission.
+- Suspend users.
+- Ban users.
+- Reset passwords.
+- Verify users.
+- Manage every course.
+- Manage every subject.
+- Manage every chapter.
+- Manage every lesson.
+- Upload PDFs.
+- Upload Videos.
+- Create/Edit/Delete Exams.
+- Create/Edit/Delete Practice Questions.
+- Create/Edit/Delete Daily Tasks.
+- Create/Edit/Delete Weekly Tasks.
+- Create/Edit/Delete Missions.
+- Manage Coins.
+- Manage XP.
+- Manage Wallet.
+- Manage Withdraw Requests.
+- Manage Referral Rewards.
+- Create Membership Plans.
+- Edit Membership Plans.
+- Delete Membership Plans.
+- Enable/Disable Membership Plans.
+- Change Membership Price.
+- Configure Payment Methods.
+- Approve Payments.
+- Reject Payments.
+- Send Notifications.
+- Manage Homepage Content.
+- Manage Banners.
+- Manage AI Features.
+- View Analytics.
+- View Logs.
+- View Reports.
+- Manage Platform Settings.
+
+No permission restrictions.
+
+---
+
+2. Basic Admin
+
+Basic Admin is limited.
+
+Basic Admin CAN:
+
+- Manage Courses.
+- Manage Subjects.
+- Manage Chapters.
+- Upload PDF.
+- Upload Videos.
+- Create Practice Questions.
+- Create Exams.
+- Edit Exams.
+- Publish Exams.
+- Manage Student Results.
+- Approve Submitted Tasks.
+- Create Announcements.
+
+Basic Admin CANNOT:
+
+- Create another Admin.
+- Delete Super Admin.
+- Change Membership Pricing.
+- Access Wallet Settings.
+- Access Payment Settings.
+- Access Platform Settings.
+- Access Security Settings.
+- Access Firebase Configuration.
+
+---
+
+PROFILE SETTINGS
+
+If logged-in user role == Super Admin
+
+Show
+
+Profile
+
+↓
+
+Super Admin Panel
+
+If logged-in user role == Basic Admin
+
+Show
+
+Profile
+
+↓
+
+Basic Admin Panel
+
+If logged-in user is Student
+
+Hide every Admin option.
+
+The Admin button must appear automatically according to user role.
+
+Never hardcode it.
+
+Use Firebase Role.
+
+---
+
+ADMIN DASHBOARD
+
+Create a modern dashboard.
+
+Dashboard contains:
+
+Users
+
+Courses
+
+Subjects
+
+Chapters
+
+Tasks
+
+Daily Tasks
+
+Weekly Tasks
+
+Membership
+
+Payments
+
+Wallet
+
+Withdraw
+
+AI
+
+Notifications
+
+Reports
+
+Analytics
+
+Logs
+
+Settings
+
+Everything must have CRUD.
+
+(Create)
+
+(Read)
+
+(Update)
+
+(Delete)
+
+---
+
+MEMBERSHIP MANAGEMENT
+
+Create a complete Membership Manager.
+
+Features:
+
+Create Membership
+
+Edit Membership
+
+Delete Membership
+
+Enable Membership
+
+Disable Membership
+
+Monthly Plan
+
+Yearly Plan
+
+Lifetime Plan
+
+Custom Plan
+
+Membership Name
+
+Price
+
+Duration
+
+Features List
+
+Badge
+
+Priority
+
+Visibility
+
+Everything editable.
+
+No hardcoded plans.
+
+All stored in Firebase.
+
+---
+
+EXAM MANAGEMENT
+
+Create a full Exam Manager.
+
+Admin can:
+
+Create Exam
+
+Edit Exam
+
+Delete Exam
+
+Duplicate Exam
+
+Schedule Exam
+
+Publish Exam
+
+Unpublish Exam
+
+Exam Categories
+
+MCQ
+
+CQ
+
+Quiz
+
+Practice
+
+Assignment
+
+Mock Test
+
+Live Test
+
+Negative Marking
+
+Random Questions
+
+Timer
+
+Passing Marks
+
+Result Publish
+
+Certificate
+
+Everything configurable.
+
+---
+
+SECURITY
+
+Use Role Based Access Control (RBAC).
+
+Never allow unauthorized access.
+
+Check permissions before every action.
+
+Protect all admin routes.
+
+Log every admin activity.
+
+---
+
+FINAL REQUIREMENTS
+
+Replace every demo feature.
+
+Replace every fake data.
+
+Replace every placeholder.
+
+Everything must use Firebase Realtime Database.
+
+Every admin feature must work in production.
+
+Do not stop until the entire Admin System is production-ready and fully functional.

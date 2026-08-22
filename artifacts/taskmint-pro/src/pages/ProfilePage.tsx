@@ -116,10 +116,13 @@ export default function ProfilePage() {
                   </Badge>
                 )}
                 {profile.role === "admin" && (
-                  <Badge className="bg-red-500/20 text-red-400 border-red-500/30 text-[10px]">Admin</Badge>
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-[10px]">Admin</Badge>
                 )}
                 {profile.role === "super_admin" && (
-                  <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[10px]">Super Admin</Badge>
+                  <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 text-[10px]">Super Admin</Badge>
+                )}
+                {profile.role === "owner" && (
+                  <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 text-[10px]">Owner</Badge>
                 )}
                 {profile.membership && profile.membership !== "free" && (
                   <Badge className={`text-[10px] ${

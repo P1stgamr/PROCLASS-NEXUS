@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ref, onValue, off, push } from "firebase/database";
+import { ref, onValue, off, push, query, orderByChild, equalTo } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -45,7 +45,7 @@ export default function WalletPage() {
       }
       setLoading(false);
     });
-    const wdRef = ref(db, `withdrawRequests`);
+    const wdRef = query(ref(db, "withdrawRequests"), orderByChild("uid"), equalTo(currentUser.uid));
     const unsub2 = onValue(wdRef, (snap) => {
       const data = snap.val();
       if (data) {
@@ -53,7 +53,7 @@ export default function WalletPage() {
           .map(([id, v]: [string, any]) => ({ id, ...v }))
           .filter((r: any) => r.uid === currentUser.uid);
         arr.sort((a: any, b: any) => b.createdAt - a.createdAt);
-        setWithdrawRequests(arr.slice(0, 3));
+        setWithdrawRequests(arr);
       }
     });
     return () => { off(dbRef); off(wdRef); };
@@ -61,13 +61,19 @@ export default function WalletPage() {
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
-    const amount = parseInt(withdrawAmount);
-    if (!bkashNumber.trim() || !amount) return;
+    const amount = Number(withdrawAmount);
+    if (!bkashNumber.trim() || !Number.isInteger(amount) || amount <= 0) {
+      toast({ title: "Valid withdrawal amount দিন", variant: "destructive" });
+      return;
+    }
     if (amount < 100) {
       toast({ title: "Minimum withdrawal is ৳100", variant: "destructive" });
       return;
     }
-    if (amount > (userProfile?.coins || 0)) {
+    const pendingAmount = withdrawRequests
+      .filter(r => r.status === "pending")
+      .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+    if (pendingAmount + amount > (userProfile?.coins || 0)) {
       toast({ title: "Insufficient balance", variant: "destructive" });
       return;
     }
@@ -92,7 +98,14 @@ export default function WalletPage() {
     }
   };
 
-  const totalEarned = earnings.filter((e) => e.type !== "withdrawal").reduce((s, e) => s + e.amount, 0);
+  const totalEarned = earnings.filter((e) => e.type !== "withdrawal").reduce((s, e) => s + (Number(e.amount) || 0), 0);
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(now.getDate() - now.getDay());
+  const weeklyEarned = earnings
+    .filter(e => e.type !== "withdrawal" && Number(e.timestamp) >= weekStart.getTime())
+    .reduce((s, e) => s + (Number(e.amount) || 0), 0);
   const coins = userProfile?.coins ?? 0;
 
   return (
@@ -138,7 +151,7 @@ export default function WalletPage() {
           </div>
           <div className="glass-card p-4 rounded-2xl">
             <p className="text-xs text-muted-foreground uppercase tracking-wider">এই সপ্তাহ</p>
-            <p className="text-xl font-bold mt-1 text-yellow-400">80 coins</p>
+            <p className="text-xl font-bold mt-1 text-yellow-400">{weeklyEarned} coins</p>
           </div>
         </div>
 

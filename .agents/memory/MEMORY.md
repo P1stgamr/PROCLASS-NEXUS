@@ -1,0 +1,1 @@
+- [Firebase rules and list queries](firebase-rules-and-list-queries.md) — parent-level reads must match the client query; child rules alone do not authorize parent onValue listeners.
