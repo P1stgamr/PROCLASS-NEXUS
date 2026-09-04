@@ -31,7 +31,7 @@ router.post("/ai/chat", async (req, res) => {
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${encodeURIComponent(apiKey)}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -44,7 +44,11 @@ router.post("/ai/chat", async (req, res) => {
     );
     const payload = await response.json() as any;
     if (!response.ok) {
-      req.log.error({ status: response.status, provider: payload?.error?.status }, "Gemini request failed");
+      req.log.error({
+        status: response.status,
+        provider: payload?.error?.status,
+        providerMessage: payload?.error?.message,
+      }, "Gemini request failed");
       return res.status(502).json({ error: "Gemini request failed. Please try again." });
     }
     const text = payload?.candidates?.[0]?.content?.parts?.map((part: any) => part.text || "").join("") || "";
