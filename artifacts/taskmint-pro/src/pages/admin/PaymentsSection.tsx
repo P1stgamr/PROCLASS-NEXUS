@@ -59,24 +59,26 @@ export default function PaymentsSection({ paymentRequests, withdrawRequests, mem
       toast({ title: "Request already processed", variant: "destructive" });
       return;
     }
+    const claimedRequest = claim.snapshot.val() as any;
+    const uid = claimedRequest.uid;
+    const amount = Number(claimedRequest.amount);
 
     // Re-read and debit the live balance atomically; never trust the list snapshot.
-    const debit = await runTransaction(ref(db, `users/${req.uid}/coins`), (current: any) => {
+    const debit = await runTransaction(ref(db, `users/${uid}/coins`), (current: any) => {
       const coins = Number(current);
-      const amount = Number(req.amount);
       if (!Number.isFinite(coins) || !Number.isFinite(amount) || coins < amount) return;
       return coins - amount;
     });
     if (!debit.committed) {
       await update(requestRef, { status: "rejected", processedAt: Date.now(), rejectionReason: "Insufficient balance" });
-      await push(ref(db, `notifications/${req.uid}`), { type: "system", message: "Withdrawal rejected because your available balance was insufficient.", timestamp: Date.now(), read: false });
+      await push(ref(db, `notifications/${uid}`), { type: "system", message: "Withdrawal rejected because your available balance was insufficient.", timestamp: Date.now(), read: false });
       toast({ title: "Rejected: insufficient live balance", variant: "destructive" });
       return;
     }
 
-    await push(ref(db, `notifications/${req.uid}`), { type: "coin", message: `৳${req.amount} bKash-এ পাঠানো হয়েছে ✅`, timestamp: Date.now(), read: false });
-    await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "withdraw.approve", req.id, { uid: req.uid, amount: req.amount });
-    toast({ title: `৳${req.amount} withdrawal approved ✅` });
+    await push(ref(db, `notifications/${uid}`), { type: "coin", message: `৳${amount} bKash-এ পাঠানো হয়েছে ✅`, timestamp: Date.now(), read: false });
+    await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "withdraw.approve", req.id, { uid, amount });
+    toast({ title: `৳${amount} withdrawal approved ✅` });
   };
 
   const rejectWithdraw = async (req: any) => {

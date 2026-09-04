@@ -56,9 +56,22 @@ export default function UsersSection({ users }: { users: any[] }) {
     if (editingUser.role === "owner" && userProfile?.role !== "owner") {
       toast({ title: "Cannot edit Owner account", variant: "destructive" }); return;
     }
+    const coinsText = editForm.coins.trim();
+    const xpText = editForm.xp.trim();
+    const coins = Number(coinsText);
+    const xp = Number(xpText);
+    if (!coinsText || !/^\d+$/.test(coinsText) || !Number.isSafeInteger(coins) || coins < 0) {
+      toast({ title: "Coins must be a valid non-negative whole number", variant: "destructive" }); return;
+    }
+    if (!xpText || !/^\d+$/.test(xpText) || !Number.isSafeInteger(xp) || xp < 0) {
+      toast({ title: "XP must be a valid non-negative whole number", variant: "destructive" }); return;
+    }
+    if (!ROLES.includes(editForm.role as typeof ROLES[number])) {
+      toast({ title: "Invalid role selected", variant: "destructive" }); return;
+    }
     await update(ref(db, `users/${editingUser.uid}`), {
-      coins: parseInt(editForm.coins) || 0,
-      xp: parseInt(editForm.xp) || 0,
+      coins,
+      xp,
       role: editForm.role,
       name: editForm.name,
     });

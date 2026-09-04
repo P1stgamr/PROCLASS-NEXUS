@@ -3,12 +3,12 @@
     ".read": false,
     ".write": false,
     "users": {
-      ".read": "auth != null",
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
       "$uid": {
         ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
         ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == $uid && !data.exists() && newData.child('role').val() == 'student' && newData.child('coins').val() == 0) || (auth.uid == $uid && data.exists() && newData.child('role').val() == data.child('role').val() && newData.child('coins').val() == data.child('coins').val()))",
         "$field": {
-          ".validate": "$field != 'role' && $field != 'coins' || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
+          ".validate": "$field != 'role' && $field != 'coins' || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (!data.exists() && auth.uid == $uid && $field == 'role' && newData.val() == 'student') || (!data.exists() && auth.uid == $uid && $field == 'coins' && newData.val() == 0)"
         }
       }
     },

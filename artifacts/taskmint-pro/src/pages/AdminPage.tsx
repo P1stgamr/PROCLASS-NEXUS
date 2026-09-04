@@ -20,7 +20,7 @@ import LogsSection from "./admin/LogsSection";
 import SettingsSection from "./admin/SettingsSection";
 
 export default function AdminPage() {
-  const { userProfile, loading: authLoading } = useAuth();
+  const { currentUser, userProfile, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const { isAdmin, isSuperAdmin, can } = useAdminPermissions();
 
@@ -41,8 +41,31 @@ export default function AdminPage() {
   const [examResults, setExamResults] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
-    if (authLoading || !userProfile) return;
-    if (!isAdmin) { setLocation("/home"); return; }
+    if (authLoading) return;
+    if (!currentUser) {
+      setLoading(false);
+      setLocation("/login");
+      return;
+    }
+    // Do not make any Firebase subscriptions until the profile (and its role)
+    // has been resolved for the currently authenticated account.
+    if (!userProfile) return;
+    if (!isAdmin) {
+      setUsers([]);
+      setTasks([]);
+      setMissions([]);
+      setCourses([]);
+      setExams([]);
+      setQuizzes([]);
+      setChallenges([]);
+      setPaymentRequests([]);
+      setWithdrawRequests([]);
+      setMembershipRequests([]);
+      setExamResults({});
+      setLoading(false);
+      setLocation("/home");
+      return;
+    }
 
     const listeners: (() => void)[] = [];
 
@@ -97,7 +120,7 @@ export default function AdminPage() {
 
     setLoading(false);
     return () => listeners.forEach(fn => fn());
-  }, [authLoading, userProfile, isAdmin, isSuperAdmin, setLocation]);
+  }, [authLoading, currentUser?.uid, userProfile?.role, isAdmin, isSuperAdmin, setLocation]);
 
   if (loading) {
     return (

@@ -34,7 +34,7 @@ export default function SignupPage() {
         name,
         email,
         photoURL: null,
-        coins: 100,
+        coins: 0,
         xp: 0,
         level: 1,
         streak: 1,

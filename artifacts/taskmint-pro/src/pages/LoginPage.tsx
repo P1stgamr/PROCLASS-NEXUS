@@ -10,10 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Zap, Mail, Lock, Chrome, Eye, EyeOff } from "lucide-react";
 
-const ADMIN_EMAIL = "priommozumder@gmail.com";
-
-async function createOrUpdateProfile(user: any): Promise<"admin" | "student"> {
-  const isAdmin = user.email === ADMIN_EMAIL;
+async function createOrUpdateProfile(user: any): Promise<"admin" | "super_admin" | "owner" | "student"> {
   const userRef = ref(db, `users/${user.uid}`);
   const snapshot = await get(userRef);
   if (!snapshot.exists()) {
@@ -22,20 +19,19 @@ async function createOrUpdateProfile(user: any): Promise<"admin" | "student"> {
       name: user.displayName || user.email?.split("@")[0] || "Student",
       email: user.email,
       photoURL: user.photoURL || null,
-      coins: isAdmin ? 999999 : 100,
-      xp: isAdmin ? 99999 : 0,
-      level: isAdmin ? 99 : 1,
-      streak: isAdmin ? 365 : 1,
-      role: isAdmin ? "admin" : "student",
+      coins: 0,
+      xp: 0,
+      level: 1,
+      streak: 1,
+      role: "student",
       createdAt: Date.now(),
       lastLogin: Date.now(),
     });
   } else {
-    const updates: any = { lastLogin: Date.now() };
-    if (isAdmin) updates.role = "admin";
-    await update(userRef, updates);
+    await update(userRef, { lastLogin: Date.now() });
   }
-  return isAdmin ? "admin" : "student";
+  const role = snapshot.exists() ? snapshot.val()?.role : "student";
+  return role === "admin" || role === "super_admin" || role === "owner" ? role : "student";
 }
 
 export default function LoginPage() {
@@ -75,11 +71,7 @@ export default function LoginPage() {
     } catch (err: any) {
       let msg = "Login failed. Please try again.";
       if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {
-        if (email.trim() === ADMIN_EMAIL) {
-          msg = "Admin account-এ Google দিয়ে login করুন অথবা Signup করুন।";
-        } else {
-          msg = "এই email দিয়ে কোনো account নেই। Sign up করুন।";
-        }
+        msg = "এই email দিয়ে কোনো account নেই। Sign up করুন।";
       } else if (err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
         msg = "Password ভুল হয়েছে।";
       } else if (err.code === "auth/too-many-requests") {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ref, onValue, off, push, query, orderByChild, equalTo } from "firebase/database";
+import { ref, onValue, off, push, get, query, orderByChild, equalTo } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -70,15 +70,25 @@ export default function WalletPage() {
       toast({ title: "Minimum withdrawal is ৳100", variant: "destructive" });
       return;
     }
-    const pendingAmount = withdrawRequests
-      .filter(r => r.status === "pending")
-      .reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-    if (pendingAmount + amount > (userProfile?.coins || 0)) {
-      toast({ title: "Insufficient balance", variant: "destructive" });
-      return;
-    }
     setSubmitting(true);
     try {
+      // Refresh both values immediately before creating the request. The profile
+      // listener and withdrawal list can otherwise be stale after another tab
+      // or device submits a request.
+      const [balanceSnap, requestsSnap] = await Promise.all([
+        get(ref(db, `users/${currentUser!.uid}/coins`)),
+        get(query(ref(db, "withdrawRequests"), orderByChild("uid"), equalTo(currentUser!.uid))),
+      ]);
+      const currentCoins = Number(balanceSnap.val());
+      const latestRequests = requestsSnap.exists()
+        ? Object.values(requestsSnap.val()).filter((request: any) => request.status === "pending")
+        : [];
+      const pendingAmount = latestRequests.reduce<number>((sum, request: any) => sum + (Number(request.amount) || 0), 0);
+      if (!Number.isFinite(currentCoins) || pendingAmount + amount > currentCoins) {
+        toast({ title: "Insufficient balance", variant: "destructive" });
+        return;
+      }
+
       await push(ref(db, "withdrawRequests"), {
         uid: currentUser!.uid,
         userName: userProfile?.name || "Unknown",
