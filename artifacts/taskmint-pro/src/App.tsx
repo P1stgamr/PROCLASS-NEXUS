@@ -26,6 +26,7 @@ import PremiumExamPage from "@/pages/PremiumExamPage";
 import PaymentPage from "@/pages/PaymentPage";
 import ExamRoomPage from "@/pages/ExamRoomPage";
 import AIAssistantPage from "@/pages/AIAssistantPage";
+import CommunityPage from "@/pages/CommunityPage";
 import GiftsPage from "@/pages/GiftsPage";
 import CoursesPage from "@/pages/CoursesPage";
 import MembershipPage from "@/pages/MembershipPage";
@@ -116,6 +117,9 @@ function Router() {
         </Route>
         <Route path="/courses">
           <ProtectedRoute><CoursesPage /></ProtectedRoute>
+        </Route>
+        <Route path="/community">
+          <ProtectedRoute><CommunityPage /></ProtectedRoute>
         </Route>
         <Route path="/membership">
           <ProtectedRoute><MembershipPage /></ProtectedRoute>

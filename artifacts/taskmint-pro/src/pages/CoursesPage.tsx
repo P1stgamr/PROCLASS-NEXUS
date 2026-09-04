@@ -147,7 +147,7 @@ export default function CoursesPage() {
                     {/* Thumbnail */}
                     <div className={`w-16 h-16 rounded-xl flex items-center justify-center shrink-0 text-3xl
                       ${isPremiumCourse ? "bg-gradient-to-br from-yellow-500/20 to-orange-500/10 border border-yellow-500/20" : "bg-gradient-to-br from-blue-500/20 to-violet-500/10 border border-blue-500/20"}`}>
-                      {course.emoji || "📚"}
+                       {course.thumbnail ? <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover rounded-xl" /> : (course.emoji || "📚")}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">

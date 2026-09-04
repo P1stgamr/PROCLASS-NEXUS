@@ -12,6 +12,7 @@ export type AdminAction =
   | "challenge.create" | "challenge.edit" | "challenge.delete"
   | "question.create" | "question.edit" | "question.delete" | "question.import"
   | "test.create" | "test.edit" | "test.delete"
+  | "community.approve" | "community.reject" | "community.withdraw.approved" | "community.withdraw.rejected"
   | "membership.create" | "membership.edit" | "membership.delete" | "membership.toggle"
   | "payment.approve" | "payment.reject"
   | "withdraw.approve" | "withdraw.reject"

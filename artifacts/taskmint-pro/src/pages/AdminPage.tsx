@@ -19,6 +19,7 @@ import AnalyticsSection from "./admin/AnalyticsSection";
 import LogsSection from "./admin/LogsSection";
 import SettingsSection from "./admin/SettingsSection";
 import PracticeAdminSection from "./admin/PracticeAdminSection";
+import CommunityAdminSection from "./admin/CommunityAdminSection";
 
 export default function AdminPage() {
   const { currentUser, userProfile, loading: authLoading } = useAuth();
@@ -40,6 +41,9 @@ export default function AdminPage() {
   const [withdrawRequests, setWithdrawRequests] = useState<any[]>([]);
   const [membershipRequests, setMembershipRequests] = useState<any[]>([]);
   const [examResults, setExamResults] = useState<Record<string, any[]>>({});
+  const [communityRequests, setCommunityRequests] = useState<any[]>([]);
+  const [communities, setCommunities] = useState<any[]>([]);
+  const [communityWithdrawals, setCommunityWithdrawals] = useState<any[]>([]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -63,6 +67,9 @@ export default function AdminPage() {
       setWithdrawRequests([]);
       setMembershipRequests([]);
       setExamResults({});
+      setCommunityRequests([]);
+      setCommunities([]);
+      setCommunityWithdrawals([]);
       setLoading(false);
       setLocation("/home");
       return;
@@ -97,6 +104,9 @@ export default function AdminPage() {
     subscribe("premiumExams", d => setExams(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v }))));
     subscribe("quizzes", d => setQuizzes(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v }))));
     subscribe("codingChallenges", d => setChallenges(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v }))));
+    subscribe("communityRequests", d => setCommunityRequests(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))));
+    subscribe("communities", d => setCommunities(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v }))));
+    subscribe("communityWithdrawals", d => setCommunityWithdrawals(Object.entries(d).flatMap(([communityId, requests]: [string, any]) => Object.entries(requests || {}).map(([id, v]: [string, any]) => ({ id, communityId, ...v }))).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))));
 
     if (isSuperAdmin) {
       subscribeLimited("paymentRequests", d =>
@@ -165,6 +175,8 @@ export default function AdminPage() {
         return <ExamsSection exams={exams} examResults={examResults} />;
       case "practice":
         return <PracticeAdminSection />;
+      case "communities":
+        return <CommunityAdminSection requests={communityRequests} communities={communities} withdrawals={communityWithdrawals} />;
       case "payments":
         return can.managePayments ? (
           <PaymentsSection

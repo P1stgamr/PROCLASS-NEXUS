@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ref, onValue, off, update, get } from "firebase/database";
+import { ref, onValue, off, update, get, push } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { AdModal } from "@/components/AdModal";
 import { GlowButton } from "@/components/GlowButton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { awardCoinsWithCommunityCommission } from "@/lib/community";
 import { Gift, Zap, CheckCircle2, ArrowLeft, Package } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -53,10 +54,12 @@ export default function GiftsPage() {
         return;
       }
       await update(giftRef, { claimed: true, claimedAt: Date.now() });
-      const userSnap = await get(ref(db, `users/${currentUser.uid}`));
-      const currentCoins = userSnap.val()?.coins || 0;
-      await update(ref(db, `users/${currentUser.uid}`), {
-        coins: currentCoins + (gift.coins || 0),
+      await awardCoinsWithCommunityCommission(currentUser.uid, Number(gift.coins || 0), "bonus", adTarget);
+      await push(ref(db, `earnings/${currentUser.uid}`), {
+        type: "bonus",
+        amount: Number(gift.coins || 0),
+        label: gift.message || "Gift claim",
+        timestamp: Date.now(),
       });
       toast({ title: `🎁 ${gift.coins} coins claim করা হয়েছে!` });
     } catch (err: any) {

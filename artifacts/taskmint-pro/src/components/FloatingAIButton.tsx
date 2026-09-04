@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Bot } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { isExamModeActive } from "@/lib/examMode";
 
 const POSITION_STORAGE_KEY = "taskmint-ai-button-position";
 const BUTTON_SIZE = 56;
@@ -59,6 +60,7 @@ export function FloatingAIButton() {
   const hiddenPaths = ["/", "/login", "/signup", "/onboarding", "/ai"];
   const isHidden =
     !currentUser ||
+    isExamModeActive() ||
     hiddenPaths.includes(location) ||
     location.startsWith("/exam-room/") ||
     location.startsWith("/ai");

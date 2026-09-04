@@ -15,7 +15,7 @@ import { Plus, Edit2, Trash2, Save, X, BookOpen } from "lucide-react";
 const FIELD = "h-9 bg-white/5 border-white/10 text-sm";
 const CARD = "glass-card p-4 rounded-2xl border border-white/10";
 
-const defaultCourse = { title: "", desc: "", instructor: "", type: "free", price: "0", tag: "programming", duration: "", lessons: "10", emoji: "📚" };
+const defaultCourse = { title: "", desc: "", instructor: "", type: "free", price: "0", tag: "programming", duration: "", lessons: "10", emoji: "📚", thumbnail: "" };
 
 export default function CoursesSection({ courses }: { courses: any[] }) {
   const { currentUser, userProfile } = useAuth();
@@ -43,7 +43,7 @@ export default function CoursesSection({ courses }: { courses: any[] }) {
 
   const startEdit = (c: any) => {
     setEditingId(c.id);
-    setForm({ title: c.title || "", desc: c.desc || "", instructor: c.instructor || "", type: c.type || "free", price: String(c.price || 0), tag: c.tag || "programming", duration: c.duration || "", lessons: String(c.lessons || 0), emoji: c.emoji || "📚" });
+    setForm({ title: c.title || "", desc: c.desc || "", instructor: c.instructor || "", type: c.type || "free", price: String(c.price || 0), tag: c.tag || "programming", duration: c.duration || "", lessons: String(c.lessons || 0), emoji: c.emoji || "📚", thumbnail: c.thumbnail || "" });
     setShowForm(true);
   };
 
@@ -89,6 +89,10 @@ export default function CoursesSection({ courses }: { courses: any[] }) {
               <Label className="text-xs text-muted-foreground mb-1 block">Icon (emoji)</Label>
               <Input value={form.emoji} onChange={e => setForm(p => ({ ...p, emoji: e.target.value }))} placeholder="📚" className={FIELD} />
             </div>
+            <div className="col-span-2">
+              <Label className="text-xs text-muted-foreground mb-1 block">Thumbnail URL</Label>
+              <Input value={form.thumbnail} onChange={e => setForm(p => ({ ...p, thumbnail: e.target.value }))} placeholder="https://example.com/course-cover.jpg" className={FIELD} />
+            </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Type</Label>
               <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))} className="w-full h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
@@ -126,7 +130,7 @@ export default function CoursesSection({ courses }: { courses: any[] }) {
         {courses.map(c => (
           <motion.div key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={CARD}>
             <div className="flex items-center gap-3">
-              <span className="text-2xl">{c.emoji || "📚"}</span>
+              {c.thumbnail ? <img src={c.thumbnail} alt="" className="w-16 h-16 rounded-xl object-cover shrink-0" /> : <span className="text-2xl">{c.emoji || "📚"}</span>}
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{c.title}</p>
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">

@@ -5,6 +5,7 @@ import { ref, onValue, off, push, set, remove, update } from "firebase/database"
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { streamGemini } from "@/lib/gemini";
+import { getActiveExam } from "@/lib/examMode";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
@@ -115,8 +116,16 @@ export default function AIAssistantPage() {
   const [streaming, setStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [showSidebar, setShowSidebar] = useState(false);
+  const [activeExam, setActiveExam] = useState(getActiveExam);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const checkExamMode = () => setActiveExam(getActiveExam());
+    checkExamMode();
+    const interval = window.setInterval(checkExamMode, 1000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -220,6 +229,27 @@ export default function AIAssistantPage() {
   const allMessages: Message[] = streaming
     ? [...messages, { id: "streaming", role: "assistant", content: streamingContent || "●●●", timestamp: Date.now() }]
     : messages;
+
+  if (activeExam) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-5">
+        <div className="glass-card rounded-3xl p-6 max-w-sm text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-red-500/15 border border-red-500/25 flex items-center justify-center mx-auto">
+            <Trophy className="w-8 h-8 text-red-400" />
+          </div>
+          <div>
+            <h1 className="text-xl font-extrabold">AI exam চলাকালীন বন্ধ</h1>
+            <p className="text-sm text-muted-foreground mt-2">
+              Exam শেষ না হওয়া পর্যন্ত TaskMint AI ব্যবহার করা যাবে না।
+            </p>
+          </div>
+          <GlowButton className="w-full" onClick={() => setLocation(`/exam-room/${activeExam.examId}`)}>
+            Exam-এ ফিরে যান
+          </GlowButton>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

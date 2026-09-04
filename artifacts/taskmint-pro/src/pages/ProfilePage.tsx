@@ -10,7 +10,7 @@ import { GlowButton } from "@/components/GlowButton";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import {
   Settings, Coins, Zap, Flame, Crown, Star,
-  Trophy, Target, BookOpen, Code2, Calendar,
+  Trophy, Target, BookOpen, Code2, Calendar, Building2,
   ChevronRight, Award, TrendingUp
 } from "lucide-react";
 import { createUserNo } from "@/lib/userId";
@@ -136,6 +136,13 @@ export default function ProfilePage() {
                   }`}>
                     <Crown className="w-2.5 h-2.5 mr-1" />{profile.membership}
                   </Badge>
+                )}
+                {profile.communityId && (
+                  <button onClick={() => isOwn && setLocation("/community")} className="inline-flex">
+                    <Badge className="bg-cyan-500/15 text-cyan-300 border-cyan-500/30 text-[10px]">
+                      <Building2 className="w-2.5 h-2.5 mr-1" />{profile.communityName || "Community member"}
+                    </Badge>
+                  </button>
                 )}
               </div>
               {profile.bio && (

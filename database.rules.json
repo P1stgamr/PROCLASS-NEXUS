@@ -3,7 +3,8 @@
     ".read": false,
     ".write": false,
     "users": {
-      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (query.orderByChild == 'email' && query.equalTo != null) || (query.orderByChild == 'username' && query.equalTo != null) || (query.orderByChild == 'userNo' && query.equalTo != null))",
+      ".indexOn": ["email", "username", "userNo"],
       "$uid": {
         ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
         ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == $uid && !data.exists() && newData.child('role').val() == 'student' && newData.child('coins').val() == 0) || (auth.uid == $uid && data.exists() && newData.child('role').val() == data.child('role').val() && newData.child('coins').val() == data.child('coins').val()))",
@@ -12,6 +13,64 @@
         },
         "userNo": {
           ".validate": "newData.isString() && newData.val().length >= 6 && newData.val().length <= 32 && (!data.exists() || newData.val() == data.val())"
+        },
+        "communityId": {
+          ".write": "auth != null && root.child('communities').child(newData.val()).child('ownerUid').val() == auth.uid",
+          ".validate": "newData.isString() && root.child('communities').child(newData.val()).child('ownerUid').val() != null"
+        },
+        "communityName": {
+          ".write": "auth != null && root.child('communities').child(newData.parent().child('communityId').val()).child('ownerUid').val() == auth.uid"
+        },
+        "communityLogo": {
+          ".write": "auth != null && root.child('communities').child(newData.parent().child('communityId').val()).child('ownerUid').val() == auth.uid"
+        }
+      }
+    },
+    "communityRequests": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (query.orderByChild == 'uid' && query.equalTo == auth.uid))",
+      ".indexOn": ["uid", "status"],
+      "$id": {
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == newData.child('uid').val() && !data.exists() && newData.child('status').val() == 'pending'))"
+      }
+    },
+    "communities": {
+      ".read": "auth != null",
+      "$communityId": {
+        ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
+      }
+    },
+    "communityStudents": {
+      "$communityId": {
+        ".read": "auth != null && (root.child('communities').child($communityId).child('ownerUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('communityId').val() == $communityId || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
+      }
+    },
+    "communityStats": {
+      ".read": "auth != null",
+      "$communityId": {
+        ".write": "auth != null && (root.child('communities').child($communityId).child('ownerUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
+      }
+    },
+    "communityBalances": {
+      "$communityId": {
+        ".read": "auth != null && (root.child('communities').child($communityId).child('ownerUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
+        ".write": "auth != null && (root.child('communities').child($communityId).child('ownerUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
+      }
+    },
+    "communityCommissionLogs": {
+      "$communityId": {
+        ".read": "auth != null && (root.child('communities').child($communityId).child('ownerUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
+        "$logId": {
+          ".write": "auth != null && (root.child('users').child(auth.uid).child('communityId').val() == $communityId && newData.child('uid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
+        }
+      }
+    },
+    "communityWithdrawals": {
+      "$communityId": {
+        ".read": "auth != null && (root.child('communities').child($communityId).child('ownerUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
+        "$requestId": {
+          ".write": "auth != null && (root.child('communities').child($communityId).child('ownerUid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
+          ".validate": "newData.hasChildren(['communityId', 'ownerUid', 'amount', 'status', 'createdAt']) && newData.child('communityId').val() == $communityId && newData.child('amount').isNumber() && newData.child('amount').val() >= 100 && (newData.child('status').val() == 'pending' || newData.child('status').val() == 'approved' || newData.child('status').val() == 'rejected')"
         }
       }
     },

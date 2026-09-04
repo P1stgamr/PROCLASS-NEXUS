@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, CheckCircle2, XCircle, Trophy, ArrowRight, Medal, Crown } from "lucide-react";
 import { calcPrizes, getRankPrize } from "@/lib/prizeUtils";
+import { endExamMode, startExamMode } from "@/lib/examMode";
 
 
 function RankBadge({ rank }: { rank: number }) {
@@ -42,10 +43,12 @@ export default function ExamRoomPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    startExamMode(examId);
     const dbRef = ref(db, `premiumExams/${examId}`);
     const unsub = onValue(dbRef, (snap) => {
       const data = snap.val();
       if (data) {
+        startExamMode(examId, Math.max(60, Number(data.duration || 180)) * 60 * 1000);
         setExamData(data);
         setExamTitle(data.title);
         setTimeLeft(data.duration * 60);
@@ -92,6 +95,7 @@ export default function ExamRoomPage() {
 
   const handleSubmitExam = async () => {
     if (timerRef.current) clearInterval(timerRef.current);
+    endExamMode(examId);
     let total = 0;
     questions.forEach((q) => {
       if (answers[q.id] === q.correct) total += q.points;

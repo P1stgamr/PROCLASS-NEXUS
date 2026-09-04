@@ -7,13 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import {
   Shield, ArrowLeft, LayoutDashboard, Users, Crown, FileCheck,
   BookOpen, Trophy, CreditCard, Wallet, Bell, Settings,
-  ClipboardList, BarChart3, Target, Gift, Code2, FileSpreadsheet
+  ClipboardList, BarChart3, Target, Gift, Code2, FileSpreadsheet, Building2
 } from "lucide-react";
 
 export type AdminSection =
   | "dashboard" | "users" | "membership" | "tasks" | "courses"
   | "exams" | "practice" | "payments" | "wallet" | "notify" | "gifts"
-  | "analytics" | "logs" | "settings";
+  | "analytics" | "logs" | "settings" | "communities";
 
 interface NavItem {
   id: AdminSection;
@@ -46,6 +46,7 @@ export default function AdminLayout({ section, setSection, children, badges = {}
     { id: "courses" as AdminSection, label: "Courses", icon: BookOpen },
     { id: "exams" as AdminSection, label: "Exams", icon: Trophy },
     { id: "practice" as AdminSection, label: "MCQ Bank", icon: FileSpreadsheet },
+    { id: "communities" as AdminSection, label: "Communities", icon: Building2, superOnly: true },
     { id: "payments" as AdminSection, label: "Payments", icon: CreditCard, superOnly: true, badge: badges.payments },
     { id: "wallet" as AdminSection, label: "Withdraw", icon: Wallet, superOnly: true, badge: badges.wallet },
     { id: "notify" as AdminSection, label: "Notify", icon: Bell },

@@ -6,17 +6,20 @@ import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonCard } from "@/components/SkeletonCard";
-import { Trophy, Coins, Zap, Flame, Crown, Calendar, Globe } from "lucide-react";
+import { Trophy, Coins, Zap, Flame, Crown, Calendar, Globe, Building2 } from "lucide-react";
 
 type FilterType = "xp" | "coins" | "streak";
 type PeriodType = "all" | "weekly" | "monthly";
 
 export default function LeaderboardPage() {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>("xp");
   const [period, setPeriod] = useState<PeriodType>("all");
+  const [scope, setScope] = useState<"global" | "community">("global");
+  const [communities, setCommunities] = useState<any[]>([]);
+  const [communityStats, setCommunityStats] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const usersRef = ref(db, "users");
@@ -29,6 +32,21 @@ export default function LeaderboardPage() {
       setLoading(false);
     });
     return () => off(usersRef);
+  }, []);
+
+  useEffect(() => {
+    const communitiesRef = ref(db, "communities");
+    const unsub = onValue(communitiesRef, (snap) => {
+      const data = snap.val();
+      setCommunities(data ? Object.entries(data).map(([id, value]: [string, any]) => ({ id, ...value })) : []);
+    });
+    return () => off(communitiesRef);
+  }, []);
+
+  useEffect(() => {
+    const statsRef = ref(db, "communityStats");
+    const unsub = onValue(statsRef, (snap) => setCommunityStats(snap.val() || {}));
+    return () => off(statsRef);
   }, []);
 
   // For weekly/monthly we filter by joinedAt or just show all (real impl would use activity logs)
@@ -104,10 +122,16 @@ export default function LeaderboardPage() {
               </button>
             ))}
           </div>
+           <div className="flex gap-1 bg-white/5 rounded-xl p-1">
+             <button onClick={() => setScope("global")} className={`flex-1 py-2 rounded-lg text-xs font-semibold ${scope === "global" ? "gradient-primary text-white" : "text-muted-foreground"}`}>Global</button>
+             <button onClick={() => setScope("community")} className={`flex-1 flex items-center justify-center gap-1 rounded-lg text-xs font-semibold ${scope === "community" ? "gradient-primary text-white" : "text-muted-foreground"}`}><Building2 className="w-3 h-3" />Community</button>
+           </div>
         </div>
       </div>
 
-      <div className="px-5 max-w-md mx-auto">
+       {scope === "community" ? (
+           <CommunityRanking communities={communities} communityStats={communityStats} communityId={userProfile?.communityId} />
+       ) : <div className="px-5 max-w-md mx-auto">
         {loading ? (
           <div className="py-5 space-y-3">{[0,1,2,3,4].map(i => <SkeletonCard key={i} />)}</div>
         ) : (
@@ -225,7 +249,39 @@ export default function LeaderboardPage() {
             </motion.div>
           </AnimatePresence>
         )}
+       </div>}
+    </div>
+  );
+}
+
+function CommunityRanking({ communities, communityStats, communityId }: { communities: any[]; communityStats: Record<string, any>; communityId?: string }) {
+  const rows = communities
+    .filter((community) => community.status === "active")
+    .map((community) => {
+      const stats = communityStats[community.id] || {};
+      return {
+        ...community,
+        studentCount: Number(stats.studentCount || 0),
+        totalXp: Number(stats.totalXp || 0),
+        totalCoins: Number(stats.totalCoins || 0),
+      };
+    })
+    .sort((a, b) => b.totalXp - a.totalXp || b.studentCount - a.studentCount);
+  return (
+    <div className="px-5 py-5 max-w-md mx-auto space-y-3">
+      <div className="glass-card rounded-2xl p-4 border border-primary/20 bg-primary/5">
+        <p className="font-bold">Community leaderboard</p>
+        <p className="text-xs text-muted-foreground mt-1">Student activity snapshot, grouped by academy.</p>
       </div>
+      {rows.map((community, index) => (
+        <div key={community.id} className={`glass-card rounded-2xl p-4 flex items-center gap-3 ${community.id === communityId ? "border border-primary/40 bg-primary/5" : ""}`}>
+          <div className="w-8 text-center text-lg font-extrabold text-primary">#{index + 1}</div>
+          {community.logo ? <img src={community.logo} alt="" className="w-11 h-11 rounded-xl object-cover" /> : <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center"><Building2 className="w-5 h-5 text-primary" /></div>}
+          <div className="flex-1 min-w-0"><p className="font-bold text-sm truncate">{community.name}</p><p className="text-[10px] text-muted-foreground">{community.studentCount} students · {community.totalXp.toLocaleString()} XP · {community.totalCoins.toLocaleString()} coins</p></div>
+          {community.id === communityId && <Badge className="text-[9px] bg-primary/20 text-primary">Your community</Badge>}
+        </div>
+      ))}
+      {rows.length === 0 && <p className="text-center text-sm text-muted-foreground py-16">No community rankings yet.</p>}
     </div>
   );
 }

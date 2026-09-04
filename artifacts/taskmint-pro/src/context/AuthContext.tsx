@@ -21,6 +21,9 @@ export interface UserProfile {
   github?: string;
   linkedin?: string;
   username?: string;
+  communityId?: string;
+  communityName?: string;
+  communityLogo?: string | null;
   bkashNumber?: string;
   createdAt: number;
   lastLogin: number;

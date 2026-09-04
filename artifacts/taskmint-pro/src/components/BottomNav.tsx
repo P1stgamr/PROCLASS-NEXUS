@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, BookOpen, Crown, MessageSquare, GraduationCap, Wallet } from "lucide-react";
+import { Home, BookOpen, Crown, MessageSquare, GraduationCap, Wallet, Building2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/courses", label: "Courses", icon: GraduationCap },
   { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/wallet", label: "Withdraw", icon: Wallet },
+  { href: "/community", label: "Community", icon: Building2 },
 ];
 
 const HIDDEN_PATHS = ["/", "/login", "/signup", "/onboarding", "/admin", "/forgot-password"];
