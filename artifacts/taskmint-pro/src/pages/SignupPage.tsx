@@ -8,6 +8,7 @@ import { GlowButton } from "@/components/GlowButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { createUserNo } from "@/lib/userId";
 import { Zap, Mail, Lock, User } from "lucide-react";
 
 export default function SignupPage() {
@@ -31,6 +32,7 @@ export default function SignupPage() {
       await updateProfile(result.user, { displayName: name });
       await set(ref(db, `users/${result.user.uid}`), {
         uid: result.user.uid,
+        userNo: createUserNo(result.user.uid),
         name,
         email,
         photoURL: null,

@@ -2,9 +2,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { ref, onValue, off, update } from "firebase/database";
 import { auth, db } from "@/firebase";
+import { createUserNo } from "@/lib/userId";
 
 export interface UserProfile {
   uid: string;
+  userNo?: string;
   name: string | null;
   email: string | null;
   photoURL: string | null;
@@ -62,7 +64,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const userRef = ref(db, `users/${user.uid}`);
         unsubscribeDb = onValue(userRef, (snapshot) => {
-          setUserProfile(snapshot.exists() ? (snapshot.val() as UserProfile) : null);
+          if (!snapshot.exists()) {
+            setUserProfile(null);
+            setLoading(false);
+            return;
+          }
+          const profile = snapshot.val() as UserProfile;
+          const userNo = profile.userNo || createUserNo(user.uid);
+          setUserProfile({ ...profile, userNo });
+          if (!profile.userNo) {
+            update(userRef, { userNo }).catch((error) => {
+              console.error("Could not backfill user ID number:", error);
+            });
+          }
           setLoading(false);
         });
       } else {

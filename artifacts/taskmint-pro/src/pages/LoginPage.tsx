@@ -8,6 +8,7 @@ import { GlowButton } from "@/components/GlowButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { createUserNo } from "@/lib/userId";
 import { Zap, Mail, Lock, Chrome, Eye, EyeOff } from "lucide-react";
 
 async function createOrUpdateProfile(user: any): Promise<"admin" | "super_admin" | "owner" | "student"> {
@@ -16,6 +17,7 @@ async function createOrUpdateProfile(user: any): Promise<"admin" | "super_admin"
   if (!snapshot.exists()) {
     await set(userRef, {
       uid: user.uid,
+      userNo: createUserNo(user.uid),
       name: user.displayName || user.email?.split("@")[0] || "Student",
       email: user.email,
       photoURL: user.photoURL || null,
@@ -28,7 +30,11 @@ async function createOrUpdateProfile(user: any): Promise<"admin" | "super_admin"
       lastLogin: Date.now(),
     });
   } else {
-    await update(userRef, { lastLogin: Date.now() });
+    const existingProfile = snapshot.val();
+    await update(userRef, {
+      lastLogin: Date.now(),
+      ...(existingProfile.userNo ? {} : { userNo: createUserNo(user.uid) }),
+    });
   }
   const role = snapshot.exists() ? snapshot.val()?.role : "student";
   return role === "admin" || role === "super_admin" || role === "owner" ? role : "student";

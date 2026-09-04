@@ -13,6 +13,7 @@ import {
   Trophy, Target, BookOpen, Code2, Calendar,
   ChevronRight, Award, TrendingUp
 } from "lucide-react";
+import { createUserNo } from "@/lib/userId";
 
 const ACHIEVEMENTS_DEF = [
   { id: "first_login", title: "First Login", desc: "Welcome to TaskMint!", icon: "🎯", earned: true },
@@ -108,6 +109,9 @@ export default function ProfilePage() {
                 <p className="text-xs text-primary/80">@{profile.username}</p>
               )}
               <p className="text-xs text-muted-foreground">{profile.email || ""}</p>
+               <p className="text-[10px] text-primary/80 font-semibold tracking-wide mt-0.5">
+                 ID No. {profile.userNo || createUserNo(profile.uid || targetUid || "")}
+               </p>
               <div className="flex flex-wrap items-center gap-1.5 mt-2">
                 <Badge className="badge-level text-[10px]">Level {profile.level || 1}</Badge>
                 {(profile.streak || 0) > 0 && (
@@ -233,6 +237,7 @@ export default function ProfilePage() {
               <div className="glass-card rounded-2xl p-4 space-y-3">
                 {[
                   { label: "Full Name", value: profile.name, icon: "👤" },
+                  { label: "ID No.", value: profile.userNo || createUserNo(profile.uid || targetUid || ""), icon: "🪪" },
                   { label: "Email", value: profile.email, icon: "📧" },
                   { label: "Username", value: profile.username ? `@${profile.username}` : null, icon: "🏷️" },
                   { label: "Bio", value: profile.bio, icon: "📝" },

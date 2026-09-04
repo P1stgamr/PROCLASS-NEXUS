@@ -1,6 +1,7 @@
 import { auth, db, storage, provider } from "@/firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { ref, set, get } from "firebase/database";
+import { createUserNo } from "@/lib/userId";
 
 export function useFirebase() {
   const googleLogin = async () => {
@@ -12,6 +13,7 @@ export function useFirebase() {
       if (!snapshot.exists()) {
         await set(userRef, {
           uid: result.user.uid,
+          userNo: createUserNo(result.user.uid),
           name: result.user.displayName,
           email: result.user.email,
           photoURL: result.user.photoURL,

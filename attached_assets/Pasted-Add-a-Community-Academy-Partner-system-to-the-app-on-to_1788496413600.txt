@@ -1,0 +1,35 @@
+Add a "Community / Academy Partner" system to the app, on top of the existing Firebase Realtime Database architecture, admin panel, and withdrawal flow. This lets outside academies/coaching centers register as a "Community" inside the platform, add their own students, and earn commission from those students' activity.
+
+1. COMMUNITY REGISTRATION & APPROVAL:
+   - Add a "Create Community" flow where any logged-in user can apply to open a Community (representing their academy/coaching center): community name, description, and a logo upload.
+   - Store applications under `communityRequests/{id}` with status: pending/approved/rejected.
+   - Add a "Communities" tab in AdminPage where the platform admin can review and approve/reject these requests. On approval, create a `communities/{communityId}` record with the owner's uid, name, logo, status: active, createdAt, and a default commission rate (e.g. percentage set by admin).
+
+2. COMMUNITY OWNER DASHBOARD:
+   - Once approved, the community owner gets a dedicated dashboard (new page, only visible to users whose uid matches a community's ownerUid) showing:
+     - Their community's logo/name/edit settings
+     - List of students they've added to their community
+     - Total commission/earnings balance (this must NOT be visible to the students themselves, only to the community owner)
+     - A request-withdrawal button (reuse the existing bKash withdrawal request pattern from WalletPage, but store these under a separate `communityWithdrawRequests/{id}` path so platform admin can review them separately from student withdrawals). No deposit feature is needed — only withdrawals.
+
+3. ADDING STUDENTS TO A COMMUNITY:
+   - Community owners can add existing platform students to their community (e.g. by searching email/username), which creates a link under `communities/{communityId}/students/{uid}`, and also stores the community id on the student's own profile (`users/{uid}/communityId`) so it's easy to look up.
+   - Students do NOT get any extra earnings for being in a community — their normal coin/XP earning from tasks, quizzes, exams stays exactly as it is now.
+
+4. COMMISSION LOGIC:
+   - Whenever a student who belongs to a community earns coins (from tasks, quizzes, exam prizes, etc.), calculate a commission for that student's community owner based on the community's commission rate, and credit it to the community's earnings balance (NOT to the student's own coins). This should NOT change or reduce the student's own coin balance in any way — the commission is a separate bonus paid by the platform to the community owner, not deducted from the student.
+   - Log each commission credit as an entry so the community owner can see a breakdown/history in their dashboard.
+
+5. COMMUNITY SPECIAL PERKS:
+   - Add an admin-only control to grant a community "special benefits" (e.g. a higher commission rate, a featured/verified badge, or priority placement) — store this as a flag/field on the community record that the admin can toggle per community.
+
+6. COMMUNITY LEADERBOARD:
+   - Add a Community Leaderboard (alongside the existing student leaderboard) ranking communities by their students' aggregate performance (e.g. total XP or coins earned by their students, or number of active students), so communities can see how they rank against each other.
+
+7. STUDENT PROFILE COMMUNITY BADGE:
+   - On each student's profile page, show a small badge with the community's logo and name if the student belongs to one (read-only, students cannot change or see the community's internal earnings).
+
+8. COURSE THUMBNAIL SETTING:
+   - In the admin Course create/edit form (AdminPage.tsx courses tab), add a "Thumbnail" field (image URL or upload) so each course can have a cover image, and display that thumbnail on the course cards in CoursesPage.tsx instead of just the emoji icon.
+
+Keep the existing UI style (glassmorphism, Bangla labels, Framer Motion animations) and Firebase Realtime Database conventions used elsewhere in the app. Update Firebase security rules so that community earnings/commission data and community withdrawal requests can only be read by the community's own owner or platform admins — never by students or other communities. Verify existing student earning, task, quiz, and exam flows are unaffected after this change.

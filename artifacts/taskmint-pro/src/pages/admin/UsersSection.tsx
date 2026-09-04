@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
+import { createUserNo } from "@/lib/userId";
 import {
   Shield, Ban, CheckCircle2, Edit2, Save, X,
   Search, MailCheck, Lock, ChevronDown, UserCheck
@@ -41,7 +42,11 @@ export default function UsersSection({ users }: { users: any[] }) {
   const isSuperAdmin = userProfile?.role === "super_admin" || userProfile?.role === "owner";
 
   const filtered = users.filter(u => {
-    const matchSearch = !search || u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase()) || u.uid?.includes(search);
+    const matchSearch = !search ||
+      u.name?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase()) ||
+      u.userNo?.toLowerCase().includes(search.toLowerCase()) ||
+      u.uid?.includes(search);
     const matchRole = roleFilter === "all" || u.role === roleFilter;
     return matchSearch && matchRole;
   });
@@ -121,7 +126,7 @@ export default function UsersSection({ users }: { users: any[] }) {
       <div className="flex gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name, email, UID…" className="pl-8 h-9 bg-white/5 border-white/10 text-sm" />
+          <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search ID No., name, email…" className="pl-8 h-9 bg-white/5 border-white/10 text-sm" />
         </div>
         <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
           className="h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
@@ -190,7 +195,10 @@ export default function UsersSection({ users }: { users: any[] }) {
                     {u.banned && <Badge className="text-[9px] px-1.5 py-0 bg-red-500/20 text-red-400">Banned</Badge>}
                     {u.suspended && <Badge className="text-[9px] px-1.5 py-0 bg-orange-500/20 text-orange-400">Suspended</Badge>}
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{u.email}</p>
+                   <p className="text-[10px] text-primary/80 mt-0.5 font-semibold tracking-wide">
+                     ID No. {u.userNo || createUserNo(u.uid)}
+                   </p>
+                   <p className="text-[10px] text-muted-foreground mt-0.5">{u.email}</p>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-[10px] text-yellow-400">🪙 {u.coins || 0}</span>
                     <span className="text-[10px] text-blue-400">⚡ {u.xp || 0} XP</span>
