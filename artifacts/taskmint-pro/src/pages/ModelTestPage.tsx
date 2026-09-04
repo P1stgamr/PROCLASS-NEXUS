@@ -11,6 +11,7 @@ import {
   ArrowLeft, ArrowRight, Bookmark, CheckCircle2, Clock3, Flag,
   Crown, LayoutGrid, Send, XCircle
 } from "lucide-react";
+import { MCQ_SUBJECT_LABELS } from "@/lib/mcqSubjects";
 
 type Question = {
   id: string;
@@ -38,12 +39,6 @@ type TestConfig = {
   premium?: boolean;
   mode?: string;
   reward?: number;
-};
-
-const SUBJECT_LABELS: Record<string, string> = {
-  math: "Mathematics", physics: "Physics", chemistry: "Chemistry",
-  biology: "Biology", english: "English", ict: "ICT",
-  python: "Python", js: "JavaScript", cpp: "C++", gk: "General Knowledge",
 };
 
 function shuffle<T>(items: T[]) {
@@ -109,7 +104,7 @@ export default function ModelTestPage() {
 
   const queryParams = new URLSearchParams(window.location.search);
   const querySubject = queryParams.get("subject") || "math";
-  const subjectLabel = SUBJECT_LABELS[config?.subject || querySubject] || config?.subject || "Question Bank";
+  const subjectLabel = MCQ_SUBJECT_LABELS[config?.subject || querySubject] || config?.subject || "Question Bank";
 
   useEffect(() => { answersRef.current = answers; }, [answers]);
   useEffect(() => { markedRef.current = marked; }, [marked]);
@@ -128,7 +123,7 @@ export default function ModelTestPage() {
       } else {
         loadedConfig = {
           id: "subject-practice",
-          title: `${SUBJECT_LABELS[querySubject] || querySubject} Question Practice`,
+          title: `${MCQ_SUBJECT_LABELS[querySubject] || querySubject} Question Practice`,
           description: "Question bank থেকে নিজের গতিতে practice করুন।",
           subject: querySubject,
           questionCount: Number(queryParams.get("count")) || 25,

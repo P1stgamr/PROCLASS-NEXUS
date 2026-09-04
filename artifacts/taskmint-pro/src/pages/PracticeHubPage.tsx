@@ -6,8 +6,8 @@ import { GlowButton } from "@/components/GlowButton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Clock3, Crown, Filter, Play, Sparkles, Target } from "lucide-react";
+import { MCQ_SUBJECTS } from "@/lib/mcqSubjects";
 
-const SUBJECTS = ["math", "physics", "chemistry", "biology", "english", "ict", "python", "js", "cpp", "gk"];
 const FIELD = "bg-white/5 border-white/10";
 
 export default function PracticeHubPage() {
@@ -51,7 +51,7 @@ export default function PracticeHubPage() {
             <div className="flex items-center gap-2"><Filter className="w-4 h-4 text-primary" /><h2 className="font-bold">নিজের test তৈরি করুন</h2></div>
             <p className="text-sm text-muted-foreground">Question bank থেকে random প্রশ্ন বাছাই হবে। Topic ও difficulty দিয়ে focused practice করুন।</p>
             <div className="grid grid-cols-2 gap-2">
-              <select value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })} className={`h-10 rounded-xl px-3 text-sm ${FIELD}`}>{SUBJECTS.map((subject) => <option key={subject}>{subject}</option>)}</select>
+              <select value={filters.subject} onChange={(e) => setFilters({ ...filters, subject: e.target.value })} className={`h-10 rounded-xl px-3 text-sm ${FIELD}`}>{MCQ_SUBJECTS.map((subject) => <option key={subject.id} value={subject.id}>{subject.label}</option>)}</select>
               <Input value={filters.topic} onChange={(e) => setFilters({ ...filters, topic: e.target.value })} placeholder="Topic / chapter (optional)" className={FIELD} />
               <select value={filters.difficulty} onChange={(e) => setFilters({ ...filters, difficulty: e.target.value })} className={`h-10 rounded-xl px-3 text-sm ${FIELD}`}><option value="all">All difficulty</option><option>Easy</option><option>Medium</option><option>Hard</option></select>
               <Input type="number" min="25" max="100" value={filters.count} onChange={(e) => setFilters({ ...filters, count: e.target.value })} placeholder="Questions (25–100)" className={FIELD} />

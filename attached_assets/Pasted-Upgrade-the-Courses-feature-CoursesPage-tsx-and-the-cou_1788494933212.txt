@@ -1,0 +1,17 @@
+Upgrade the "Courses" feature (CoursesPage.tsx and the courses data structure) into a fuller course-learning system, inspired by common Bangladeshi edtech course structures (like 10 Minute School), built on the existing Firebase `courses/{courseId}` path and course CRUD already in AdminPage.tsx. Do not use any 10 Minute School branding, logos, or copyrighted content — this is an original implementation of similar functionality.
+
+1. COURSE STRUCTURE / CURRICULUM: Each course should have a syllabus made of modules/chapters, and each module contains an ordered list of lessons. A lesson can be one of: a recorded video lecture (video URL/embed), a lecture note/PDF attachment, a short in-lesson quiz, or a flashcard set for quick revision. Store this under `courses/{courseId}/modules/{moduleId}/lessons/{lessonId}`. Build an admin UI to create/reorder/edit modules and lessons for a course.
+
+2. COURSE DETAIL PAGE: A dedicated course detail/landing view showing: course title, description, instructor name/photo/bio, price (or "Free"), total lessons/video count, total duration, student count, rating, and the full module/lesson syllabus as an expandable list (locked lessons shown for non-enrolled users, similar to how premium course access already works in the app).
+
+3. ENROLLMENT & PROGRESS TRACKING: When a user enrolls (free instantly, premium via the existing bKash payment flow), track their per-lesson completion status under something like `courseProgress/{uid}/{courseId}/{lessonId}`. Show a progress bar (% complete) on the course card and course detail page, and mark each lesson as watched/completed as the user goes through it.
+
+4. IN-COURSE QUIZZES & WEEKLY TESTS: Reuse the existing quiz system so each module can optionally have an attached quiz/homework test; correct completion awards coins/XP consistent with the rest of the app's reward system.
+
+5. FLASHCARDS: A simple flip-card review mode (term/question on front, answer/explanation on back) for lessons tagged as flashcard-type, for quick revision.
+
+6. MY COURSES / CONTINUE LEARNING: Add a "My Courses" section (e.g. on HomePage or a new tab) showing the user's enrolled courses with a "Continue where you left off" entry point to their last-viewed lesson.
+
+7. COURSE COMPLETION: When a user completes all lessons in a course, mark the course as completed in their progress data and show a completion badge/certificate-style card on their profile.
+
+Keep the existing UI style (glassmorphism, Bangla labels, Framer Motion animations), Firebase Realtime Database architecture, and coin/XP reward system consistent with the rest of the app. Verify the existing free/premium course purchase flow and admin course CRUD still work after these changes.

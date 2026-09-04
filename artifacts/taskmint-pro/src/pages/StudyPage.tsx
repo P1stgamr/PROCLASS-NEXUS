@@ -14,6 +14,7 @@ import {
   Clock, Star, Zap, Target, Play, Lock,
   CheckCircle2, BarChart3
 } from "lucide-react";
+import { MCQ_SUBJECTS } from "@/lib/mcqSubjects";
 
 const CATEGORIES = [
   { id: "all", label: "সব" },
@@ -23,18 +24,19 @@ const CATEGORIES = [
   { id: "general", label: "General" },
 ];
 
-const SUBJECTS = [
-  { id: "math", label: "Mathematics", icon: Calculator, color: "text-blue-400", bg: "bg-blue-500/15", cat: "ssc" },
-  { id: "physics", label: "Physics", icon: FlaskConical, color: "text-purple-400", bg: "bg-purple-500/15", cat: "hsc" },
-  { id: "chemistry", label: "Chemistry", icon: FlaskConical, color: "text-green-400", bg: "bg-green-500/15", cat: "hsc" },
-  { id: "biology", label: "Biology", icon: FlaskConical, color: "text-emerald-400", bg: "bg-emerald-500/15", cat: "ssc" },
-  { id: "english", label: "English", icon: Globe, color: "text-yellow-400", bg: "bg-yellow-500/15", cat: "ssc" },
-  { id: "ict", label: "ICT", icon: Cpu, color: "text-cyan-400", bg: "bg-cyan-500/15", cat: "hsc" },
-  { id: "python", label: "Python", icon: Code2, color: "text-orange-400", bg: "bg-orange-500/15", cat: "code" },
-  { id: "js", label: "JavaScript", icon: Code2, color: "text-yellow-500", bg: "bg-yellow-500/10", cat: "code" },
-  { id: "cpp", label: "C++", icon: Code2, color: "text-pink-400", bg: "bg-pink-500/15", cat: "code" },
-  { id: "gk", label: "General Knowledge", icon: Globe, color: "text-indigo-400", bg: "bg-indigo-500/15", cat: "general" },
+const SUBJECT_ICONS = [BookOpen, FlaskConical, Calculator, Globe, Cpu, Code2];
+const SUBJECT_COLORS = [
+  ["text-blue-400", "bg-blue-500/15"], ["text-purple-400", "bg-purple-500/15"],
+  ["text-green-400", "bg-green-500/15"], ["text-yellow-400", "bg-yellow-500/15"],
+  ["text-cyan-400", "bg-cyan-500/15"], ["text-orange-400", "bg-orange-500/15"],
 ];
+const SUBJECTS = MCQ_SUBJECTS.map((subject, index) => ({
+  ...subject,
+  icon: SUBJECT_ICONS[index % SUBJECT_ICONS.length],
+  color: SUBJECT_COLORS[index % SUBJECT_COLORS.length][0],
+  bg: SUBJECT_COLORS[index % SUBJECT_COLORS.length][1],
+  cat: subject.group.toLowerCase(),
+}));
 
 const diffColor: Record<string, string> = {
   Easy: "bg-green-500/20 text-green-400",
