@@ -52,6 +52,26 @@
       ".read": "auth != null",
       "$id": { ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'" }
     },
+    "questionBank": {
+      ".read": "auth != null",
+      "$subject": {
+        "$questionId": {
+          ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
+        }
+      }
+    },
+    "modelTests": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
+      }
+    },
+    "quizSchedules": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
+      }
+    },
     "courses": {
       ".read": "auth != null",
       "$id": { ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'" }

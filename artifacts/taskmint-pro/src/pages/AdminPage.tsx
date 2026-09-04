@@ -18,6 +18,7 @@ import NotifySection from "./admin/NotifySection";
 import AnalyticsSection from "./admin/AnalyticsSection";
 import LogsSection from "./admin/LogsSection";
 import SettingsSection from "./admin/SettingsSection";
+import PracticeAdminSection from "./admin/PracticeAdminSection";
 
 export default function AdminPage() {
   const { currentUser, userProfile, loading: authLoading } = useAuth();
@@ -162,6 +163,8 @@ export default function AdminPage() {
         return <CoursesSection courses={courses} />;
       case "exams":
         return <ExamsSection exams={exams} examResults={examResults} />;
+      case "practice":
+        return <PracticeAdminSection />;
       case "payments":
         return can.managePayments ? (
           <PaymentsSection

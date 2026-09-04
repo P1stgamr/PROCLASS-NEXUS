@@ -30,6 +30,9 @@ import GiftsPage from "@/pages/GiftsPage";
 import CoursesPage from "@/pages/CoursesPage";
 import MembershipPage from "@/pages/MembershipPage";
 import ProgrammingPage from "@/pages/ProgrammingPage";
+import ModelTestPage from "@/pages/ModelTestPage";
+import PracticeResultPage from "@/pages/PracticeResultPage";
+import PracticeHubPage from "@/pages/PracticeHubPage";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 import NotFound from "@/pages/not-found";
 
@@ -50,6 +53,24 @@ function Router() {
         </Route>
         <Route path="/study">
           <ProtectedRoute><StudyPage /></ProtectedRoute>
+        </Route>
+        <Route path="/practice">
+          <ProtectedRoute><PracticeHubPage /></ProtectedRoute>
+        </Route>
+        <Route path="/practice/:testId">
+          {(params) => <ProtectedRoute><ModelTestPage /></ProtectedRoute>}
+        </Route>
+        <Route path="/model-test/:testId">
+          {(params) => <ProtectedRoute><ModelTestPage /></ProtectedRoute>}
+        </Route>
+        <Route path="/daily-quiz/:testId">
+          {(params) => <ProtectedRoute><ModelTestPage /></ProtectedRoute>}
+        </Route>
+        <Route path="/premium-model-test/:testId">
+          {(params) => <ProtectedRoute><ModelTestPage /></ProtectedRoute>}
+        </Route>
+        <Route path="/practice-result/:testId">
+          {(params) => <ProtectedRoute><PracticeResultPage /></ProtectedRoute>}
         </Route>
         <Route path="/competitions">
           <ProtectedRoute><CompetitionsPage /></ProtectedRoute>

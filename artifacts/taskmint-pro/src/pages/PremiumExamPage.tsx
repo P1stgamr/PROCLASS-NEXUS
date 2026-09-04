@@ -116,7 +116,7 @@ export default function PremiumExamPage() {
       return;
     }
     if (joinedExams.includes(exam.id)) {
-      setLocation(`/exam-room/${exam.id}`);
+      setLocation(exam.modelTest ? `/premium-model-test/${exam.id}` : `/exam-room/${exam.id}`);
     } else {
       setLocation(`/payment/${exam.id}`);
     }

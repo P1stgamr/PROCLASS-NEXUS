@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { ref, onValue, off } from "firebase/database";
 import { db } from "@/firebase";
@@ -43,6 +44,7 @@ const diffColor: Record<string, string> = {
 
 export default function StudyPage() {
   const { userProfile } = useAuth();
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("quiz");
   const [activeCat, setActiveCat] = useState("all");
@@ -153,6 +155,10 @@ export default function StudyPage() {
                 <span className="text-sm">📺</span>
                 <p className="text-xs text-yellow-300">Free quiz শুরু করতে একটি Ad দেখতে হবে</p>
               </div>
+              <button onClick={() => setLocation("/practice")} className="w-full glass-card-hover rounded-2xl p-4 text-left flex items-center justify-between border border-primary/20 bg-primary/5">
+                <div><p className="font-bold text-sm">Model Test & MCQ Practice</p><p className="text-xs text-muted-foreground mt-1">Timed tests, daily quizzes, topic-wise analysis</p></div>
+                <Target className="w-5 h-5 text-primary" />
+              </button>
 
               <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                 {CATEGORIES.map(cat => (
@@ -281,6 +287,7 @@ export default function StudyPage() {
                 {SUBJECTS.map((s, i) => (
                   <motion.button key={s.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.05 }} whileTap={{ scale: 0.97 }}
+                    onClick={() => setLocation(`/practice?subject=${s.id}`)}
                     className="glass-card-hover rounded-2xl p-4 text-left flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center shrink-0`}>
                       <s.icon className={`w-5 h-5 ${s.color}`} />

@@ -10,6 +10,8 @@ export type AdminAction =
   | "course.create" | "course.edit" | "course.delete"
   | "quiz.create" | "quiz.edit" | "quiz.delete"
   | "challenge.create" | "challenge.edit" | "challenge.delete"
+  | "question.create" | "question.edit" | "question.delete" | "question.import"
+  | "test.create" | "test.edit" | "test.delete"
   | "membership.create" | "membership.edit" | "membership.delete" | "membership.toggle"
   | "payment.approve" | "payment.reject"
   | "withdraw.approve" | "withdraw.reject"
