@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { Redirect, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { AppRole, isAdminRole, isTeacherRole } from "@/lib/roles";
+import { AppRole, isAdminRole, isStudentRole, isTeacherRole } from "@/lib/roles";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -38,7 +38,7 @@ export function ProtectedRoute({ children, requireAdmin = false, requireProfile 
   if (allowedRoles && (!userProfile || !allowedRoles.includes(userProfile.role))) {
     return <Redirect to={isTeacherRole(userProfile?.role) ? "/community" : "/home"} />;
   }
-  if (studentOnly && userProfile?.role !== "student") {
+  if (studentOnly && !isStudentRole(userProfile?.role)) {
     return <Redirect to="/community" />;
   }
 

@@ -43,6 +43,9 @@ export default function CommunityAdminSection({
         [`communityRequests/${request.id}/status`]: "approved",
         [`communityRequests/${request.id}/processedAt`]: Date.now(),
         [`communityRequests/${request.id}/communityId`]: created.key,
+        [`users/${request.uid}/communityId`]: created.key,
+        [`users/${request.uid}/communityName`]: request.name,
+        [`users/${request.uid}/communityLogo`]: request.logo || null,
       });
       await logAdminAction(currentUser.uid, userProfile?.name || "Admin", "community.approve", request.id, { communityId: created.key });
       toast({ title: "Community approved ✅" });

@@ -65,7 +65,7 @@ export default function ProfileSetupPage() {
     try {
       let photoURL = photoPreview || null;
       if (photoFile) {
-        const uploaded = await uploadBytes(storageRef(storage, `profile-pictures/${currentUser.uid}/${Date.now()}-${photoFile.name}`), photoFile);
+         const uploaded = await uploadBytes(storageRef(storage, `profile-images/${currentUser.uid}/${Date.now()}-${photoFile.name}`), photoFile);
         photoURL = await getDownloadURL(uploaded.ref);
       }
       const finalRole = lockedRole ? userProfile!.role : role;

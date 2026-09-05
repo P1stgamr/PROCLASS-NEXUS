@@ -9,7 +9,8 @@ export async function* streamGemini(
   const timeout = window.setTimeout(() => controller.abort(), 35_000);
   let response: Response;
   try {
-    response = await fetch("/api/ai/chat", {
+    const apiBase = import.meta.env.VITE_API_BASE_URL || "/api";
+    response = await fetch(`${apiBase}/ai/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ history, userText, activeExamId: activeExam ? "active" : undefined }),
@@ -25,6 +26,7 @@ export async function* streamGemini(
   if (!response.ok) {
     if (response.status === 403) throw new Error("AI is unavailable while an exam is active.");
     if (response.status === 503) throw new Error("AI is not configured right now. Please contact an administrator.");
+    if (response.status === 504) throw new Error("The AI service took too long to respond. Please try again.");
     throw new Error(payload.error || "The AI service failed. Please try again.");
   }
   if (!payload.text) throw new Error("The AI returned an empty response. Please try again.");

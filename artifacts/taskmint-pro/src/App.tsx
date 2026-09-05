@@ -72,7 +72,7 @@ function Router() {
           {(params) => <ProtectedRoute studentOnly><ModelTestPage /></ProtectedRoute>}
         </Route>
         <Route path="/premium-model-test/:testId">
-          {(params) => <ProtectedRoute><ModelTestPage /></ProtectedRoute>}
+          {(params) => <ProtectedRoute studentOnly><ModelTestPage /></ProtectedRoute>}
         </Route>
         <Route path="/practice-result/:testId">
           {(params) => <ProtectedRoute studentOnly><PracticeResultPage /></ProtectedRoute>}
@@ -90,10 +90,10 @@ function Router() {
           {(params) => <ProtectedRoute studentOnly><ExamRoomPage /></ProtectedRoute>}
         </Route>
         <Route path="/upload">
-          <ProtectedRoute><UploadPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><UploadPage /></ProtectedRoute>
         </Route>
         <Route path="/chat">
-          <ProtectedRoute><ChatPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><ChatPage /></ProtectedRoute>
         </Route>
         <Route path="/wallet">
           <ProtectedRoute studentOnly><WalletPage /></ProtectedRoute>
@@ -114,7 +114,7 @@ function Router() {
           <ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>
         </Route>
         <Route path="/ai">
-          <ProtectedRoute><AIAssistantPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><AIAssistantPage /></ProtectedRoute>
         </Route>
         <Route path="/gifts">
           <ProtectedRoute studentOnly><GiftsPage /></ProtectedRoute>
@@ -129,7 +129,7 @@ function Router() {
           <ProtectedRoute studentOnly><MembershipPage /></ProtectedRoute>
         </Route>
         <Route path="/programming">
-          <ProtectedRoute><ProgrammingPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><ProgrammingPage /></ProtectedRoute>
         </Route>
 
         <Route component={NotFound} />

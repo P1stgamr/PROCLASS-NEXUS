@@ -1,6 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { Home, BookOpen, Crown, MessageSquare, GraduationCap, Wallet, Building2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { isAdminRole, isStudentRole, isTeacherRole } from "@/lib/roles";
 import { motion } from "framer-motion";
 
 const NAV_ITEMS = [
@@ -24,9 +25,9 @@ export function BottomNav() {
     location.startsWith("/exam-room/");
 
   if (!currentUser || hidden) return null;
-  const items = userProfile?.role === "teacher"
+  const items = isTeacherRole(userProfile?.role) || isAdminRole(userProfile?.role)
     ? NAV_ITEMS.filter((item) => ["/home", "/community"].includes(item.href))
-    : NAV_ITEMS;
+    : isStudentRole(userProfile?.role) ? NAV_ITEMS : NAV_ITEMS.filter((item) => ["/home", "/community"].includes(item.href));
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bottom-nav-blur safe-area-bottom">

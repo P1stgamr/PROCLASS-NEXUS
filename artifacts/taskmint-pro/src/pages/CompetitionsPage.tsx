@@ -8,6 +8,7 @@ import { SkeletonCard } from "@/components/SkeletonCard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Trophy, Zap } from "lucide-react";
+import { isTeacherRole } from "@/lib/roles";
 
 const SAMPLE_CONTESTS = {
   active: [
@@ -29,19 +30,10 @@ export default function CompetitionsPage() {
   const [contests, setContests] = useState(SAMPLE_CONTESTS);
   const [loading, setLoading] = useState(true);
 
-  if (userProfile?.role === "teacher") {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-5">
-        <div className="glass-card rounded-3xl p-6 max-w-sm text-center">
-          <Trophy className="w-10 h-10 mx-auto mb-3 text-yellow-400" />
-          <h1 className="text-xl font-extrabold">Students only</h1>
-          <p className="text-sm text-muted-foreground mt-2">Competitions are for student accounts.</p>
-        </div>
-      </div>
-    );
-  }
+  const isTeacher = isTeacherRole(userProfile?.role);
 
   useEffect(() => {
+    if (isTeacher) { setLoading(false); return; }
     const dbRef = ref(db, "contests");
     const unsub = onValue(dbRef, (snap) => {
       const data = snap.val();
@@ -57,7 +49,19 @@ export default function CompetitionsPage() {
       setLoading(false);
     }, () => setLoading(false));
     return () => off(dbRef);
-  }, []);
+  }, [isTeacher]);
+
+  if (isTeacher) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-5">
+        <div className="glass-card rounded-3xl p-6 max-w-sm text-center">
+          <Trophy className="w-10 h-10 mx-auto mb-3 text-yellow-400" />
+          <h1 className="text-xl font-extrabold">Students only</h1>
+          <p className="text-sm text-muted-foreground mt-2">Competitions are for student accounts.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleJoin = async (contestId: string) => {
     if (!currentUser) return;

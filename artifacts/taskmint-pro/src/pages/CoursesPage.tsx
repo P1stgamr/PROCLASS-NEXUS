@@ -13,6 +13,11 @@ import {
 } from "lucide-react";
 
 type CourseFilter = "all" | "free" | "premium" | "ssc" | "hsc" | "programming" | "olympiad";
+const GRADES = ["6", "7", "8", "9", "10", "SSC", "HSC"];
+
+function normalizeGrade(value: unknown) {
+  return String(value || "").trim().toUpperCase().replace(/^CLASS\s*/, "");
+}
 
 const CATEGORY_ICONS: Record<string, any> = {
   programming: Code2, math: Calculator, science: FlaskConical,
@@ -34,15 +39,20 @@ export default function CoursesPage() {
   const { userProfile } = useAuth();
   const [, setLocation] = useLocation();
   const [filter, setFilter] = useState<CourseFilter>("all");
+  const [gradeFilter, setGradeFilter] = useState("all");
   const [fbCourses, setFbCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (userProfile?.grade) setGradeFilter(normalizeGrade(userProfile.grade));
+  }, [userProfile?.grade]);
 
   useEffect(() => {
     const coursesRef = ref(db, "courses");
     const unsub = onValue(coursesRef, (snap) => {
       const data = snap.val();
       if (data) {
-        setFbCourses(Object.values(data));
+         setFbCourses(Object.entries(data).map(([id, course]) => ({ id, ...(course as any) })));
       }
       setLoading(false);
     });
@@ -52,13 +62,16 @@ export default function CoursesPage() {
   const allCourses = fbCourses;
 
   const filtered = allCourses.filter((c: any) => {
+    const courseGrade = normalizeGrade(c.grade || c.class || c.gradeLevel);
+    if (gradeFilter !== "all" && courseGrade && courseGrade !== gradeFilter) return false;
     if (filter === "all") return true;
     if (filter === "free") return c.type === "free";
     if (filter === "premium") return c.type === "premium";
-    return c.tag === filter;
+    return (c.category || c.tag) === filter;
   });
 
-  const isPremium = userProfile?.membership && userProfile.membership !== "free";
+  const isPremium = !!userProfile?.membership && userProfile.membership !== "free" &&
+    (!userProfile.membershipExpiry || userProfile.membershipExpiry > Date.now());
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -95,6 +108,14 @@ export default function CoursesPage() {
               </button>
             ))}
           </div>
+          <div className="flex gap-2 overflow-x-auto pt-2 scrollbar-hide">
+            <button onClick={() => setGradeFilter("all")} className={`shrink-0 px-3 py-1 rounded-lg text-[11px] font-semibold ${gradeFilter === "all" ? "bg-white/15 text-white" : "bg-white/5 text-muted-foreground"}`}>All classes</button>
+            {GRADES.map(grade => (
+              <button key={grade} onClick={() => setGradeFilter(grade)} className={`shrink-0 px-3 py-1 rounded-lg text-[11px] font-semibold ${gradeFilter === grade ? "bg-primary/20 text-primary" : "bg-white/5 text-muted-foreground"}`}>
+                {grade === "SSC" || grade === "HSC" ? grade : `Class ${grade}`}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -127,7 +148,7 @@ export default function CoursesPage() {
           <div className="space-y-3">{[0,1,2,3].map(i => <SkeletonCard key={i} />)}</div>
         ) : (
           <AnimatePresence mode="wait">
-            <motion.div key={filter} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+             <motion.div key={`${filter}-${gradeFilter}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
               {filtered.length === 0 && (
                 <div className="py-16 text-center">
                   <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-3" />

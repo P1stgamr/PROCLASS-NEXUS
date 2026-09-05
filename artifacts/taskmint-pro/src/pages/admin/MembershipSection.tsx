@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Edit2, Trash2, Save, X, Crown, ToggleLeft, ToggleRight } from "lucide-react";
+import { Plus, Edit2, Trash2, Save, X, Crown, ToggleLeft, ToggleRight, UserRound, Ban, CalendarPlus } from "lucide-react";
 
 const FIELD = "h-9 bg-white/5 border-white/10 text-sm";
 const CARD = "glass-card p-4 rounded-2xl border border-white/10";
@@ -24,13 +24,17 @@ const defaultPlan = {
   priority: "1", visible: true, active: true,
 };
 
-export default function MembershipSection() {
+export default function MembershipSection({ users = [] }: { users?: any[] }) {
   const { currentUser, userProfile } = useAuth();
   const { toast } = useToast();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(defaultPlan);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedPlanId, setSelectedPlanId] = useState("");
+  const [membershipDays, setMembershipDays] = useState("30");
+  const [userSearch, setUserSearch] = useState("");
 
   useEffect(() => {
     const unsubscribe = onValue(ref(db, "membershipPlans"), snap => {
@@ -93,6 +97,23 @@ export default function MembershipSection() {
     toast({ title: plan.active ? "Plan disabled." : "Plan enabled ✅" });
   };
 
+  const manageUserMembership = async (action: "grant" | "extend" | "revoke") => {
+    const user = users.find(u => (u.uid || u.id) === selectedUserId);
+    const plan = plans.find(p => p.id === selectedPlanId);
+    if (!user) { toast({ title: "Select a user first", variant: "destructive" }); return; }
+    if (action !== "revoke" && !plan) { toast({ title: "Select a plan first", variant: "destructive" }); return; }
+    const days = Math.max(1, parseInt(membershipDays) || 30);
+    const expiry = action === "extend"
+      ? Math.max(Date.now(), Number(user.membershipExpiry || 0)) + days * 86400000
+      : Date.now() + Number(plan?.durationDays || days) * 86400000;
+    const payload = action === "revoke"
+      ? { membership: "free", membershipExpiry: null, membershipStatus: "revoked", membershipPlanId: null, membershipUpdatedAt: Date.now() }
+      : { membership: plan.name, membershipExpiry: expiry, membershipStatus: "active", membershipPlanId: plan.id, membershipUpdatedAt: Date.now() };
+    await update(ref(db, `users/${selectedUserId}`), payload);
+    await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", `membership.${action}`, selectedUserId, { plan: plan?.name, days });
+    toast({ title: action === "revoke" ? "Membership revoked" : action === "extend" ? "Membership extended ✅" : "Membership granted ✅" });
+  };
+
   const typeColor: Record<string, string> = {
     monthly: "bg-blue-500/20 text-blue-400",
     yearly: "bg-purple-500/20 text-purple-400",
@@ -105,6 +126,32 @@ export default function MembershipSection() {
       <div>
         <h2 className="text-lg font-extrabold mb-1">Membership Plans</h2>
         <p className="text-xs text-muted-foreground">All plans stored in Firebase — no hardcoded data</p>
+      </div>
+
+      <div className={CARD + " space-y-3"}>
+        <div className="flex items-center gap-2">
+          <UserRound className="w-4 h-4 text-primary" />
+          <div><h3 className="font-bold text-sm">Manage user memberships</h3><p className="text-[10px] text-muted-foreground">Grant, extend, downgrade, or revoke access directly.</p></div>
+        </div>
+        <Input value={userSearch} onChange={e => setUserSearch(e.target.value)} placeholder="Search name, email, or user number" className={FIELD} />
+        <select value={selectedUserId} onChange={e => setSelectedUserId(e.target.value)} className="w-full h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
+          <option value="" className="bg-gray-900">Select a user</option>
+          {users.filter(u => `${u.name || ""} ${u.email || ""} ${u.userNo || ""}`.toLowerCase().includes(userSearch.toLowerCase())).slice(0, 100).map(u => (
+            <option key={u.uid || u.id} value={u.uid || u.id} className="bg-gray-900">{u.name || "Unnamed"} · {u.email || u.userNo || u.uid}</option>
+          ))}
+        </select>
+        <div className="grid grid-cols-2 gap-3">
+          <select value={selectedPlanId} onChange={e => setSelectedPlanId(e.target.value)} className="h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
+            <option value="" className="bg-gray-900">Select plan</option>
+            {plans.filter(p => p.active !== false).map(p => <option key={p.id} value={p.id} className="bg-gray-900">{p.name} · {p.durationDays}d</option>)}
+          </select>
+          <Input type="number" min="1" value={membershipDays} onChange={e => setMembershipDays(e.target.value)} placeholder="Days to extend" className={FIELD} />
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <GlowButton className="h-9 text-xs" onClick={() => manageUserMembership("grant")}><Crown className="w-3 h-3 mr-1" />Grant</GlowButton>
+          <GlowButton className="h-9 text-xs" onClick={() => manageUserMembership("extend")}><CalendarPlus className="w-3 h-3 mr-1" />Extend</GlowButton>
+          <button onClick={() => manageUserMembership("revoke")} className="h-9 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 text-xs font-semibold flex items-center justify-center"><Ban className="w-3 h-3 mr-1" />Revoke</button>
+        </div>
       </div>
 
       {/* Create / Edit Form */}

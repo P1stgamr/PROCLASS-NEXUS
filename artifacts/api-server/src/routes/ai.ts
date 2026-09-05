@@ -8,6 +8,7 @@ Help with SSC, HSC and university study, programming, notes, essays, study plans
 
 router.post("/ai/chat", async (req, res) => {
   const apiKey = process.env.GEMINI_API_KEY;
+  const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
   const userText = typeof req.body?.userText === "string" ? req.body.userText.trim() : "";
   const history = Array.isArray(req.body?.history) ? req.body.history : [];
 
@@ -30,8 +31,10 @@ router.post("/ai/chat", async (req, res) => {
     }));
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -40,8 +43,10 @@ router.post("/ai/chat", async (req, res) => {
           contents: [...safeHistory, { role: "user", parts: [{ text: userText }] }],
           generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
         }),
+        signal: controller.signal,
       },
     );
+    clearTimeout(timeout);
     const payload = await response.json() as any;
     if (!response.ok) {
       req.log.error({
@@ -52,9 +57,16 @@ router.post("/ai/chat", async (req, res) => {
       return res.status(502).json({ error: "Gemini request failed. Please try again." });
     }
     const text = payload?.candidates?.[0]?.content?.parts?.map((part: any) => part.text || "").join("") || "";
+    if (!text.trim()) {
+      req.log.warn({ finishReason: payload?.candidates?.[0]?.finishReason }, "Gemini returned no text");
+      return res.status(502).json({ error: "Gemini returned an empty response. Please try again." });
+    }
     return res.json({ text });
   } catch (error) {
     req.log.error({ error }, "Gemini proxy failed");
+    if ((error as any)?.name === "AbortError") {
+      return res.status(504).json({ error: "The AI service timed out. Please try again." });
+    }
     return res.status(502).json({ error: "Unable to reach Gemini right now." });
   }
 });

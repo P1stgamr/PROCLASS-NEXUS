@@ -164,7 +164,7 @@ export default function AdminPage() {
       case "users":
         return can.manageUsers ? <UsersSection users={users} /> : <Forbidden />;
       case "membership":
-        return can.manageMembership ? <MembershipSection /> : <Forbidden />;
+        return can.manageMembership ? <MembershipSection users={users} /> : <Forbidden />;
       case "tasks":
         return (
           <TasksSection tasks={tasks} missions={missions} quizzes={quizzes} challenges={challenges} />

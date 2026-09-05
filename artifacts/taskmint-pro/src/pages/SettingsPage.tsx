@@ -5,6 +5,7 @@ import { signOut, updatePassword, updateProfile, EmailAuthProvider, reauthentica
 import { ref, update } from "firebase/database";
 import { auth, db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { roleLabel } from "@/lib/roles";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { GlowButton } from "@/components/GlowButton";
@@ -124,7 +125,7 @@ export default function SettingsPage() {
           <div className="flex-1 min-w-0">
             <h2 className="font-bold truncate">{userProfile?.name || "Student"}</h2>
             <p className="text-sm text-muted-foreground truncate">{currentUser?.email}</p>
-            <p className="text-xs text-primary mt-1 capitalize">{userProfile?.role || "student"}</p>
+            <p className="text-xs text-primary mt-1">{roleLabel(userProfile?.role)}</p>
           </div>
         </motion.div>
 

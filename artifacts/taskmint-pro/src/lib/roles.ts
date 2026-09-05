@@ -14,7 +14,7 @@ const ROLE_ALIASES: Record<string, AppRole> = {
 };
 
 export function normalizeRole(role: unknown): AppRole {
-  const normalized = String(role || "student").trim().toLowerCase().replace(/-/g, "_");
+  const normalized = String(role || "student").trim().toLowerCase().replace(/-/g, "_").replace(/\s+/g, "_");
   return ROLE_ALIASES[normalized] || "student";
 }
 

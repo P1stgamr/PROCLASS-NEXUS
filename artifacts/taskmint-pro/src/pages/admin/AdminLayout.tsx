@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { useAdminPermissions } from "@/hooks/useAdminPermissions";
+import { roleLabel } from "@/lib/roles";
 import { Badge } from "@/components/ui/badge";
 import {
   Shield, ArrowLeft, LayoutDashboard, Users, Crown, FileCheck,
@@ -35,13 +36,13 @@ export default function AdminLayout({ section, setSection, children, badges = {}
   const { userProfile } = useAuth();
   const { isSuperAdmin } = useAdminPermissions();
 
-  const roleLabel = userProfile?.role === "owner" ? "Owner" : userProfile?.role === "super_admin" ? "Super Admin" : "Basic Admin";
+  const currentRoleLabel = roleLabel(userProfile?.role);
   const roleColor = isSuperAdmin ? "bg-purple-500/20 text-purple-400 border-purple-500/30" : "bg-blue-500/20 text-blue-400 border-blue-500/30";
 
   const nav: NavItem[] = ([
     { id: "dashboard" as AdminSection, label: "Dashboard", icon: LayoutDashboard },
     { id: "users" as AdminSection, label: "Users", icon: Users, superOnly: true },
-    { id: "membership" as AdminSection, label: "Membership", icon: Crown, superOnly: true },
+    { id: "membership" as AdminSection, label: "Membership", icon: Crown },
     { id: "tasks" as AdminSection, label: "Tasks", icon: Target },
     { id: "courses" as AdminSection, label: "Courses", icon: BookOpen },
     { id: "exams" as AdminSection, label: "Exams", icon: Trophy },
@@ -73,7 +74,7 @@ export default function AdminLayout({ section, setSection, children, badges = {}
               <p className="text-[9px] text-muted-foreground">PROCLASS NEXUS Control Center</p>
             </div>
           </div>
-          <Badge className={`text-[10px] ${roleColor}`}>{roleLabel}</Badge>
+          <Badge className={`text-[10px] ${roleColor}`}>{currentRoleLabel}</Badge>
         </div>
       </div>
 

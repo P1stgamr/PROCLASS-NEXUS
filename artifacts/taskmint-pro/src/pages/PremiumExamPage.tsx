@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Crown, Clock, Users, Trophy, Lock, Zap, CheckCircle2, ChevronDown, ChevronUp, Radio, CalendarClock, CalendarX } from "lucide-react";
 import { calcPrizes } from "@/lib/prizeUtils";
+import { isTeacherRole } from "@/lib/roles";
 
 
 type ExamStatus = "upcoming" | "live" | "ended";
@@ -83,7 +84,30 @@ export default function PremiumExamPage() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [expandedPrize, setExpandedPrize] = useState<string | null>(null);
 
-  if (userProfile?.role === "teacher") {
+  const isTeacher = isTeacherRole(userProfile?.role);
+
+  useEffect(() => {
+    if (isTeacher) { setLoading(false); return; }
+    const examRef = ref(db, "premiumExams");
+    const unsub = onValue(examRef, (snap) => {
+      const data = snap.val();
+      setExams(data ? Object.entries(data).map(([id, value]: [string, any]) => ({ id, ...value })) : []);
+      setLoading(false);
+    }, () => setLoading(false));
+    return () => off(examRef);
+  }, [isTeacher]);
+
+  useEffect(() => {
+    if (!currentUser || isTeacher) return;
+    const entryRef = ref(db, `examEntries/${currentUser.uid}`);
+    const unsub = onValue(entryRef, (snap) => {
+      const data = snap.val();
+      if (data) setJoinedExams(Object.keys(data));
+    });
+    return () => off(entryRef);
+  }, [currentUser, isTeacher]);
+
+  if (isTeacher) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-5">
         <div className="glass-card rounded-3xl p-6 max-w-sm text-center">
@@ -94,26 +118,6 @@ export default function PremiumExamPage() {
       </div>
     );
   }
-
-  useEffect(() => {
-    const examRef = ref(db, "premiumExams");
-    const unsub = onValue(examRef, (snap) => {
-      const data = snap.val();
-      setExams(data ? Object.entries(data).map(([id, value]: [string, any]) => ({ id, ...value })) : []);
-      setLoading(false);
-    }, () => setLoading(false));
-    return () => off(examRef);
-  }, []);
-
-  useEffect(() => {
-    if (!currentUser) return;
-    const entryRef = ref(db, `examEntries/${currentUser.uid}`);
-    const unsub = onValue(entryRef, (snap) => {
-      const data = snap.val();
-      if (data) setJoinedExams(Object.keys(data));
-    });
-    return () => off(entryRef);
-  }, [currentUser]);
 
   const handleJoin = (exam: any) => {
     if (!currentUser) return;

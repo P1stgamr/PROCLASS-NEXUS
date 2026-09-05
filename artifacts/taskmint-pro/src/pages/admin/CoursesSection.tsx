@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ref, push, update, remove } from "firebase/database";
-import { db } from "@/firebase";
+import { getDownloadURL, ref as storageRef, uploadBytes } from "firebase/storage";
+import { db, storage } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { logAdminAction } from "@/lib/adminLog";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,8 @@ import { Plus, Edit2, Trash2, Save, X, BookOpen } from "lucide-react";
 const FIELD = "h-9 bg-white/5 border-white/10 text-sm";
 const CARD = "glass-card p-4 rounded-2xl border border-white/10";
 
-const defaultCourse = { title: "", desc: "", instructor: "", type: "free", price: "0", tag: "programming", duration: "", lessons: "10", emoji: "📚", thumbnail: "" };
+const GRADES = ["6", "7", "8", "9", "10", "SSC", "HSC"];
+const defaultCourse = { title: "", desc: "", instructor: "", type: "free", price: "0", tag: "programming", grade: "", duration: "", lessons: "10", emoji: "📚", thumbnail: "" };
 
 export default function CoursesSection({ courses }: { courses: any[] }) {
   const { currentUser, userProfile } = useAuth();
@@ -23,27 +25,54 @@ export default function CoursesSection({ courses }: { courses: any[] }) {
   const [form, setForm] = useState(defaultCourse);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
 
-  const resetForm = () => { setForm(defaultCourse); setEditingId(null); setShowForm(false); };
+  const resetForm = () => { setForm(defaultCourse); setEditingId(null); setShowForm(false); setThumbnailFile(null); };
 
   const saveCourse = async () => {
     if (!form.title.trim()) { toast({ title: "Title আবশ্যক", variant: "destructive" }); return; }
-    const payload = { ...form, price: parseInt(form.price) || 0, lessons: parseInt(form.lessons) || 0, updatedAt: Date.now() };
-    if (editingId) {
-      await update(ref(db, `courses/${editingId}`), payload);
-      await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "course.edit", editingId, { title: form.title });
-      toast({ title: "Course updated ✅" });
-    } else {
-      await push(ref(db, "courses"), { ...payload, students: 0, rating: 5.0, createdAt: Date.now() });
-      await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "course.create", undefined, { title: form.title });
-      toast({ title: "Course created ✅" });
+    if (thumbnailFile && !thumbnailFile.type.startsWith("image/")) {
+      toast({ title: "Thumbnail must be an image", variant: "destructive" });
+      return;
     }
-    resetForm();
+    if (thumbnailFile && thumbnailFile.size > 5 * 1024 * 1024) {
+      toast({ title: "Thumbnail must be smaller than 5MB", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const courseRef = editingId ? ref(db, `courses/${editingId}`) : push(ref(db, "courses"));
+      let thumbnail = form.thumbnail.trim();
+      if (thumbnailFile) {
+        const uploaded = await uploadBytes(
+          storageRef(storage, `course-thumbnails/${courseRef.key}/${Date.now()}-${thumbnailFile.name}`),
+          thumbnailFile,
+        );
+        thumbnail = await getDownloadURL(uploaded.ref);
+      }
+      const payload = { ...form, grade: form.grade || null, thumbnail: thumbnail || null, price: parseInt(form.price) || 0, lessons: parseInt(form.lessons) || 0, updatedAt: Date.now() };
+      if (editingId) {
+        await update(courseRef, payload);
+        await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "course.edit", editingId, { title: form.title });
+        toast({ title: "Course updated ✅" });
+      } else {
+        await update(courseRef, { ...payload, students: 0, rating: 5.0, createdAt: Date.now() });
+        await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "course.create", courseRef.key || undefined, { title: form.title });
+        toast({ title: "Course created ✅" });
+      }
+      resetForm();
+    } catch (error: any) {
+      toast({ title: "Could not save course", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const startEdit = (c: any) => {
     setEditingId(c.id);
-    setForm({ title: c.title || "", desc: c.desc || "", instructor: c.instructor || "", type: c.type || "free", price: String(c.price || 0), tag: c.tag || "programming", duration: c.duration || "", lessons: String(c.lessons || 0), emoji: c.emoji || "📚", thumbnail: c.thumbnail || "" });
+    setForm({ title: c.title || "", desc: c.desc || "", instructor: c.instructor || "", type: c.type || "free", price: String(c.price || 0), tag: c.tag || c.category || "programming", grade: c.grade || c.class || "", duration: c.duration || "", lessons: String(c.lessons || 0), emoji: c.emoji || "📚", thumbnail: c.thumbnail || "" });
+    setThumbnailFile(null);
     setShowForm(true);
   };
 
@@ -90,8 +119,12 @@ export default function CoursesSection({ courses }: { courses: any[] }) {
               <Input value={form.emoji} onChange={e => setForm(p => ({ ...p, emoji: e.target.value }))} placeholder="📚" className={FIELD} />
             </div>
             <div className="col-span-2">
-              <Label className="text-xs text-muted-foreground mb-1 block">Thumbnail URL</Label>
-              <Input value={form.thumbnail} onChange={e => setForm(p => ({ ...p, thumbnail: e.target.value }))} placeholder="https://example.com/course-cover.jpg" className={FIELD} />
+              <Label className="text-xs text-muted-foreground mb-1 block">Thumbnail image</Label>
+              <label className="flex items-center gap-3 h-10 rounded-xl border border-dashed border-white/15 bg-white/5 px-3 text-sm cursor-pointer hover:bg-white/10">
+                <span className="text-muted-foreground">{thumbnailFile ? thumbnailFile.name : "Upload an image (max 5MB)"}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={e => setThumbnailFile(e.target.files?.[0] || null)} />
+              </label>
+              <Input value={form.thumbnail} onChange={e => setForm(p => ({ ...p, thumbnail: e.target.value }))} placeholder="Or paste an image URL" className={`${FIELD} mt-2`} />
             </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Type</Label>
@@ -111,6 +144,13 @@ export default function CoursesSection({ courses }: { courses: any[] }) {
               </select>
             </div>
             <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Class / Grade</Label>
+              <select value={form.grade} onChange={e => setForm(p => ({ ...p, grade: e.target.value }))} className="w-full h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
+                <option value="" className="bg-gray-900">All classes</option>
+                {GRADES.map(g => <option key={g} value={g} className="bg-gray-900">{g === "SSC" || g === "HSC" ? g : `Class ${g}`}</option>)}
+              </select>
+            </div>
+            <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Lessons</Label>
               <Input type="number" value={form.lessons} onChange={e => setForm(p => ({ ...p, lessons: e.target.value }))} className={FIELD} />
             </div>
@@ -119,8 +159,8 @@ export default function CoursesSection({ courses }: { courses: any[] }) {
               <Input value={form.duration} onChange={e => setForm(p => ({ ...p, duration: e.target.value }))} placeholder="e.g. 8h 30m" className={FIELD} />
             </div>
           </div>
-          <GlowButton className="w-full h-9 text-sm" onClick={saveCourse}>
-            {editingId ? <><Save className="w-3.5 h-3.5 mr-1.5" />Update Course</> : <><Plus className="w-3.5 h-3.5 mr-1.5" />Create Course</>}
+          <GlowButton className="w-full h-9 text-sm" onClick={saveCourse} disabled={saving}>
+             {saving ? "Saving…" : editingId ? <><Save className="w-3.5 h-3.5 mr-1.5" />Update Course</> : <><Plus className="w-3.5 h-3.5 mr-1.5" />Create Course</>}
           </GlowButton>
         </div>
       )}

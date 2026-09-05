@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
 import { createUserNo } from "@/lib/userId";
+import { normalizeRole, roleLabel } from "@/lib/roles";
 import {
   Shield, Ban, CheckCircle2, Edit2, Save, X,
   Search, MailCheck, Lock, ChevronDown, UserCheck
@@ -47,18 +48,18 @@ export default function UsersSection({ users }: { users: any[] }) {
       u.email?.toLowerCase().includes(search.toLowerCase()) ||
       u.userNo?.toLowerCase().includes(search.toLowerCase()) ||
       u.uid?.includes(search);
-    const matchRole = roleFilter === "all" || u.role === roleFilter;
+    const matchRole = roleFilter === "all" || normalizeRole(u.role) === roleFilter;
     return matchSearch && matchRole;
   });
 
   const openEdit = (u: any) => {
     setEditingUser(u);
-    setEditForm({ coins: String(u.coins || 0), xp: String(u.xp || 0), role: u.role || "student", name: u.name || "" });
+    setEditForm({ coins: String(u.coins || 0), xp: String(u.xp || 0), role: normalizeRole(u.role), name: u.name || "" });
   };
 
   const saveEdit = async () => {
     if (!editingUser || !currentUser) return;
-    if (editingUser.role === "owner" && userProfile?.role !== "owner") {
+    if (normalizeRole(editingUser.role) === "owner" && userProfile?.role !== "owner") {
       toast({ title: "Cannot edit Owner account", variant: "destructive" }); return;
     }
     const coinsText = editForm.coins.trim();
@@ -189,8 +190,8 @@ export default function UsersSection({ users }: { users: any[] }) {
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="font-semibold text-sm truncate">{u.name || "Unknown"}</p>
                     {u.verified && <CheckCircle2 className="w-3 h-3 text-blue-400 shrink-0" />}
-                    <Badge className={`text-[9px] px-1.5 py-0 ${roleColors[u.role] || "bg-gray-500/20 text-gray-400"}`}>
-                      {u.role || "student"}
+                      <Badge className={`text-[9px] px-1.5 py-0 ${roleColors[normalizeRole(u.role)] || "bg-gray-500/20 text-gray-400"}`}>
+                       {roleLabel(u.role)}
                     </Badge>
                     {u.banned && <Badge className="text-[9px] px-1.5 py-0 bg-red-500/20 text-red-400">Banned</Badge>}
                     {u.suspended && <Badge className="text-[9px] px-1.5 py-0 bg-orange-500/20 text-orange-400">Suspended</Badge>}

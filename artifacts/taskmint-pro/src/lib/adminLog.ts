@@ -14,6 +14,7 @@ export type AdminAction =
   | "test.create" | "test.edit" | "test.delete"
   | "community.approve" | "community.reject" | "community.withdraw.approved" | "community.withdraw.rejected"
   | "membership.create" | "membership.edit" | "membership.delete" | "membership.toggle"
+  | "membership.grant" | "membership.extend" | "membership.revoke"
   | "payment.approve" | "payment.reject"
   | "withdraw.approve" | "withdraw.reject"
   | "notification.send" | "gift.send"

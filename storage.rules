@@ -1,0 +1,23 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /course-thumbnails/{courseId}/{fileName} {
+      allow read: if request.auth != null;
+      // Course metadata writes remain protected by Realtime Database rules.
+      // Storage rules cannot read this app's Realtime Database profile records,
+      // so keep the upload constrained to authenticated image uploads.
+      allow write: if request.auth != null
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+    match /profile-images/{uid}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

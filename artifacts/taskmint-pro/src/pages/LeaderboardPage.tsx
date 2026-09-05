@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ref, onValue, off, query, orderByChild, equalTo } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { isStudentRole } from "@/lib/roles";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -28,7 +29,7 @@ export default function LeaderboardPage() {
       const data = snap.val();
       if (data) {
         const arr = Object.entries(data).map(([uid, value]: [string, any]) => ({ uid, ...value })) as any[];
-        setUsers(arr);
+        setUsers(arr.filter((profile) => isStudentRole(profile.role)));
       }
       setLoading(false);
     }, () => {

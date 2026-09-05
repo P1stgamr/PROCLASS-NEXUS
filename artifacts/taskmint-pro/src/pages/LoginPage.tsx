@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { createUserNo } from "@/lib/userId";
+import { normalizeRole, isAdminRole } from "@/lib/roles";
 import { Zap, Mail, Lock, Chrome, Eye, EyeOff } from "lucide-react";
 
-async function createOrUpdateProfile(user: any): Promise<string> {
+async function createOrUpdateProfile(user: any): Promise<{ role: string; profileComplete: boolean }> {
   const userRef = ref(db, `users/${user.uid}`);
   const snapshot = await get(userRef);
   if (!snapshot.exists()) {
@@ -37,8 +38,11 @@ async function createOrUpdateProfile(user: any): Promise<string> {
       ...(existingProfile.userNo ? {} : { userNo: createUserNo(user.uid) }),
     });
   }
-  const role = snapshot.exists() ? snapshot.val()?.role : "student";
-  return role;
+  const profile = snapshot.exists() ? snapshot.val() : { role: "student", profileComplete: false };
+  return {
+    role: normalizeRole(profile.role),
+    profileComplete: profile.profileComplete === true,
+  };
 }
 
 export default function LoginPage() {
@@ -54,9 +58,9 @@ export default function LoginPage() {
     setGoogleLoading(true);
     try {
       const result = await signInWithPopup(auth, provider);
-      const role = await createOrUpdateProfile(result.user);
+       const profile = await createOrUpdateProfile(result.user);
       toast({ title: "স্বাগতম! 🎉", description: `${result.user.displayName || "আপনি"} logged in হয়েছেন।` });
-       setLocation(role === "admin" || role === "super_admin" || role === "owner" ? "/admin" : "/home");
+       setLocation(!profile.profileComplete ? "/profile/setup" : isAdminRole(profile.role) ? "/admin" : "/home");
     } catch (err: any) {
       if (err.code !== "auth/popup-closed-by-user") {
         toast({ title: "Login failed", description: err.message, variant: "destructive" });
@@ -72,9 +76,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
-      const role = await createOrUpdateProfile(result.user);
+       const profile = await createOrUpdateProfile(result.user);
       toast({ title: "স্বাগতম! 🎉" });
-       setLocation(role === "admin" || role === "super_admin" || role === "owner" ? "/admin" : "/home");
+       setLocation(!profile.profileComplete ? "/profile/setup" : isAdminRole(profile.role) ? "/admin" : "/home");
     } catch (err: any) {
       let msg = "Login failed. Please try again.";
       if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {

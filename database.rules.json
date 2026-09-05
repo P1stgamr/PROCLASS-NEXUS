@@ -7,9 +7,9 @@
       ".indexOn": ["email", "username", "userNo"],
       "$uid": {
         ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == $uid && !data.exists() && newData.child('role').val() == 'student' && newData.child('coins').val() == 0) || (auth.uid == $uid && data.exists() && newData.child('role').val() == data.child('role').val() && newData.child('coins').val() == data.child('coins').val()))",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == $uid && !data.exists() && newData.child('role').val() == 'student' && newData.child('coins').val() == 0) || (auth.uid == $uid && data.exists() && newData.child('coins').val() == data.child('coins').val() && (newData.child('role').val() == data.child('role').val() || (data.child('profileComplete').val() != true && (newData.child('role').val() == 'student' || newData.child('role').val() == 'teacher')))))",
         "$field": {
-          ".validate": "$field != 'role' && $field != 'coins' || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (!data.exists() && auth.uid == $uid && $field == 'role' && newData.val() == 'student') || (!data.exists() && auth.uid == $uid && $field == 'coins' && newData.val() == 0)"
+          ".validate": "$field != 'role' && $field != 'coins' || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (!data.exists() && auth.uid == $uid && $field == 'role' && newData.val() == 'student') || (!data.exists() && auth.uid == $uid && $field == 'coins' && newData.val() == 0) || (auth.uid == $uid && $field == 'role' && data.parent().child('profileComplete').val() != true && (newData.val() == 'student' || newData.val() == 'teacher'))"
         },
         "userNo": {
           ".validate": "newData.isString() && newData.val().length >= 6 && newData.val().length <= 32 && (!data.exists() || newData.val() == data.val())"
@@ -78,7 +78,7 @@
       ".read": "auth != null && (query.orderByChild == 'uid' && query.equalTo == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
       "$requestId": {
         ".read": "auth != null && (data.child('uid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == newData.child('uid').val() && !data.exists() && newData.child('status').val() == 'pending'))",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == newData.child('uid').val() && root.child('users').child(auth.uid).child('role').val() == 'student' && !data.exists() && newData.child('status').val() == 'pending'))",
         ".validate": "newData.hasChildren(['uid', 'amount', 'status', 'createdAt']) && newData.child('amount').isNumber() && newData.child('amount').val() >= 100 && (newData.child('status').val() == 'pending' || newData.child('status').val() == 'approved' || newData.child('status').val() == 'rejected')",
         "status": {
           ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
@@ -92,7 +92,7 @@
       ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
       "$requestId": {
         ".read": "auth != null && (data.child('uid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == newData.child('uid').val() && !data.exists() && newData.child('status').val() == 'pending'))",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == newData.child('uid').val() && root.child('users').child(auth.uid).child('role').val() == 'student' && !data.exists() && newData.child('status').val() == 'pending'))",
         ".validate": "newData.hasChildren(['uid', 'amount', 'status', 'createdAt']) && newData.child('amount').isNumber() && newData.child('amount').val() >= 0 && (newData.child('status').val() == 'pending' || newData.child('status').val() == 'approved' || newData.child('status').val() == 'rejected')",
         "status": {
           ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
@@ -106,7 +106,7 @@
       ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
       "$requestId": {
         ".read": "auth != null && (data.child('uid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == newData.child('uid').val() && (!data.exists() || data.child('status').val() != 'pending') && newData.child('status').val() == 'pending'))",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == newData.child('uid').val() && root.child('users').child(auth.uid).child('role').val() == 'student' && (!data.exists() || data.child('status').val() != 'pending') && newData.child('status').val() == 'pending'))",
         ".validate": "newData.hasChildren(['uid', 'status', 'requestedAt']) && (newData.child('status').val() == 'pending' || newData.child('status').val() == 'approved' || newData.child('status').val() == 'rejected')"
       }
     },
@@ -156,7 +156,7 @@
     },
     "membershipPlans": {
       ".read": "auth != null",
-      "$id": { ".write": "root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'" }
+        "$id": { ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'" }
     },
     "earnings": {
       "$uid": {
@@ -173,7 +173,7 @@
       ".read": "auth != null",
       "$examId": {
         "$uid": {
-          ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
+          ".write": "auth != null && ((auth.uid == $uid && root.child('users').child(auth.uid).child('role').val() == 'student') || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
         }
       }
     },
@@ -181,8 +181,14 @@
       "$uid": {
         ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
         "$examId": {
-          ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
+          ".write": "auth != null && ((auth.uid == $uid && root.child('users').child(auth.uid).child('role').val() == 'student') || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
         }
+      }
+    },
+    "contests": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
       }
     },
     "adminLogs": {

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Clock, CheckCircle2, XCircle, Trophy, ArrowRight, Medal, Crown } from "lucide-react";
 import { calcPrizes, getRankPrize } from "@/lib/prizeUtils";
 import { endExamMode, startExamMode } from "@/lib/examMode";
+import { isTeacherRole } from "@/lib/roles";
 
 
 function RankBadge({ rank }: { rank: number }) {
@@ -42,20 +43,10 @@ export default function ExamRoomPage() {
   const [myPrize, setMyPrize] = useState<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  if (userProfile?.role === "teacher") {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-5">
-        <div className="glass-card rounded-3xl p-6 max-w-sm text-center">
-          <Trophy className="w-10 h-10 mx-auto mb-3 text-yellow-400" />
-          <h1 className="text-xl font-extrabold">Students only</h1>
-          <p className="text-sm text-muted-foreground mt-2">Teachers cannot take student exams.</p>
-          <GlowButton className="mt-5" onClick={() => setLocation("/community")}>Go to Community</GlowButton>
-        </div>
-      </div>
-    );
-  }
+  const isTeacher = isTeacherRole(userProfile?.role);
 
   useEffect(() => {
+    if (isTeacher) return;
     startExamMode(examId);
     const dbRef = ref(db, `premiumExams/${examId}`);
     const unsub = onValue(dbRef, (snap) => {
@@ -72,9 +63,10 @@ export default function ExamRoomPage() {
       setExamEnded(true);
     });
     return () => off(dbRef);
-  }, [examId]);
+  }, [examId, isTeacher, toast]);
 
   useEffect(() => {
+    if (isTeacher) return;
     timerRef.current = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
@@ -86,7 +78,20 @@ export default function ExamRoomPage() {
       });
     }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, []);
+  }, [isTeacher]);
+
+  if (isTeacher) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-5">
+        <div className="glass-card rounded-3xl p-6 max-w-sm text-center">
+          <Trophy className="w-10 h-10 mx-auto mb-3 text-yellow-400" />
+          <h1 className="text-xl font-extrabold">Students only</h1>
+          <p className="text-sm text-muted-foreground mt-2">Teachers cannot take student exams.</p>
+          <GlowButton className="mt-5" onClick={() => setLocation("/community")}>Go to Community</GlowButton>
+        </div>
+      </div>
+    );
+  }
 
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60).toString().padStart(2, "0");
