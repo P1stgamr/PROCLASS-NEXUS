@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { createUserNo } from "@/lib/userId";
 import { Zap, Mail, Lock, Chrome, Eye, EyeOff } from "lucide-react";
 
-async function createOrUpdateProfile(user: any): Promise<"admin" | "super_admin" | "owner" | "student"> {
+async function createOrUpdateProfile(user: any): Promise<string> {
   const userRef = ref(db, `users/${user.uid}`);
   const snapshot = await get(userRef);
   if (!snapshot.exists()) {
@@ -26,6 +26,7 @@ async function createOrUpdateProfile(user: any): Promise<"admin" | "super_admin"
       level: 1,
       streak: 1,
       role: "student",
+       profileComplete: false,
       createdAt: Date.now(),
       lastLogin: Date.now(),
     });
@@ -37,7 +38,7 @@ async function createOrUpdateProfile(user: any): Promise<"admin" | "super_admin"
     });
   }
   const role = snapshot.exists() ? snapshot.val()?.role : "student";
-  return role === "admin" || role === "super_admin" || role === "owner" ? role : "student";
+  return role;
 }
 
 export default function LoginPage() {
@@ -55,7 +56,7 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       const role = await createOrUpdateProfile(result.user);
       toast({ title: "স্বাগতম! 🎉", description: `${result.user.displayName || "আপনি"} logged in হয়েছেন।` });
-      setLocation(role === "admin" ? "/admin" : "/home");
+       setLocation(role === "admin" || role === "super_admin" || role === "owner" ? "/admin" : "/home");
     } catch (err: any) {
       if (err.code !== "auth/popup-closed-by-user") {
         toast({ title: "Login failed", description: err.message, variant: "destructive" });
@@ -73,7 +74,7 @@ export default function LoginPage() {
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
       const role = await createOrUpdateProfile(result.user);
       toast({ title: "স্বাগতম! 🎉" });
-      setLocation(role === "admin" ? "/admin" : "/home");
+       setLocation(role === "admin" || role === "super_admin" || role === "owner" ? "/admin" : "/home");
     } catch (err: any) {
       let msg = "Login failed. Please try again.";
       if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential") {

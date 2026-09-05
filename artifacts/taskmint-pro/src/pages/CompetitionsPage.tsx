@@ -24,17 +24,29 @@ const SAMPLE_CONTESTS = {
 };
 
 export default function CompetitionsPage() {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const { toast } = useToast();
   const [contests, setContests] = useState(SAMPLE_CONTESTS);
   const [loading, setLoading] = useState(true);
+
+  if (userProfile?.role === "teacher") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-5">
+        <div className="glass-card rounded-3xl p-6 max-w-sm text-center">
+          <Trophy className="w-10 h-10 mx-auto mb-3 text-yellow-400" />
+          <h1 className="text-xl font-extrabold">Students only</h1>
+          <p className="text-sm text-muted-foreground mt-2">Competitions are for student accounts.</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     const dbRef = ref(db, "contests");
     const unsub = onValue(dbRef, (snap) => {
       const data = snap.val();
       if (data) {
-        const all = Object.values(data) as any[];
+        const all = Object.entries(data).map(([id, value]: [string, any]) => ({ id, ...value })) as any[];
         const now = Date.now();
         setContests({
           active: all.filter((c: any) => c.status === "active" || (c.startTime <= now && c.endTime >= now)),
@@ -43,7 +55,7 @@ export default function CompetitionsPage() {
         });
       }
       setLoading(false);
-    });
+    }, () => setLoading(false));
     return () => off(dbRef);
   }, []);
 

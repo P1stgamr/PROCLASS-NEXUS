@@ -117,6 +117,7 @@ export default function AIAssistantPage() {
   const [streamingContent, setStreamingContent] = useState("");
   const [showSidebar, setShowSidebar] = useState(false);
   const [activeExam, setActiveExam] = useState(getActiveExam);
+  const [chatError, setChatError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -137,7 +138,7 @@ export default function AIAssistantPage() {
         arr.sort((a: any, b: any) => b.createdAt - a.createdAt);
         setChats(arr);
       }
-    });
+    }, () => setChatError("Chat history could not be loaded. You can still start a new chat."));
     return () => off(chatRef);
   }, [currentUser]);
 
@@ -153,7 +154,7 @@ export default function AIAssistantPage() {
       } else {
         setMessages([]);
       }
-    });
+    }, () => setChatError("This chat could not be loaded. Please start a new chat."));
     return () => off(msgRef);
   }, [currentUser, activeChatId]);
 
@@ -163,41 +164,53 @@ export default function AIAssistantPage() {
 
   const createNewChat = async () => {
     if (!currentUser) return;
-    const chatRef = push(ref(db, `aiChats/${currentUser.uid}`));
-    await set(chatRef, { title: "New Chat", createdAt: Date.now() });
-    setActiveChatId(chatRef.key);
-    setShowSidebar(false);
-    setMessages([]);
+    try {
+      const chatRef = push(ref(db, `aiChats/${currentUser.uid}`));
+      await set(chatRef, { title: "New Chat", createdAt: Date.now() });
+      setActiveChatId(chatRef.key);
+      setShowSidebar(false);
+      setMessages([]);
+      setChatError(null);
+    } catch (error: any) {
+      setChatError(error.message || "Could not create a chat.");
+      toast({ title: "Could not create chat", description: error.message, variant: "destructive" });
+    }
   };
 
   const deleteChat = async (chatId: string) => {
     if (!currentUser) return;
-    await remove(ref(db, `aiChats/${currentUser.uid}/${chatId}`));
-    await remove(ref(db, `aiMessages/${chatId}`));
-    if (activeChatId === chatId) { setActiveChatId(null); setMessages([]); }
+    try {
+      await remove(ref(db, `aiChats/${currentUser.uid}/${chatId}`));
+      await remove(ref(db, `aiMessages/${chatId}`));
+      if (activeChatId === chatId) { setActiveChatId(null); setMessages([]); }
+    } catch (error: any) {
+      setChatError(error.message || "Could not delete this chat.");
+      toast({ title: "Could not delete chat", description: error.message, variant: "destructive" });
+    }
   };
 
   const sendMessage = useCallback(async (text: string) => {
     if (!text.trim() || streaming || !currentUser) return;
-    let chatId = activeChatId;
-    if (!chatId) {
-      const chatRef = push(ref(db, `aiChats/${currentUser.uid}`));
-      const title = text.slice(0, 40) + (text.length > 40 ? "..." : "");
-      await set(chatRef, { title, createdAt: Date.now(), lastMessage: text.slice(0, 60) });
-      chatId = chatRef.key!;
-      setActiveChatId(chatId);
-    }
-    const userMsg: Omit<Message, "id"> = { role: "user", content: text.trim(), timestamp: Date.now() };
-    await push(ref(db, `aiMessages/${chatId}`), userMsg);
-    const isFirst = messages.length === 0;
-    if (isFirst) {
-      const title = text.slice(0, 45) + (text.length > 45 ? "..." : "");
-      await update(ref(db, `aiChats/${currentUser.uid}/${chatId}`), { title, lastMessage: text.slice(0, 60) });
-    }
-    setInput("");
     setStreaming(true);
     setStreamingContent("");
+    setChatError(null);
     try {
+      let chatId = activeChatId;
+      if (!chatId) {
+        const chatRef = push(ref(db, `aiChats/${currentUser.uid}`));
+        const title = text.slice(0, 40) + (text.length > 40 ? "..." : "");
+        await set(chatRef, { title, createdAt: Date.now(), lastMessage: text.slice(0, 60) });
+        chatId = chatRef.key!;
+        setActiveChatId(chatId);
+      }
+      const userMsg: Omit<Message, "id"> = { role: "user", content: text.trim(), timestamp: Date.now() };
+      await push(ref(db, `aiMessages/${chatId}`), userMsg);
+      const isFirst = messages.length === 0;
+      if (isFirst) {
+        const title = text.slice(0, 45) + (text.length > 45 ? "..." : "");
+        await update(ref(db, `aiChats/${currentUser.uid}/${chatId}`), { title, lastMessage: text.slice(0, 60) });
+      }
+      setInput("");
       let full = "";
       for await (const delta of streamGemini(messages, userMsg.content)) {
         full += delta;
@@ -207,7 +220,9 @@ export default function AIAssistantPage() {
       await push(ref(db, `aiMessages/${chatId}`), assistantMsg);
       await update(ref(db, `aiChats/${currentUser.uid}/${chatId}`), { lastMessage: full.slice(0, 60) });
     } catch (err: any) {
-      toast({ title: "AI Error", description: err.message, variant: "destructive" });
+      const message = err.message || "The AI service failed. Please try again.";
+      setChatError(message);
+      toast({ title: "AI Error", description: message, variant: "destructive" });
     } finally {
       setStreaming(false);
       setStreamingContent("");
@@ -328,6 +343,14 @@ export default function AIAssistantPage() {
 
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4" style={{ minHeight: 0 }}>
+            {chatError && (
+              <div className="mb-3 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                <div className="flex items-start justify-between gap-3">
+                  <p>{chatError}</p>
+                  <button onClick={() => setChatError(null)} className="text-xs text-red-300 hover:text-white">Dismiss</button>
+                </div>
+              </div>
+            )}
             {allMessages.length === 0 ? (
               <div className="py-6">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -396,7 +419,7 @@ export default function AIAssistantPage() {
               </button>
             </div>
             <p className="text-center text-[10px] text-muted-foreground/50 mt-2">
-              Powered by Gemini 1.5 Flash-8B · TaskMint AI
+              Powered by Gemini · TaskMint AI
             </p>
           </div>
         </div>

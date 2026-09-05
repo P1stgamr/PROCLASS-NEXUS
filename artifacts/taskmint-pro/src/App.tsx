@@ -34,6 +34,7 @@ import ProgrammingPage from "@/pages/ProgrammingPage";
 import ModelTestPage from "@/pages/ModelTestPage";
 import PracticeResultPage from "@/pages/PracticeResultPage";
 import PracticeHubPage from "@/pages/PracticeHubPage";
+import ProfileSetupPage from "@/pages/ProfileSetupPage";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 import NotFound from "@/pages/not-found";
 
@@ -48,42 +49,45 @@ function Router() {
         <Route path="/login" component={LoginPage} />
         <Route path="/signup" component={SignupPage} />
         <Route path="/forgot-password" component={ForgotPasswordPage} />
+        <Route path="/profile/setup">
+          <ProtectedRoute requireProfile={false}><ProfileSetupPage /></ProtectedRoute>
+        </Route>
 
         <Route path="/home">
           <ProtectedRoute><HomePage /></ProtectedRoute>
         </Route>
         <Route path="/study">
-          <ProtectedRoute><StudyPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><StudyPage /></ProtectedRoute>
         </Route>
         <Route path="/practice">
-          <ProtectedRoute><PracticeHubPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><PracticeHubPage /></ProtectedRoute>
         </Route>
         <Route path="/practice/:testId">
-          {(params) => <ProtectedRoute><ModelTestPage /></ProtectedRoute>}
+          {(params) => <ProtectedRoute studentOnly><ModelTestPage /></ProtectedRoute>}
         </Route>
         <Route path="/model-test/:testId">
-          {(params) => <ProtectedRoute><ModelTestPage /></ProtectedRoute>}
+          {(params) => <ProtectedRoute studentOnly><ModelTestPage /></ProtectedRoute>}
         </Route>
         <Route path="/daily-quiz/:testId">
-          {(params) => <ProtectedRoute><ModelTestPage /></ProtectedRoute>}
+          {(params) => <ProtectedRoute studentOnly><ModelTestPage /></ProtectedRoute>}
         </Route>
         <Route path="/premium-model-test/:testId">
           {(params) => <ProtectedRoute><ModelTestPage /></ProtectedRoute>}
         </Route>
         <Route path="/practice-result/:testId">
-          {(params) => <ProtectedRoute><PracticeResultPage /></ProtectedRoute>}
+          {(params) => <ProtectedRoute studentOnly><PracticeResultPage /></ProtectedRoute>}
         </Route>
         <Route path="/competitions">
-          <ProtectedRoute><CompetitionsPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><CompetitionsPage /></ProtectedRoute>
         </Route>
         <Route path="/premium-exams">
-          <ProtectedRoute><PremiumExamPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><PremiumExamPage /></ProtectedRoute>
         </Route>
         <Route path="/payment/:examId">
-          {(params) => <ProtectedRoute><PaymentPage /></ProtectedRoute>}
+          {(params) => <ProtectedRoute studentOnly><PaymentPage /></ProtectedRoute>}
         </Route>
         <Route path="/exam-room/:examId">
-          {(params) => <ProtectedRoute><ExamRoomPage /></ProtectedRoute>}
+          {(params) => <ProtectedRoute studentOnly><ExamRoomPage /></ProtectedRoute>}
         </Route>
         <Route path="/upload">
           <ProtectedRoute><UploadPage /></ProtectedRoute>
@@ -92,10 +96,10 @@ function Router() {
           <ProtectedRoute><ChatPage /></ProtectedRoute>
         </Route>
         <Route path="/wallet">
-          <ProtectedRoute><WalletPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><WalletPage /></ProtectedRoute>
         </Route>
         <Route path="/leaderboard">
-          <ProtectedRoute><LeaderboardPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><LeaderboardPage /></ProtectedRoute>
         </Route>
         <Route path="/notifications">
           <ProtectedRoute><NotificationsPage /></ProtectedRoute>
@@ -113,16 +117,16 @@ function Router() {
           <ProtectedRoute><AIAssistantPage /></ProtectedRoute>
         </Route>
         <Route path="/gifts">
-          <ProtectedRoute><GiftsPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><GiftsPage /></ProtectedRoute>
         </Route>
         <Route path="/courses">
-          <ProtectedRoute><CoursesPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><CoursesPage /></ProtectedRoute>
         </Route>
         <Route path="/community">
           <ProtectedRoute><CommunityPage /></ProtectedRoute>
         </Route>
         <Route path="/membership">
-          <ProtectedRoute><MembershipPage /></ProtectedRoute>
+          <ProtectedRoute studentOnly><MembershipPage /></ProtectedRoute>
         </Route>
         <Route path="/programming">
           <ProtectedRoute><ProgrammingPage /></ProtectedRoute>

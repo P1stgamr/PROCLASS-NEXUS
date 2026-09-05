@@ -3,6 +3,7 @@ import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { ref, onValue, off, update } from "firebase/database";
 import { auth, db } from "@/firebase";
 import { createUserNo } from "@/lib/userId";
+import { AppRole, normalizeRole } from "@/lib/roles";
 
 export interface UserProfile {
   uid: string;
@@ -14,9 +15,15 @@ export interface UserProfile {
   xp: number;
   level: number;
   streak: number;
-  role: "student" | "moderator" | "admin" | "super_admin" | "owner";
+  role: AppRole;
   membership?: "free" | "silver" | "gold" | "platinum";
   membershipExpiry?: number;
+  membershipPlanId?: string;
+  membershipBenefits?: string[];
+  profileComplete?: boolean;
+  phone?: string;
+  schoolName?: string;
+  grade?: string;
   bio?: string;
   github?: string;
   linkedin?: string;
@@ -33,12 +40,14 @@ interface AuthContextType {
   currentUser: FirebaseUser | null;
   userProfile: UserProfile | null;
   loading: boolean;
+  needsProfileSetup: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   userProfile: null,
   loading: true,
+  needsProfileSetup: false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -47,6 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
 
   useEffect(() => {
     let unsubscribeDb: (() => void) | null = null;
@@ -69,12 +79,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         unsubscribeDb = onValue(userRef, (snapshot) => {
           if (!snapshot.exists()) {
             setUserProfile(null);
+            setNeedsProfileSetup(true);
             setLoading(false);
             return;
           }
-          const profile = snapshot.val() as UserProfile;
+          const rawProfile = snapshot.val() as UserProfile;
+          const profile = { ...rawProfile, role: normalizeRole(rawProfile.role) } as UserProfile;
           const userNo = profile.userNo || createUserNo(user.uid);
           setUserProfile({ ...profile, userNo });
+          setNeedsProfileSetup(profile.profileComplete !== true);
           if (!profile.userNo) {
             update(userRef, { userNo }).catch((error) => {
               console.error("Could not backfill user ID number:", error);
@@ -84,6 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       } else {
         setUserProfile(null);
+        setNeedsProfileSetup(false);
         setLoading(false);
       }
     });
@@ -96,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser, userProfile, loading }}>
+    <AuthContext.Provider value={{ currentUser, userProfile, loading, needsProfileSetup }}>
       {children}
     </AuthContext.Provider>
   );

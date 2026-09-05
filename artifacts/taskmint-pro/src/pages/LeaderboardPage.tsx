@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ref, onValue, off } from "firebase/database";
+import { ref, onValue, off, query, orderByChild, equalTo } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,15 +20,19 @@ export default function LeaderboardPage() {
   const [scope, setScope] = useState<"global" | "community">("global");
   const [communities, setCommunities] = useState<any[]>([]);
   const [communityStats, setCommunityStats] = useState<Record<string, any>>({});
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    const usersRef = ref(db, "users");
+    const usersRef = query(ref(db, "users"), orderByChild("role"), equalTo("student"));
     const unsub = onValue(usersRef, (snap) => {
       const data = snap.val();
       if (data) {
-        const arr = Object.values(data) as any[];
+        const arr = Object.entries(data).map(([uid, value]: [string, any]) => ({ uid, ...value })) as any[];
         setUsers(arr);
       }
+      setLoading(false);
+    }, () => {
+      setLoadError("Leaderboard is temporarily unavailable. Please try again later.");
       setLoading(false);
     });
     return () => off(usersRef);
@@ -134,7 +138,9 @@ export default function LeaderboardPage() {
        ) : <div className="px-5 max-w-md mx-auto">
         {loading ? (
           <div className="py-5 space-y-3">{[0,1,2,3,4].map(i => <SkeletonCard key={i} />)}</div>
-        ) : (
+         ) : loadError ? (
+           <div className="py-16 text-center text-sm text-muted-foreground">{loadError}</div>
+         ) : (
           <AnimatePresence mode="wait">
             <motion.div key={`${filter}-${period}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
 

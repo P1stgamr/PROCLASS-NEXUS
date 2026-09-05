@@ -42,6 +42,19 @@ export default function ExamRoomPage() {
   const [myPrize, setMyPrize] = useState<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  if (userProfile?.role === "teacher") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-5">
+        <div className="glass-card rounded-3xl p-6 max-w-sm text-center">
+          <Trophy className="w-10 h-10 mx-auto mb-3 text-yellow-400" />
+          <h1 className="text-xl font-extrabold">Students only</h1>
+          <p className="text-sm text-muted-foreground mt-2">Teachers cannot take student exams.</p>
+          <GlowButton className="mt-5" onClick={() => setLocation("/community")}>Go to Community</GlowButton>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     startExamMode(examId);
     const dbRef = ref(db, `premiumExams/${examId}`);
@@ -52,8 +65,11 @@ export default function ExamRoomPage() {
         setExamData(data);
         setExamTitle(data.title);
         setTimeLeft(data.duration * 60);
-        if (data.questions) setQuestions(Object.values(data.questions));
-      }
+         if (data.questions) setQuestions(Object.entries(data.questions).map(([id, value]: [string, any]) => ({ id, ...value })));
+       }
+    }, () => {
+      toast({ title: "Exam could not be loaded", description: "Please return to the exam list and try again.", variant: "destructive" });
+      setExamEnded(true);
     });
     return () => off(dbRef);
   }, [examId]);
@@ -132,7 +148,7 @@ export default function ExamRoomPage() {
   };
 
   const totalPossible = questions.reduce((s, q) => s + q.points, 0);
-  const percentage = Math.round((score / totalPossible) * 100);
+  const percentage = totalPossible > 0 ? Math.round((score / totalPossible) * 100) : 0;
   const isUrgent = timeLeft < 120;
 
   if (examEnded) {
@@ -268,6 +284,9 @@ export default function ExamRoomPage() {
   }
 
   const q = questions[current];
+  if (!q) {
+    return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading exam questions…</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

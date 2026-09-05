@@ -10,7 +10,7 @@ import { SkeletonCard } from "@/components/SkeletonCard";
 import {
   Bell, Coins, Zap, Flame, Trophy, Crown, BookOpen,
   MessageSquare, Bot, ChevronRight, Star, Target,
-  TrendingUp, Sparkles, Gift, Code2
+  TrendingUp, Sparkles, Gift, Code2, Building2, Settings
 } from "lucide-react";
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.07 } } };
@@ -101,6 +101,10 @@ export default function HomePage() {
   const level = userProfile?.level || 1;
   const xpInLevel = xp % 1000;
   const xpPercent = (xpInLevel / 1000) * 100;
+
+  if (userProfile?.role === "teacher") {
+    return <TeacherDashboard name={userProfile.name || "Teacher"} photoURL={userProfile.photoURL || undefined} setLocation={setLocation} />;
+  }
 
   return (
     <div className="min-h-screen bg-background pb-28 hero-gradient">
@@ -352,6 +356,30 @@ export default function HomePage() {
             })}
           </div>
         </motion.section>
+      </div>
+    </div>
+  );
+}
+
+function TeacherDashboard({ name, photoURL, setLocation }: { name: string; photoURL?: string; setLocation: (path: string) => void }) {
+  return (
+    <div className="min-h-screen bg-background pb-24 hero-gradient">
+      <div className="sticky top-0 z-30 bg-background/75 backdrop-blur-2xl border-b border-white/[0.06] px-5 py-3.5">
+        <div className="max-w-md mx-auto flex items-center gap-3">
+          <Avatar className="w-10 h-10 ring-2 ring-primary/50"><AvatarImage src={photoURL} /><AvatarFallback>{name.charAt(0)}</AvatarFallback></Avatar>
+          <div><p className="text-[11px] text-muted-foreground">Teacher dashboard</p><h2 className="font-bold text-sm">{name}</h2></div>
+        </div>
+      </div>
+      <div className="px-5 py-6 max-w-md mx-auto space-y-5">
+        <div className="rounded-3xl border border-primary/25 bg-primary/10 p-6">
+          <Building2 className="w-8 h-8 text-primary mb-3" />
+          <h1 className="text-2xl font-extrabold">Build your community</h1>
+          <p className="text-sm text-muted-foreground mt-2">Create an academy community, connect students, and manage your teaching partner dashboard.</p>
+          <button onClick={() => setLocation("/community")} className="mt-5 w-full rounded-xl gradient-primary py-3 text-sm font-bold text-white">Open Community</button>
+        </div>
+        <button onClick={() => setLocation("/settings")} className="w-full glass-card rounded-2xl p-4 flex items-center gap-3 text-left">
+          <Settings className="w-5 h-5 text-muted-foreground" /><span className="text-sm font-semibold">Profile and account settings</span>
+        </button>
       </div>
     </div>
   );

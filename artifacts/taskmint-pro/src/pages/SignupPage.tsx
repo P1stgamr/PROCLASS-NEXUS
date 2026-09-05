@@ -41,10 +41,11 @@ export default function SignupPage() {
         level: 1,
         streak: 1,
         role: "student",
+        profileComplete: false,
         createdAt: Date.now(),
         lastLogin: Date.now(),
       });
-      setLocation("/home");
+      setLocation("/profile/setup");
     } catch (err: any) {
       toast({ title: "Signup failed", description: err.message, variant: "destructive" });
     } finally {

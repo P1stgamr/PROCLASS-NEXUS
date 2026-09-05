@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 const HIDDEN_PATHS = ["/", "/login", "/signup", "/onboarding", "/admin", "/forgot-password"];
 
 export function BottomNav() {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [location] = useLocation();
 
   const hidden = HIDDEN_PATHS.includes(location) ||
@@ -24,11 +24,14 @@ export function BottomNav() {
     location.startsWith("/exam-room/");
 
   if (!currentUser || hidden) return null;
+  const items = userProfile?.role === "teacher"
+    ? NAV_ITEMS.filter((item) => ["/home", "/community"].includes(item.href))
+    : NAV_ITEMS;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bottom-nav-blur safe-area-bottom">
       <div className="flex items-center justify-around px-2 py-2 max-w-md mx-auto">
-        {NAV_ITEMS.map((item) => {
+        {items.map((item) => {
           const active = location === item.href;
           return (
             <Link key={item.href} href={item.href}>

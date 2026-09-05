@@ -67,9 +67,9 @@ export default function CommunityPage() {
         : [];
       values.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       setRequest(values[0] || null);
-    });
+    }, () => setLoading(false));
     const statsRef = ref(db, "communityStats");
-    const statsUnsub = onValue(statsRef, (snap) => setCommunityStats(snap.val() || {}));
+    const statsUnsub = onValue(statsRef, (snap) => setCommunityStats(snap.val() || {}), () => undefined);
     return () => {
       off(communitiesRef);
       off(requestsRef);

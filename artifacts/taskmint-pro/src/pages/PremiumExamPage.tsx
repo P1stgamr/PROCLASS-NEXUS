@@ -74,7 +74,7 @@ function PrizeBreakdown({ exam }: { exam: any }) {
 }
 
 export default function PremiumExamPage() {
-  const { currentUser } = useAuth();
+  const { currentUser, userProfile } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [exams, setExams] = useState<any[]>([]);
@@ -83,13 +83,25 @@ export default function PremiumExamPage() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [expandedPrize, setExpandedPrize] = useState<string | null>(null);
 
+  if (userProfile?.role === "teacher") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-5">
+        <div className="glass-card rounded-3xl p-6 max-w-sm text-center">
+          <Crown className="w-10 h-10 mx-auto mb-3 text-yellow-400" />
+          <h1 className="text-xl font-extrabold">Students only</h1>
+          <p className="text-sm text-muted-foreground mt-2">Teachers cannot enter student exams, quizzes, or competitions.</p>
+        </div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     const examRef = ref(db, "premiumExams");
     const unsub = onValue(examRef, (snap) => {
       const data = snap.val();
-      setExams(data ? Object.values(data) : []);
+      setExams(data ? Object.entries(data).map(([id, value]: [string, any]) => ({ id, ...value })) : []);
       setLoading(false);
-    });
+    }, () => setLoading(false));
     return () => off(examRef);
   }, []);
 
