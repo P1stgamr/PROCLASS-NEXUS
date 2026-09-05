@@ -32,6 +32,11 @@ PORT=19249 BASE_PATH=/ pnpm --filter @workspace/taskmint-pro run dev
 ```
 The app is served on port 19249 (external port 80 / the default preview).
 
+On Replit, use the managed workflow **`artifacts/taskmint-pro: web`** to start the frontend. It supplies `PORT=19249` and `BASE_PATH=/` automatically. For a standalone production build, use:
+```
+PORT=19249 BASE_PATH=/ pnpm --filter @workspace/taskmint-pro run build
+```
+
 To also run the API server:
 ```
 PORT=8080 pnpm --filter @workspace/api-server run dev
