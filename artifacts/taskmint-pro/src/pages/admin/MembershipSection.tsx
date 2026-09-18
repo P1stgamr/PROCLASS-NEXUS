@@ -97,7 +97,7 @@ export default function MembershipSection({ users = [] }: { users?: any[] }) {
     toast({ title: plan.active ? "Plan disabled." : "Plan enabled ✅" });
   };
 
-  const manageUserMembership = async (action: "grant" | "extend" | "revoke") => {
+  const manageUserMembership = async (action: "grant" | "extend" | "downgrade" | "revoke") => {
     const user = users.find(u => (u.uid || u.id) === selectedUserId);
     const plan = plans.find(p => p.id === selectedPlanId);
     if (!user) { toast({ title: "Select a user first", variant: "destructive" }); return; }
@@ -111,7 +111,15 @@ export default function MembershipSection({ users = [] }: { users?: any[] }) {
       : { membership: plan.name, membershipExpiry: expiry, membershipStatus: "active", membershipPlanId: plan.id, membershipUpdatedAt: Date.now() };
     await update(ref(db, `users/${selectedUserId}`), payload);
     await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", `membership.${action}`, selectedUserId, { plan: plan?.name, days });
-    toast({ title: action === "revoke" ? "Membership revoked" : action === "extend" ? "Membership extended ✅" : "Membership granted ✅" });
+    toast({
+      title: action === "revoke"
+        ? "Membership revoked"
+        : action === "extend"
+          ? "Membership extended ✅"
+          : action === "downgrade"
+            ? "Membership updated ✅"
+            : "Membership granted ✅",
+    });
   };
 
   const typeColor: Record<string, string> = {
@@ -147,9 +155,10 @@ export default function MembershipSection({ users = [] }: { users?: any[] }) {
           </select>
           <Input type="number" min="1" value={membershipDays} onChange={e => setMembershipDays(e.target.value)} placeholder="Days to extend" className={FIELD} />
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <GlowButton className="h-9 text-xs" onClick={() => manageUserMembership("grant")}><Crown className="w-3 h-3 mr-1" />Grant</GlowButton>
           <GlowButton className="h-9 text-xs" onClick={() => manageUserMembership("extend")}><CalendarPlus className="w-3 h-3 mr-1" />Extend</GlowButton>
+          <GlowButton className="h-9 text-xs" onClick={() => manageUserMembership("downgrade")}><Crown className="w-3 h-3 mr-1" />Set / Downgrade</GlowButton>
           <button onClick={() => manageUserMembership("revoke")} className="h-9 rounded-xl border border-red-500/20 bg-red-500/10 text-red-400 text-xs font-semibold flex items-center justify-center"><Ban className="w-3 h-3 mr-1" />Revoke</button>
         </div>
       </div>

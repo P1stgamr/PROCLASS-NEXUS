@@ -3,8 +3,8 @@
     ".read": false,
     ".write": false,
     "users": {
-      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (query.orderByChild == 'email' && query.equalTo != null) || (query.orderByChild == 'username' && query.equalTo != null) || (query.orderByChild == 'userNo' && query.equalTo != null))",
-      ".indexOn": ["email", "username", "userNo"],
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (query.orderByChild == 'email' && query.equalTo != null) || (query.orderByChild == 'username' && query.equalTo != null) || (query.orderByChild == 'userNo' && query.equalTo != null) || (query.orderByChild == 'role' && query.equalTo == 'student'))",
+      ".indexOn": ["email", "username", "userNo", "role"],
       "$uid": {
         ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
         ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == $uid && !data.exists() && newData.child('role').val() == 'student' && newData.child('coins').val() == 0 && newData.child('totalEarnedCoins').val() == 0) || (auth.uid == $uid && data.exists() && newData.child('coins').val() == data.child('coins').val() && newData.child('totalEarnedCoins').val() == data.child('totalEarnedCoins').val() && (newData.child('motivationUnlocked').val() == data.child('motivationUnlocked').val() || (newData.child('motivationUnlocked').val() == true && data.child('motivationUnlocked').val() != true && ((!root.child('settings').child('motivationThreshold').exists() && data.child('totalEarnedCoins').val() >= 10000) || (root.child('settings').child('motivationThreshold').isNumber() && data.child('totalEarnedCoins').val() >= root.child('settings').child('motivationThreshold').val()))))) && (newData.child('role').val() == data.child('role').val() || (data.child('profileComplete').val() != true && (newData.child('role').val() == 'student' || newData.child('role').val() == 'teacher')))))",
@@ -42,7 +42,7 @@
     "communities": {
       ".read": "auth != null",
       "$communityId": {
-        ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (root.child('users').child(auth.uid).child('role').val() == 'teacher' && ((data.exists() && data.child('ownerUid').val() == auth.uid) || (!data.exists() && newData.child('ownerUid').val() == auth.uid))))"
       }
     },
     "communityStudents": {
@@ -208,7 +208,25 @@
     "contests": {
       ".read": "auth != null",
       "$id": {
-        ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
+        "participants": {
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid && root.child('users').child(auth.uid).child('role').val() == 'student'",
+            ".validate": "newData.val() == true"
+          }
+        }
+      }
+    },
+    "aiChats": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "aiMessages": {
+      "$chatId": {
+        ".read": "auth != null && root.child('aiChats').child(auth.uid).child($chatId).exists()",
+        ".write": "auth != null && root.child('aiChats').child(auth.uid).child($chatId).exists()"
       }
     },
     "adminLogs": {

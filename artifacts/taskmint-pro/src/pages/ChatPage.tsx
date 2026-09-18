@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ref, onValue, off, push, set, serverTimestamp } from "firebase/database";
+import { ref, onValue, off, push, set, serverTimestamp, query, orderByChild, equalTo } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -60,7 +60,7 @@ export default function ChatPage() {
   }, [messages]);
 
   useEffect(() => {
-    const usersRef = ref(db, "users");
+    const usersRef = query(ref(db, "users"), orderByChild("role"), equalTo("student"));
     const unsub = onValue(usersRef, (snap) => {
       const data = snap.val();
       if (data) {

@@ -124,7 +124,7 @@ export default function CoursesSection({ courses }: { courses: any[] }) {
                 <span className="text-muted-foreground">{thumbnailFile ? thumbnailFile.name : "Upload an image (max 5MB)"}</span>
                 <input type="file" accept="image/*" className="hidden" onChange={e => setThumbnailFile(e.target.files?.[0] || null)} />
               </label>
-              <Input value={form.thumbnail} onChange={e => setForm(p => ({ ...p, thumbnail: e.target.value }))} placeholder="Or paste an image URL" className={`${FIELD} mt-2`} />
+               {form.thumbnail && !thumbnailFile && <p className="mt-2 text-[10px] text-muted-foreground truncate">Current thumbnail will be kept unless you choose a new file.</p>}
             </div>
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Type</Label>

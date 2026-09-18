@@ -42,7 +42,7 @@ export default function AdminLayout({ section, setSection, children, badges = {}
   const nav: NavItem[] = ([
     { id: "dashboard" as AdminSection, label: "Dashboard", icon: LayoutDashboard },
     { id: "users" as AdminSection, label: "Users", icon: Users, superOnly: true },
-    { id: "membership" as AdminSection, label: "Membership", icon: Crown },
+     { id: "membership" as AdminSection, label: "Membership", icon: Crown, superOnly: true },
     { id: "tasks" as AdminSection, label: "Tasks", icon: Target },
     { id: "courses" as AdminSection, label: "Courses", icon: BookOpen },
     { id: "exams" as AdminSection, label: "Exams", icon: Trophy },

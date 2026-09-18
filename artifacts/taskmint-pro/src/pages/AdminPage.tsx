@@ -97,7 +97,7 @@ export default function AdminPage() {
       return unsub;
     };
 
-    subscribeLimited("users", d => setUsers(Object.values(d)));
+     subscribeLimited("users", d => setUsers(Object.entries(d).map(([uid, value]: [string, any]) => ({ uid, ...value }))));
     subscribe("tasks", d => setTasks(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v }))));
     subscribe("dailyMissions", d => setMissions(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v }))));
     subscribe("courses", d => setCourses(Object.entries(d).map(([id, v]: [string, any]) => ({ id, ...v }))));

@@ -122,7 +122,7 @@ export default function CoursesPage() {
       <div className="px-5 py-4 max-w-md mx-auto">
         {/* Featured Banner — only shown when there are courses */}
         {filter === "all" && allCourses.length > 0 && (() => {
-          const featured = allCourses.find((c: any) => c.featured) || allCourses[0];
+           const featured = filtered.find((c: any) => c.featured) || filtered[0];
           if (!featured) return null;
           return (
             <motion.div

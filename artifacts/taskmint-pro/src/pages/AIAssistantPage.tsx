@@ -180,8 +180,8 @@ export default function AIAssistantPage() {
   const deleteChat = async (chatId: string) => {
     if (!currentUser) return;
     try {
-      await remove(ref(db, `aiChats/${currentUser.uid}/${chatId}`));
       await remove(ref(db, `aiMessages/${chatId}`));
+      await remove(ref(db, `aiChats/${currentUser.uid}/${chatId}`));
       if (activeChatId === chatId) { setActiveChatId(null); setMessages([]); }
     } catch (error: any) {
       setChatError(error.message || "Could not delete this chat.");

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, Link } from "wouter";
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { ref, onValue, off } from "firebase/database";
+import { ref, onValue, off, query, orderByChild, equalTo } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,7 +12,6 @@ import {
   MessageSquare, Bot, ChevronRight, Star, Target,
   TrendingUp, Sparkles, Gift, Code2, Building2, Settings
 } from "lucide-react";
-import { isStudentRole } from "@/lib/roles";
 
 const stagger = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.07 } } };
 const fadeUp = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: 0.4 } } };
@@ -66,11 +65,11 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!currentUser) return;
-    const lbRef = ref(db, "users");
+    const lbRef = query(ref(db, "users"), orderByChild("role"), equalTo("student"));
     const unsubLb = onValue(lbRef, (snap) => {
       const data = snap.val();
       if (data) {
-         const arr = Object.values(data).filter((profile: any) => isStudentRole(profile.role)) as any[];
+         const arr = Object.values(data) as any[];
         arr.sort((a: any, b: any) => (b.xp || 0) - (a.xp || 0));
         setLeaderboard(arr.slice(0, 5));
       }
