@@ -12,6 +12,8 @@ export interface UserProfile {
   email: string | null;
   photoURL: string | null;
   coins: number;
+  totalEarnedCoins?: number;
+  motivationUnlocked?: boolean;
   xp: number;
   level: number;
   streak: number;

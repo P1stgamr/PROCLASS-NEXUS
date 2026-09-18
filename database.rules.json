@@ -7,9 +7,15 @@
       ".indexOn": ["email", "username", "userNo"],
       "$uid": {
         ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == $uid && !data.exists() && newData.child('role').val() == 'student' && newData.child('coins').val() == 0) || (auth.uid == $uid && data.exists() && newData.child('coins').val() == data.child('coins').val() && (newData.child('role').val() == data.child('role').val() || (data.child('profileComplete').val() != true && (newData.child('role').val() == 'student' || newData.child('role').val() == 'teacher')))))",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == $uid && !data.exists() && newData.child('role').val() == 'student' && newData.child('coins').val() == 0 && newData.child('totalEarnedCoins').val() == 0) || (auth.uid == $uid && data.exists() && newData.child('coins').val() == data.child('coins').val() && newData.child('totalEarnedCoins').val() == data.child('totalEarnedCoins').val() && (newData.child('motivationUnlocked').val() == data.child('motivationUnlocked').val() || (newData.child('motivationUnlocked').val() == true && data.child('motivationUnlocked').val() != true && ((!root.child('settings').child('motivationThreshold').exists() && data.child('totalEarnedCoins').val() >= 10000) || (root.child('settings').child('motivationThreshold').isNumber() && data.child('totalEarnedCoins').val() >= root.child('settings').child('motivationThreshold').val()))))) && (newData.child('role').val() == data.child('role').val() || (data.child('profileComplete').val() != true && (newData.child('role').val() == 'student' || newData.child('role').val() == 'teacher')))))",
         "$field": {
-          ".validate": "$field != 'role' && $field != 'coins' || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (!data.exists() && auth.uid == $uid && $field == 'role' && newData.val() == 'student') || (!data.exists() && auth.uid == $uid && $field == 'coins' && newData.val() == 0) || (auth.uid == $uid && $field == 'role' && data.parent().child('profileComplete').val() != true && (newData.val() == 'student' || newData.val() == 'teacher'))"
+          ".validate": "$field != 'role' && $field != 'coins' && $field != 'totalEarnedCoins' && $field != 'motivationUnlocked' || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (!data.exists() && auth.uid == $uid && $field == 'role' && newData.val() == 'student') || (!data.exists() && auth.uid == $uid && $field == 'coins' && newData.val() == 0) || (!data.exists() && auth.uid == $uid && $field == 'totalEarnedCoins' && newData.val() == 0) || (!data.exists() && auth.uid == $uid && $field == 'motivationUnlocked' && newData.val() == false) || (auth.uid == $uid && $field == 'role' && data.parent().child('profileComplete').val() != true && (newData.val() == 'student' || newData.val() == 'teacher'))"
+        },
+        "totalEarnedCoins": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && ((!data.exists() && newData.val() == 0) || (data.exists() && newData.val() >= data.val()))"
+        },
+        "motivationUnlocked": {
+          ".validate": "newData.val() == true || (newData.val() == false && data.val() != true)"
         },
         "userNo": {
           ".validate": "newData.isString() && newData.val().length >= 6 && newData.val().length <= 32 && (!data.exists() || newData.val() == data.val())"
@@ -78,7 +84,7 @@
       ".read": "auth != null && (query.orderByChild == 'uid' && query.equalTo == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
       "$requestId": {
         ".read": "auth != null && (data.child('uid').val() == auth.uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == newData.child('uid').val() && root.child('users').child(auth.uid).child('role').val() == 'student' && !data.exists() && newData.child('status').val() == 'pending'))",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (auth.uid == newData.child('uid').val() && root.child('users').child(auth.uid).child('role').val() == 'student' && !data.exists() && newData.child('status').val() == 'pending' && !(root.child('settings').child('withdrawalCooldown').child('active').val() == true && now >= root.child('settings').child('withdrawalCooldown').child('startAt').val() && now < root.child('settings').child('withdrawalCooldown').child('endAt').val()) && (root.child('users').child(auth.uid).child('motivationUnlocked').val() == true || ((!root.child('settings').child('motivationThreshold').exists() && root.child('users').child(auth.uid).child('totalEarnedCoins').val() >= 10000) || (root.child('settings').child('motivationThreshold').isNumber() && root.child('users').child(auth.uid).child('totalEarnedCoins').val() >= root.child('settings').child('motivationThreshold').val()))) && newData.child('amount').val() <= root.child('users').child(auth.uid).child('coins').val()))",
         ".validate": "newData.hasChildren(['uid', 'amount', 'status', 'createdAt']) && newData.child('amount').isNumber() && newData.child('amount').val() >= 100 && (newData.child('status').val() == 'pending' || newData.child('status').val() == 'approved' || newData.child('status').val() == 'rejected')",
         "status": {
           ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner'"
@@ -100,6 +106,20 @@
         "amount": {
           ".write": "root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner' || (!data.exists() && auth.uid == newData.parent().child('uid').val())"
         }
+      }
+    },
+    "platformSettings": {
+      ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
+    },
+    "settings": {
+      ".read": "auth != null",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')",
+      "motivationThreshold": {
+        ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 1000000000"
+      },
+      "withdrawalCooldown": {
+        ".validate": "newData.hasChildren(['active', 'startAt', 'endAt', 'reason']) && newData.child('active').isBoolean() && newData.child('startAt').isNumber() && newData.child('endAt').isNumber() && (!newData.child('active').val() || newData.child('endAt').val() > newData.child('startAt').val()) && newData.child('reason').isString() && newData.child('reason').val().length <= 500"
       }
     },
     "membershipRequests": {

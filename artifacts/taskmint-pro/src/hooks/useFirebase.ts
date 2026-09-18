@@ -18,6 +18,8 @@ export function useFirebase() {
           email: result.user.email,
           photoURL: result.user.photoURL,
           coins: 0,
+          totalEarnedCoins: 0,
+          motivationUnlocked: false,
           xp: 0,
           level: 1,
           streak: 0,

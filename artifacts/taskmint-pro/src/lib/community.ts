@@ -36,9 +36,16 @@ export async function awardCoinsWithCommunityCommission(
   const user = userSnapshot.val();
   if (!user) throw new Error("Student profile not found");
 
-  const coinResult = await runTransaction(ref(db, `users/${uid}/coins`), (current) => {
-    const currentCoins = Number(current || 0);
-    return Number.isFinite(currentCoins) ? currentCoins + amount : amount;
+  const coinResult = await runTransaction(ref(db, `users/${uid}`), (current: any) => {
+    if (!current) return;
+    const currentCoins = Number(current.coins || 0);
+    const currentEarned = Number(current.totalEarnedCoins || 0);
+    if (!Number.isFinite(currentCoins) || !Number.isFinite(currentEarned)) return;
+    return {
+      ...current,
+      coins: currentCoins + amount,
+      totalEarnedCoins: currentEarned + amount,
+    };
   });
   if (!coinResult.committed) throw new Error("Could not credit student coins");
 

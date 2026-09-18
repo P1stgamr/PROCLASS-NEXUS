@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ref, onValue, off, push, get, query, orderByChild, equalTo } from "firebase/database";
+import { ref, onValue, off, push, get, update, query, orderByChild, equalTo } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -9,8 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Coins, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Smartphone, X, CheckCircle2, Clock } from "lucide-react";
+import { Coins, ArrowUpRight, ArrowDownLeft, Wallet, TrendingUp, Smartphone, X, CheckCircle2, Clock, LockKeyhole, TimerReset } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import {
+  DEFAULT_MOTIVATION_THRESHOLD,
+  formatCountdown,
+  isWithdrawalCooldownActive,
+  type WithdrawalCooldown,
+} from "@/lib/withdrawal";
 
 const typeConfig: Record<string, { icon: any; color: string; label: string }> = {
   task: { icon: ArrowDownLeft, color: "text-green-400", label: "Task Reward" },
@@ -30,6 +36,46 @@ export default function WalletPage() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [withdrawRequests, setWithdrawRequests] = useState<any[]>([]);
+  const [motivationThreshold, setMotivationThreshold] = useState(DEFAULT_MOTIVATION_THRESHOLD);
+  const [withdrawalCooldown, setWithdrawalCooldown] = useState<WithdrawalCooldown | null>(null);
+  const [clock, setClock] = useState(Date.now());
+
+  const totalEarnedCoins = Math.max(0, Number(userProfile?.totalEarnedCoins || 0));
+  const threshold = Number.isSafeInteger(Number(motivationThreshold)) && Number(motivationThreshold) > 0
+    ? Number(motivationThreshold)
+    : DEFAULT_MOTIVATION_THRESHOLD;
+  const motivationUnlocked = userProfile?.motivationUnlocked === true || totalEarnedCoins >= threshold;
+  const cooldownActive = isWithdrawalCooldownActive(withdrawalCooldown, clock);
+  const cooldownRemaining = cooldownActive
+    ? formatCountdown(Math.ceil((Number(withdrawalCooldown?.endAt) - clock) / 1000))
+    : null;
+
+  useEffect(() => {
+    const settingsRef = ref(db, "settings");
+    const unsub = onValue(settingsRef, (snap) => {
+      const data = snap.val() || {};
+      const configuredThreshold = Number(data.motivationThreshold);
+      setMotivationThreshold(
+        Number.isSafeInteger(configuredThreshold) && configuredThreshold > 0
+          ? configuredThreshold
+          : DEFAULT_MOTIVATION_THRESHOLD,
+      );
+      setWithdrawalCooldown(data.withdrawalCooldown || null);
+    });
+    return () => off(settingsRef);
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setClock(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!currentUser || userProfile?.motivationUnlocked === true || totalEarnedCoins < threshold) return;
+    update(ref(db, `users/${currentUser.uid}`), { motivationUnlocked: true }).catch(() => {
+      // The next profile/settings update will retry this idempotent unlock.
+    });
+  }, [currentUser, userProfile?.motivationUnlocked, totalEarnedCoins, threshold]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -54,6 +100,8 @@ export default function WalletPage() {
           .filter((r: any) => r.uid === currentUser.uid);
         arr.sort((a: any, b: any) => b.createdAt - a.createdAt);
         setWithdrawRequests(arr);
+        } else {
+          setWithdrawRequests([]);
       }
     });
     return () => { off(dbRef); off(wdRef); };
@@ -70,16 +118,50 @@ export default function WalletPage() {
       toast({ title: "Minimum withdrawal is ৳100", variant: "destructive" });
       return;
     }
+    if (!motivationUnlocked) {
+      toast({
+        title: "Motivation milestone এখনো unlock হয়নি",
+        description: `${totalEarnedCoins.toLocaleString()} / ${threshold.toLocaleString()} lifetime coins দরকার।`,
+        variant: "destructive",
+      });
+      return;
+    }
+    if (cooldownActive) {
+      toast({
+        title: "Withdrawal সাময়িকভাবে বন্ধ",
+        description: withdrawalCooldown?.reason || "Admin maintenance window চালু আছে।",
+        variant: "destructive",
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       // Refresh both values immediately before creating the request. The profile
       // listener and withdrawal list can otherwise be stale after another tab
       // or device submits a request.
-      const [balanceSnap, requestsSnap] = await Promise.all([
-        get(ref(db, `users/${currentUser!.uid}/coins`)),
+      const [profileSnap, requestsSnap, settingsSnap] = await Promise.all([
+        get(ref(db, `users/${currentUser!.uid}`)),
         get(query(ref(db, "withdrawRequests"), orderByChild("uid"), equalTo(currentUser!.uid))),
+        get(ref(db, "settings")),
       ]);
-      const currentCoins = Number(balanceSnap.val());
+      const liveProfile = profileSnap.val() || {};
+      const liveSettings = settingsSnap.val() || {};
+      const liveCooldown = liveSettings.withdrawalCooldown as WithdrawalCooldown | null;
+      if (isWithdrawalCooldownActive(liveCooldown)) {
+        throw new Error(liveCooldown?.reason || "Withdrawal is temporarily paused.");
+      }
+      const liveThreshold = Number(liveSettings.motivationThreshold) > 0
+        ? Number(liveSettings.motivationThreshold)
+        : DEFAULT_MOTIVATION_THRESHOLD;
+      const liveTotalEarned = Number(liveProfile.totalEarnedCoins || 0);
+      const liveUnlocked = liveProfile.motivationUnlocked === true || liveTotalEarned >= liveThreshold;
+      if (!liveUnlocked) {
+        throw new Error(`Motivation milestone: ${liveTotalEarned.toLocaleString()} / ${liveThreshold.toLocaleString()} coins`);
+      }
+      if (liveUnlocked && liveProfile.motivationUnlocked !== true) {
+        await update(ref(db, `users/${currentUser!.uid}`), { motivationUnlocked: true });
+      }
+      const currentCoins = Number(liveProfile.coins);
       const latestRequests = requestsSnap.exists()
         ? Object.values(requestsSnap.val()).filter((request: any) => request.status === "pending")
         : [];
@@ -108,7 +190,7 @@ export default function WalletPage() {
     }
   };
 
-  const totalEarned = earnings.filter((e) => e.type !== "withdrawal").reduce((s, e) => s + (Number(e.amount) || 0), 0);
+  const totalEarned = totalEarnedCoins;
   const now = new Date();
   const weekStart = new Date(now);
   weekStart.setHours(0, 0, 0, 0);
@@ -165,14 +247,47 @@ export default function WalletPage() {
           </div>
         </div>
 
-        <GlowButton
+         <div className="space-y-3">
+         <GlowButton
           className="w-full h-12 flex items-center gap-2"
           onClick={() => setShowWithdraw(true)}
+           disabled={!motivationUnlocked || cooldownActive}
           data-testid="btn-withdraw"
         >
           <Smartphone className="w-5 h-5" />
-          বিকাশে Withdraw করুন
+           {cooldownActive ? "Withdrawal সাময়িকভাবে বন্ধ" : motivationUnlocked ? "বিকাশে Withdraw করুন" : "Motivation unlock করুন"}
         </GlowButton>
+         {!motivationUnlocked && (
+           <div className="glass-card rounded-2xl p-4 border border-yellow-500/20">
+             <div className="flex items-center gap-2 text-yellow-300">
+               <LockKeyhole className="w-4 h-4" />
+               <p className="text-sm font-bold">Motivation milestone</p>
+             </div>
+             <p className="text-xs text-muted-foreground mt-2">
+               {totalEarnedCoins.toLocaleString()} / {threshold.toLocaleString()} কয়েন — উইথড্রয়ালের জন্য মোটিভেশন আনলক করুন
+             </p>
+             <div className="h-2 rounded-full bg-white/10 overflow-hidden mt-3">
+               <div className="h-full rounded-full bg-yellow-400 transition-all" style={{ width: `${Math.min(100, (totalEarnedCoins / threshold) * 100)}%` }} />
+             </div>
+           </div>
+         )}
+         {motivationUnlocked && !cooldownActive && (
+           <p className="text-xs text-green-400 text-center">Motivation milestone unlocked — এখন শুধু withdrawable balance প্রয়োজন।</p>
+         )}
+         {cooldownActive && cooldownRemaining && (
+           <div className="glass-card rounded-2xl p-4 border border-orange-500/25 bg-orange-500/5">
+             <div className="flex items-center gap-2 text-orange-300">
+               <TimerReset className="w-4 h-4" />
+               <p className="text-sm font-bold">Withdrawal pause চলছে</p>
+             </div>
+             <p className="text-xs text-muted-foreground mt-1">{withdrawalCooldown?.reason || "সাময়িক maintenance"}</p>
+             <p className="font-mono text-lg font-bold text-orange-300 mt-2">
+               {cooldownRemaining.days}d {String(cooldownRemaining.hours).padStart(2, "0")}h {String(cooldownRemaining.minutes).padStart(2, "0")}m {String(cooldownRemaining.seconds).padStart(2, "0")}s
+             </p>
+             <p className="text-[10px] text-muted-foreground mt-1">সময় শেষ হলে withdrawal স্বয়ংক্রিয়ভাবে চালু হবে</p>
+           </div>
+         )}
+         </div>
 
         <AnimatePresence>
           {showWithdraw && (
@@ -229,7 +344,7 @@ export default function WalletPage() {
                 <GlowButton
                   type="submit"
                   className="w-full h-11"
-                  disabled={submitting || !bkashNumber.trim() || !withdrawAmount}
+                   disabled={submitting || !bkashNumber.trim() || !withdrawAmount || !motivationUnlocked || cooldownActive}
                   data-testid="btn-submit-withdraw"
                 >
                   {submitting ? "Sending..." : "Request পাঠান"}

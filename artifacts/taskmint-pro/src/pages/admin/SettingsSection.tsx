@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Shield, Save, Zap, Bell } from "lucide-react";
+import { Settings, Shield, Save, Zap, Bell, TimerReset, LockKeyhole } from "lucide-react";
+import { toDateTimeLocal, type WithdrawalCooldown } from "@/lib/withdrawal";
 
 const CARD = "glass-card p-4 rounded-2xl border border-white/10";
 const FIELD = "h-9 bg-white/5 border-white/10 text-sm";
@@ -26,6 +27,13 @@ interface PlatformSettings {
   announcementBanner: string;
   announcementEnabled: boolean;
 }
+
+const defaultCooldown: WithdrawalCooldown = {
+  active: false,
+  startAt: 0,
+  endAt: 0,
+  reason: "",
+};
 
 const defaults: PlatformSettings = {
   maintenanceMode: false,
@@ -46,19 +54,58 @@ export default function SettingsSection() {
   const { currentUser, userProfile } = useAuth();
   const { toast } = useToast();
   const [settings, setSettings] = useState<PlatformSettings>(defaults);
+  const [motivationThreshold, setMotivationThreshold] = useState("10000");
+  const [cooldown, setCooldown] = useState<WithdrawalCooldown>(defaultCooldown);
+  const [cooldownStart, setCooldownStart] = useState("");
+  const [cooldownEnd, setCooldownEnd] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const unsub = onValue(ref(db, "platformSettings"), snap => {
       if (snap.val()) setSettings({ ...defaults, ...snap.val() });
     });
-    return () => unsub();
+    const settingsUnsub = onValue(ref(db, "settings"), snap => {
+      const data = snap.val() || {};
+      const configuredThreshold = Number(data.motivationThreshold);
+      if (Number.isSafeInteger(configuredThreshold) && configuredThreshold > 0) {
+        setMotivationThreshold(String(configuredThreshold));
+      }
+      const nextCooldown = { ...defaultCooldown, ...(data.withdrawalCooldown || {}) };
+      setCooldown(nextCooldown);
+      setCooldownStart(toDateTimeLocal(Number(nextCooldown.startAt)));
+      setCooldownEnd(toDateTimeLocal(Number(nextCooldown.endAt)));
+    });
+    return () => {
+      unsub();
+      settingsUnsub();
+    };
   }, []);
 
   const save = async () => {
+    const threshold = Number(motivationThreshold.trim());
+    const startAt = cooldownStart ? new Date(cooldownStart).getTime() : 0;
+    const endAt = cooldownEnd ? new Date(cooldownEnd).getTime() : 0;
+    if (!Number.isSafeInteger(threshold) || threshold <= 0) {
+      toast({ title: "Motivation threshold must be a positive whole number", variant: "destructive" });
+      return;
+    }
+    if (cooldown.active && (!cooldown.reason?.trim() || !Number.isFinite(startAt) || !Number.isFinite(endAt) || endAt <= startAt)) {
+      toast({ title: "Active cooldown-এর জন্য valid start, end ও reason দিন", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     try {
       await update(ref(db, "platformSettings"), { ...settings, updatedAt: Date.now() });
+      await update(ref(db, "settings"), {
+        motivationThreshold: threshold,
+        withdrawalCooldown: {
+          active: cooldown.active === true,
+          startAt: Number.isFinite(startAt) ? startAt : 0,
+          endAt: Number.isFinite(endAt) ? endAt : 0,
+          reason: cooldown.reason?.trim() || "",
+        },
+        updatedAt: Date.now(),
+      });
       await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "settings.update", undefined, { by: userProfile?.name });
       toast({ title: "Settings saved ✅" });
     } finally { setSaving(false); }
@@ -168,6 +215,67 @@ export default function SettingsSection() {
             <Input type="number" value={settings.withdrawMaxAmount} onChange={e => setSettings(p => ({ ...p, withdrawMaxAmount: e.target.value }))} className={FIELD} />
           </div>
         </div>
+      </div>
+
+      {/* Withdrawal controls */}
+      <div className={CARD + " space-y-4"}>
+        <div className="flex items-center gap-2">
+          <LockKeyhole className="w-4 h-4 text-yellow-400" />
+          <h3 className="font-bold text-sm">Withdrawal Motivation</h3>
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">Motivation threshold (lifetime coins)</Label>
+          <Input
+            type="number"
+            min="1"
+            step="1"
+            value={motivationThreshold}
+            onChange={e => setMotivationThreshold(e.target.value)}
+            className={FIELD}
+          />
+          <p className="text-[10px] text-muted-foreground mt-1">একবার unlock হলে পরে threshold বাড়ালেও user আবার lock হবে না।</p>
+        </div>
+      </div>
+
+      <div className={CARD + " space-y-4"}>
+        <div className="flex items-center gap-2">
+          <TimerReset className="w-4 h-4 text-orange-400" />
+          <h3 className="font-bold text-sm">Withdrawal Cooldown</h3>
+        </div>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium">Pause new withdrawals</p>
+            <p className="text-[10px] text-muted-foreground">শুধু নতুন request বন্ধ হবে; pending request process করা যাবে</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setCooldown(p => ({ ...p, active: !p.active }))}
+            className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${cooldown.active ? "bg-primary" : "bg-white/15"}`}
+            aria-pressed={cooldown.active === true}
+          >
+            <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow ${cooldown.active ? "translate-x-5" : "translate-x-0.5"}`} />
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Start date/time</Label>
+            <Input type="datetime-local" value={cooldownStart} onChange={e => setCooldownStart(e.target.value)} className={FIELD} />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">End date/time</Label>
+            <Input type="datetime-local" value={cooldownEnd} onChange={e => setCooldownEnd(e.target.value)} className={FIELD} />
+          </div>
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">Reason shown to users *</Label>
+          <Input
+            value={cooldown.reason || ""}
+            onChange={e => setCooldown(p => ({ ...p, reason: e.target.value }))}
+            placeholder="যেমন: সার্ভার মেইনটেন্যান্স"
+            className={FIELD}
+          />
+        </div>
+        <p className="text-[10px] text-muted-foreground">সময় পার হলে active flag বদলানো ছাড়াই app নিজে withdrawals চালু করবে।</p>
       </div>
 
       <GlowButton className="w-full h-10 text-sm" onClick={save} disabled={saving}>

@@ -23,6 +23,8 @@ async function createOrUpdateProfile(user: any): Promise<{ role: string; profile
       email: user.email,
       photoURL: user.photoURL || null,
       coins: 0,
+       totalEarnedCoins: 0,
+       motivationUnlocked: false,
       xp: 0,
       level: 1,
       streak: 1,
