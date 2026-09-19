@@ -18,7 +18,7 @@ export type AdminAction =
   | "payment.approve" | "payment.reject"
   | "withdraw.approve" | "withdraw.reject"
   | "notification.send" | "gift.send"
-  | "prize.paid" | "settings.update";
+   | "prize.paid" | "settings.update" | "ads.settings.update";
 
 export async function logAdminAction(
   adminUid: string,

@@ -15,6 +15,7 @@ import {
   CheckCircle2, BarChart3
 } from "lucide-react";
 import { MCQ_SUBJECTS } from "@/lib/mcqSubjects";
+import { WatchAdTasks } from "@/components/WatchAdTasks";
 
 const CATEGORIES = [
   { id: "all", label: "সব" },
@@ -115,6 +116,8 @@ export default function StudyPage() {
     <div className="min-h-screen bg-background pb-28">
       <AdModal
         open={!!adTarget}
+        placement="quiz_unlock"
+        referenceId={adTarget?.id || ""}
         title="Ad দেখুন — তারপর quiz শুরু হবে"
         onComplete={handleAdComplete}
         onClose={() => setAdTarget(null)}
@@ -157,6 +160,7 @@ export default function StudyPage() {
                 <span className="text-sm">📺</span>
                 <p className="text-xs text-yellow-300">Free quiz শুরু করতে একটি Ad দেখতে হবে</p>
               </div>
+              <WatchAdTasks />
               <button onClick={() => setLocation("/practice")} className="w-full glass-card-hover rounded-2xl p-4 text-left flex items-center justify-between border border-primary/20 bg-primary/5">
                 <div><p className="font-bold text-sm">Model Test & MCQ Practice</p><p className="text-xs text-muted-foreground mt-1">Timed tests, daily quizzes, topic-wise analysis</p></div>
                 <Target className="w-5 h-5 text-primary" />

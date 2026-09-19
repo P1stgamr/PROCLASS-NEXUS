@@ -8,13 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import {
   Shield, ArrowLeft, LayoutDashboard, Users, Crown, FileCheck,
   BookOpen, Trophy, CreditCard, Wallet, Bell, Settings,
-  ClipboardList, BarChart3, Target, Gift, Code2, FileSpreadsheet, Building2
+  ClipboardList, BarChart3, Target, Gift, Code2, FileSpreadsheet, Building2, Megaphone
 } from "lucide-react";
 
 export type AdminSection =
   | "dashboard" | "users" | "membership" | "tasks" | "courses"
   | "exams" | "practice" | "payments" | "wallet" | "notify" | "gifts"
-  | "analytics" | "logs" | "settings" | "communities";
+   | "analytics" | "logs" | "settings" | "communities" | "ads";
 
 interface NavItem {
   id: AdminSection;
@@ -55,6 +55,7 @@ export default function AdminLayout({ section, setSection, children, badges = {}
     { id: "analytics" as AdminSection, label: "Analytics", icon: BarChart3, superOnly: true },
     { id: "logs" as AdminSection, label: "Logs", icon: ClipboardList, superOnly: true },
     { id: "settings" as AdminSection, label: "Settings", icon: Settings, superOnly: true },
+     { id: "ads" as AdminSection, label: "Ads", icon: Megaphone, superOnly: true },
   ] as NavItem[]).filter(item => !item.superOnly || isSuperAdmin);
 
   return (

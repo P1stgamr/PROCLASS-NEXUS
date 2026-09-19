@@ -20,6 +20,7 @@ import LogsSection from "./admin/LogsSection";
 import SettingsSection from "./admin/SettingsSection";
 import PracticeAdminSection from "./admin/PracticeAdminSection";
 import CommunityAdminSection from "./admin/CommunityAdminSection";
+import AdsSection from "./admin/AdsSection";
 
 export default function AdminPage() {
   const { currentUser, userProfile, loading: authLoading } = useAuth();
@@ -203,6 +204,8 @@ export default function AdminPage() {
         return can.viewLogs ? <LogsSection /> : <Forbidden />;
       case "settings":
         return can.manageSettings ? <SettingsSection /> : <Forbidden />;
+      case "ads":
+        return isSuperAdmin ? <AdsSection /> : <Forbidden />;
       default:
         return null;
     }

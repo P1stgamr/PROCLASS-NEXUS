@@ -1,70 +1,152 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Volume2, ExternalLink, Zap } from "lucide-react";
-import { GlowButton } from "@/components/GlowButton";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { X, ShieldCheck, Loader2, AlertTriangle } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import {
+  completeRewardedAdSession,
+  createRewardedAdSession,
+  type RewardedAdPlacement,
+  type RewardedAdResult,
+} from "@/lib/rewardedAds";
 
-const ADS = [
-  {
-    brand: "Robi",
-    tagline: "Bangladesh-এর সেরা 4G নেটওয়ার্ক",
-    color: "from-red-600 to-red-800",
-    logo: "R",
-    logoColor: "bg-red-500",
-    cta: "আরো জানুন",
-  },
-  {
-    brand: "Grameenphone",
-    tagline: "শিক্ষার্থীদের জন্য বিশেষ ইন্টারনেট প্যাকেজ",
-    color: "from-blue-600 to-blue-800",
-    logo: "GP",
-    logoColor: "bg-blue-500",
-    cta: "অফার দেখুন",
-  },
-  {
-    brand: "bKash",
-    tagline: "Send money instantly — bKash করুন",
-    color: "from-pink-600 to-pink-800",
-    logo: "b",
-    logoColor: "bg-pink-500",
-    cta: "Download করুন",
-  },
-];
+type GPT = {
+  cmd: Array<() => void>;
+  defineOutOfPageSlot: (unit: string, format: unknown) => any;
+  destroySlots: (slots?: any[]) => void;
+  display: (slot: any) => void;
+  pubads: () => any;
+  enums: { OutOfPageFormat: { REWARDED: unknown } };
+};
+
+declare global {
+  interface Window {
+    googletag?: GPT;
+  }
+}
 
 interface AdModalProps {
   open: boolean;
-  onComplete: () => void;
+  placement: RewardedAdPlacement;
+  referenceId: string;
+  onComplete: (result: RewardedAdResult) => void;
   onClose?: () => void;
-  skipAllowed?: boolean;
   title?: string;
 }
 
-export function AdModal({ open, onComplete, onClose, skipAllowed = false, title = "Ad দেখুন — তারপর শুরু হবে" }: AdModalProps) {
-  const [countdown, setCountdown] = useState(5);
-  const [canSkip, setCanSkip] = useState(skipAllowed);
-  const [adDone, setAdDone] = useState(false);
-  const [ad] = useState(() => ADS[Math.floor(Math.random() * ADS.length)]);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+let gptLoader: Promise<GPT> | null = null;
 
-  useEffect(() => {
-    if (!open) {
-      setCountdown(5);
-      setCanSkip(skipAllowed);
-      setAdDone(false);
+function loadGooglePublisherTag() {
+  if (window.googletag) return Promise.resolve(window.googletag);
+  if (gptLoader) return gptLoader;
+  gptLoader = new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>("script[data-taskmint-gpt]");
+    const finish = () => {
+      window.googletag = window.googletag || ({ cmd: [] } as unknown as GPT);
+      resolve(window.googletag);
+    };
+    if (existing) {
+      existing.addEventListener("load", finish);
+      existing.addEventListener("error", () => reject(new Error("Google Publisher Tag could not load")));
       return;
     }
-    timerRef.current = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          clearInterval(timerRef.current!);
-          setCanSkip(true);
-          setAdDone(true);
-          return 0;
+    const script = document.createElement("script");
+    script.async = true;
+    script.src = "https://securepubads.g.doubleclick.net/tag/js/gpt.js";
+    script.dataset.taskmintGpt = "true";
+    script.onload = finish;
+    script.onerror = () => reject(new Error("Google Publisher Tag could not load"));
+    document.head.appendChild(script);
+  });
+  return gptLoader;
+}
+
+export function AdModal({
+  open,
+  placement,
+  referenceId,
+  onComplete,
+  onClose,
+  title = "Ad দেখুন — তারপর এগিয়ে যান",
+}: AdModalProps) {
+  const { currentUser } = useAuth();
+  const [status, setStatus] = useState<"preparing" | "ready" | "showing" | "completing" | "error">("preparing");
+  const [error, setError] = useState("");
+  const sessionRef = useRef<string | null>(null);
+  const handledRef = useRef(false);
+
+  useEffect(() => {
+    if (!open || !currentUser) return;
+    const user = currentUser;
+    let disposed = false;
+    let slot: any = null;
+
+    async function showRewardedAd() {
+      try {
+        setStatus("preparing");
+        setError("");
+        handledRef.current = false;
+        const session = await createRewardedAdSession(user, placement, referenceId);
+        if (disposed) return;
+        sessionRef.current = session.sessionId;
+        const googletag = await loadGooglePublisherTag();
+        googletag.cmd = googletag.cmd || [];
+        googletag.cmd.push(() => {
+          slot = googletag.defineOutOfPageSlot(
+            session.adUnitId,
+            googletag.enums.OutOfPageFormat.REWARDED,
+          );
+          if (!slot) throw new Error("This ad unit does not support rewarded ads");
+          slot.addService(googletag.pubads());
+          const pubads = googletag.pubads();
+          const ready = (event: any) => {
+            if (event.slot !== slot || disposed) return;
+            setStatus("ready");
+            event.makeRewardedVisible();
+            setStatus("showing");
+          };
+          const granted = async (event: any) => {
+            if (event.slot !== slot || handledRef.current || disposed) return;
+            handledRef.current = true;
+            setStatus("completing");
+            try {
+              const result = await completeRewardedAdSession(
+                user,
+                session.sessionId,
+                `gpt:${session.sessionId}:${Date.now()}`,
+              );
+              if (!disposed) onComplete(result);
+            } catch (completionError: any) {
+              if (!disposed) {
+                setStatus("error");
+                setError(completionError.message || "Ad completion could not be verified");
+              }
+            }
+          };
+          const closed = (event: any) => {
+            if (event.slot !== slot || handledRef.current || disposed) return;
+            setStatus("error");
+            setError("Ad বন্ধ করা হয়েছে। Reward পেতে পুরো Ad দেখতে হবে।");
+          };
+          pubads.addEventListener("rewardedSlotReady", ready);
+          pubads.addEventListener("rewardedSlotGranted", granted);
+          pubads.addEventListener("rewardedSlotClosed", closed);
+          googletag.display(slot);
+        });
+      } catch (showError: any) {
+        if (!disposed) {
+          setStatus("error");
+          setError(showError.message || "Rewarded ad চালু করা যায়নি");
         }
-        return c - 1;
-      });
-    }, 1000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [open]);
+      }
+    }
+
+    showRewardedAd();
+    return () => {
+      disposed = true;
+      if (slot && window.googletag) window.googletag.destroySlots([slot]);
+      sessionRef.current = null;
+    };
+  }, [open, currentUser, placement, referenceId, onComplete]);
 
   return (
     <AnimatePresence>
@@ -76,81 +158,43 @@ export function AdModal({ open, onComplete, onClose, skipAllowed = false, title 
           className="fixed inset-0 z-50 flex items-center justify-center px-5 bg-black/80 backdrop-blur-sm"
         >
           <motion.div
-            initial={{ scale: 0.85, opacity: 0, y: 30 }}
+            initial={{ scale: 0.94, opacity: 0, y: 16 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.85, opacity: 0 }}
-            transition={{ type: "spring", damping: 20 }}
-            className="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl border border-white/10"
+            className="w-full max-w-sm glass-card rounded-3xl p-5 border border-white/10 shadow-2xl"
           >
-            {/* Header bar */}
-            <div className="bg-black/60 px-4 py-2.5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full font-semibold border border-yellow-500/30">
-                  AD
-                </span>
-                <p className="text-xs text-muted-foreground truncate">{title}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Volume2 className="w-3.5 h-3.5 text-muted-foreground" />
-                {!canSkip ? (
-                  <span className="text-xs font-mono font-bold text-white bg-white/10 px-2 py-0.5 rounded-full">
-                    {countdown}s
-                  </span>
-                ) : null}
-              </div>
-            </div>
-
-            {/* Ad content */}
-            <div className={`bg-gradient-to-br ${ad.color} p-8 text-center space-y-4`}>
-              <motion.div
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className={`w-20 h-20 ${ad.logoColor} rounded-2xl mx-auto flex items-center justify-center text-white text-3xl font-extrabold shadow-xl`}
-              >
-                {ad.logo}
-              </motion.div>
+            <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-extrabold text-white">{ad.brand}</h2>
-                <p className="text-white/80 text-sm mt-1">{ad.tagline}</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-yellow-400 font-bold">Rewarded ad</p>
+                <h2 className="font-extrabold mt-1">{title}</h2>
               </div>
-              <button className="flex items-center gap-1.5 text-xs text-white/60 mx-auto hover:text-white transition-colors">
-                <ExternalLink className="w-3 h-3" />{ad.cta}
-              </button>
+              {onClose && (
+                <button onClick={onClose} className="p-2 rounded-xl hover:bg-white/10" aria-label="Close">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
-            {/* Footer */}
-            <div className="bg-black/60 px-4 py-4 space-y-3">
-              {adDone && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-xl px-3 py-2"
-                >
-                  <Zap className="w-4 h-4 text-green-400" />
-                  <p className="text-xs text-green-400 font-medium">Ad দেখা শেষ! এগিয়ে যান</p>
-                </motion.div>
+            <div className="mt-5 rounded-2xl bg-white/5 border border-white/10 px-4 py-6 text-center">
+              {status === "error" ? (
+                <>
+                  <AlertTriangle className="w-8 h-8 mx-auto text-red-400" />
+                  <p className="text-sm text-red-300 mt-3">{error}</p>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-9 h-9 mx-auto text-green-400" />
+                  <p className="text-sm font-semibold mt-3">
+                    {status === "preparing" && "Rewarded ad প্রস্তুত হচ্ছে…"}
+                    {status === "ready" && "Ad প্রস্তুত"}
+                    {status === "showing" && "Ad দেখুন — শেষ হলে reward পাবেন"}
+                    {status === "completing" && "Completion যাচাই হচ্ছে…"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Reward শুধু Google Publisher Tag completion callback-এর পর দেওয়া হবে।
+                  </p>
+                  {status !== "showing" && <Loader2 className="w-4 h-4 mx-auto mt-4 animate-spin text-primary" />}
+                </>
               )}
-
-              <div className="flex gap-2">
-                {canSkip ? (
-                  <GlowButton className="flex-1 h-10 text-sm" onClick={onComplete}>
-                    {adDone ? "Continue করুন →" : "Skip করুন →"}
-                  </GlowButton>
-                ) : (
-                  <div className="flex-1 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xs text-muted-foreground border border-white/10">
-                    {countdown}s পরে continue করতে পারবেন
-                  </div>
-                )}
-                {onClose && (
-                  <button
-                    onClick={onClose}
-                    className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-muted-foreground hover:text-white hover:bg-white/10 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
             </div>
           </motion.div>
         </motion.div>

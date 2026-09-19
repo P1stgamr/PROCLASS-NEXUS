@@ -1,3 +1,4 @@
 - [Firebase rules and list queries](firebase-rules-and-list-queries.md) — parent-level reads must match the client query; child rules alone do not authorize parent onValue listeners.
 - [Gemini model availability](gemini-model-availability.md) — this project’s Gemini key rejected older flash models; keep the server proxy model configurable and verify with a real request.
 - [Package firewall and stale locks](package-firewall-and-stale-locks.md) — an outdated pinned generator package blocked install; updating the direct dependency and lockfile restored installation.
+- [Firebase Admin workspace installation](firebase-admin-workspace-install.md) — add server auth dependencies to the API package, not the monorepo root, then restore the workspace install.

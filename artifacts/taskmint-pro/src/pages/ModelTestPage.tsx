@@ -12,6 +12,8 @@ import {
   Crown, LayoutGrid, Send, XCircle
 } from "lucide-react";
 import { MCQ_SUBJECT_LABELS } from "@/lib/mcqSubjects";
+import { AdModal } from "@/components/AdModal";
+import { consumeRewardedAdUnlock } from "@/lib/rewardedAds";
 
 type Question = {
   id: string;
@@ -95,6 +97,8 @@ export default function ModelTestPage() {
   const [submitting, setSubmitting] = useState(false);
   const [navigatorOpen, setNavigatorOpen] = useState(false);
   const [locked, setLocked] = useState(false);
+  const [adUnlocked, setAdUnlocked] = useState(isPremium);
+  const [unlockId, setUnlockId] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState(Date.now());
   const submittedRef = useRef(false);
   const answersRef = useRef(answers);
@@ -113,9 +117,27 @@ export default function ModelTestPage() {
 
   useEffect(() => {
     let cancelled = false;
+    if (!isPremium && !adUnlocked) {
+      setLoading(false);
+      return () => { cancelled = true; };
+    }
     async function load() {
       setLoading(true);
       const path = isPremium ? "premiumExams" : isDaily ? "quizSchedules" : "modelTests";
+      if (!isPremium) {
+        if (!unlockId || !currentUser) {
+          setLoading(false);
+          return;
+        }
+        try {
+          await consumeRewardedAdUnlock(currentUser, unlockId, "exam_unlock", testId);
+        } catch {
+          setUnlockId(null);
+          setAdUnlocked(false);
+          setLoading(false);
+          return;
+        }
+      }
       let loadedConfig: TestConfig | null = null;
       if (!isSubjectPractice) {
         const snapshot = await get(ref(db, `${path}/${testId}`));
@@ -166,7 +188,7 @@ export default function ModelTestPage() {
     }
     load().catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [testId, isPremium, isDaily, isSubjectPractice, querySubject, currentUser?.uid]);
+  }, [testId, isPremium, isDaily, isSubjectPractice, querySubject, currentUser?.uid, adUnlocked, unlockId]);
 
   useEffect(() => {
     if (!testId || !currentUser || !questions.length) return;
@@ -184,6 +206,30 @@ export default function ModelTestPage() {
       localStorage.setItem(`taskmint:attempt:${currentUser.uid}:${testId}`, JSON.stringify({ answers, marked, timeLeft }));
     }
   }, [answers, marked, timeLeft, testId, currentUser?.uid, questions.length]);
+
+  if (!isPremium && !adUnlocked) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-5">
+        <AdModal
+          open
+          placement="exam_unlock"
+          referenceId={testId}
+          title="Ad দেখুন — তারপর free exam শুরু হবে"
+          onComplete={(result) => {
+            if (!result.unlockId) return;
+            setUnlockId(result.unlockId);
+            setAdUnlocked(true);
+          }}
+          onClose={() => setLocation("/study")}
+        />
+        <div className="glass-card rounded-3xl p-6 max-w-sm text-center">
+          <p className="text-4xl">📺</p>
+          <h1 className="text-xl font-extrabold mt-3">Free exam unlock করুন</h1>
+          <p className="text-sm text-muted-foreground mt-2">একটি সম্পূর্ণ rewarded ad দেখলে এই test-এর access খুলবে।</p>
+        </div>
+      </div>
+    );
+  }
 
   const submit = async (expired = false) => {
     if (submittedRef.current || submitting || !currentUser || !config || !questions.length) return;

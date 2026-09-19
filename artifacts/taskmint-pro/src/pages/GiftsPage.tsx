@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { ref, onValue, off, update, get, push } from "firebase/database";
+import { ref, onValue, off } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { AdModal } from "@/components/AdModal";
 import { GlowButton } from "@/components/GlowButton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { awardCoinsWithCommunityCommission } from "@/lib/community";
 import { Gift, Zap, CheckCircle2, ArrowLeft, Package } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -42,32 +41,10 @@ export default function GiftsPage() {
     setAdTarget(giftId);
   };
 
-  const claimGift = async () => {
-    if (!adTarget || !currentUser) return;
-    setClaiming(true);
-    try {
-      const giftRef = ref(db, `gifts/${currentUser.uid}/${adTarget}`);
-      const snap = await get(giftRef);
-      const gift = snap.val();
-      if (!gift || gift.claimed) {
-        toast({ title: "Gift ইতিমধ্যে claim করা হয়েছে", variant: "destructive" });
-        return;
-      }
-      await update(giftRef, { claimed: true, claimedAt: Date.now() });
-      await awardCoinsWithCommunityCommission(currentUser.uid, Number(gift.coins || 0), "bonus", adTarget);
-      await push(ref(db, `earnings/${currentUser.uid}`), {
-        type: "bonus",
-        amount: Number(gift.coins || 0),
-        label: gift.message || "Gift claim",
-        timestamp: Date.now(),
-      });
-      toast({ title: `🎁 ${gift.coins} coins claim করা হয়েছে!` });
-    } catch (err: any) {
-      toast({ title: "Claim failed", description: err.message, variant: "destructive" });
-    } finally {
-      setClaiming(false);
-      setAdTarget(null);
-    }
+  const handleClaimComplete = (result: { rewardCoins?: number }) => {
+    toast({ title: `🎁 ${result.rewardCoins || 0} coins claim করা হয়েছে!` });
+    setClaiming(false);
+    setAdTarget(null);
   };
 
   const unclaimedCount = gifts.filter((g) => !g.claimed).length;
@@ -76,9 +53,11 @@ export default function GiftsPage() {
     <div className="min-h-screen bg-background pb-24">
       <AdModal
         open={!!adTarget}
+        placement="gift_claim"
+        referenceId={adTarget || ""}
         title="Ad দেখুন — তারপর gift claim করুন"
-        onComplete={claimGift}
-        onClose={() => setAdTarget(null)}
+        onComplete={handleClaimComplete}
+        onClose={() => { setClaiming(false); setAdTarget(null); }}
       />
 
       <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-white/5 px-5 py-4">
@@ -159,7 +138,7 @@ export default function GiftsPage() {
                     </div>
                     {!gift.claimed ? (
                       <GlowButton size="sm" glowColor="purple" className="h-8 px-4 text-xs"
-                        onClick={() => startClaim(gift.id)} disabled={claiming}>
+                        onClick={() => { setClaiming(true); startClaim(gift.id); }} disabled={claiming}>
                         🎁 Ad দেখে Claim করুন
                       </GlowButton>
                     ) : (
