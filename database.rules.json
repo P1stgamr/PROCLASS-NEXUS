@@ -120,6 +120,10 @@
       },
       "withdrawalCooldown": {
         ".validate": "newData.hasChildren(['active', 'startAt', 'endAt', 'reason']) && newData.child('active').isBoolean() && newData.child('startAt').isNumber() && newData.child('endAt').isNumber() && (!newData.child('active').val() || newData.child('endAt').val() > newData.child('startAt').val()) && newData.child('reason').isString() && newData.child('reason').val().length <= 500"
+      },
+      "ads": {
+        ".read": "auth != null",
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
       }
     },
     "membershipRequests": {
@@ -181,12 +185,6 @@
     "earnings": {
       "$uid": {
         ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'admin' || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
-      }
-    },
-    "settings": {
-      "ads": {
-        ".read": "auth != null",
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'owner')"
       }
     },
     "adTasks": {

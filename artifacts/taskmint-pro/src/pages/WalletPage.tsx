@@ -257,20 +257,22 @@ export default function WalletPage() {
           <Smartphone className="w-5 h-5" />
            {cooldownActive ? "Withdrawal সাময়িকভাবে বন্ধ" : motivationUnlocked ? "বিকাশে Withdraw করুন" : "Motivation unlock করুন"}
         </GlowButton>
-         {!motivationUnlocked && (
-           <div className="glass-card rounded-2xl p-4 border border-yellow-500/20">
-             <div className="flex items-center gap-2 text-yellow-300">
-               <LockKeyhole className="w-4 h-4" />
-               <p className="text-sm font-bold">Motivation milestone</p>
-             </div>
-             <p className="text-xs text-muted-foreground mt-2">
-               {totalEarnedCoins.toLocaleString()} / {threshold.toLocaleString()} কয়েন — উইথড্রয়ালের জন্য মোটিভেশন আনলক করুন
-             </p>
-             <div className="h-2 rounded-full bg-white/10 overflow-hidden mt-3">
-               <div className="h-full rounded-full bg-yellow-400 transition-all" style={{ width: `${Math.min(100, (totalEarnedCoins / threshold) * 100)}%` }} />
-             </div>
-           </div>
-         )}
+          <div className={`glass-card rounded-2xl p-4 border ${motivationUnlocked ? "border-green-500/20 bg-green-500/5" : "border-yellow-500/20"}`}>
+              <div className={`flex items-center gap-2 ${motivationUnlocked ? "text-green-300" : "text-yellow-300"}`}>
+                {motivationUnlocked ? <CheckCircle2 className="w-4 h-4" /> : <LockKeyhole className="w-4 h-4" />}
+                <p className="text-sm font-bold">Motivation milestone</p>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {totalEarnedCoins.toLocaleString()} / {threshold.toLocaleString()} কয়েন
+                {motivationUnlocked ? " — unlocked ✅" : " — উইথড্রয়ালের জন্য মোটিভেশন আনলক করুন"}
+              </p>
+              <div className="h-2 rounded-full bg-white/10 overflow-hidden mt-3">
+                <div className={`h-full rounded-full transition-all ${motivationUnlocked ? "bg-green-400" : "bg-yellow-400"}`} style={{ width: `${Math.min(100, (totalEarnedCoins / threshold) * 100)}%` }} />
+              </div>
+              {!motivationUnlocked && (
+                <p className="text-[10px] text-muted-foreground mt-2">একবার unlock হলে spendable balance কমলেও এই milestone আবার lock হবে না।</p>
+              )}
+            </div>
          {motivationUnlocked && !cooldownActive && (
            <p className="text-xs text-green-400 text-center">Motivation milestone unlocked — এখন শুধু withdrawable balance প্রয়োজন।</p>
          )}

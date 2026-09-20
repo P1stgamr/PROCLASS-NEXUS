@@ -56,15 +56,31 @@ async function incrementDailyCount(uid: string, date: string, cap: number) {
 
 async function creditCoins(uid: string, amount: number) {
   if (amount <= 0) return;
-  const result = await adminDb.ref(`users/${uid}/coins`).transaction((value) => {
-    const current = Number(value || 0);
-    return (Number.isFinite(current) ? current : 0) + amount;
+  const thresholdValue = Number((await adminDb.ref("settings/motivationThreshold").get()).val());
+  const motivationThreshold =
+    Number.isSafeInteger(thresholdValue) && thresholdValue > 0
+      ? thresholdValue
+      : 10_000;
+  const userRef = adminDb.ref(`users/${uid}`);
+  const result = await userRef.transaction((user) => {
+    if (!user) return undefined;
+    const currentCoins = Number(user.coins || 0);
+    const currentEarned = Number(user.totalEarnedCoins || 0);
+    if (!Number.isFinite(currentCoins) || !Number.isFinite(currentEarned)) return undefined;
+    const nextEarned = currentEarned + amount;
+    return {
+      ...user,
+      coins: currentCoins + amount,
+      totalEarnedCoins: nextEarned,
+      motivationUnlocked: user.motivationUnlocked === true || nextEarned >= motivationThreshold,
+    };
   });
   if (!result.committed) throw new Error("Could not credit student coins");
 
   await adminDb.ref(`earnings/${uid}`).push({
     type: "rewarded_ad",
     amount,
+    description: "Rewarded ad reward",
     label: "Rewarded ad reward",
     timestamp: Date.now(),
   });
