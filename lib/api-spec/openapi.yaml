@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: notifications
+    description: In-app and browser push notifications
 paths:
   /healthz:
     get:
@@ -24,7 +26,78 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /notifications/send:
+    post:
+      operationId: sendNotification
+      tags: [notifications]
+      summary: Save an in-app notification and send push alerts
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationSendInput"
+      responses:
+        "200":
+          description: Notification saved; push delivery counts are included
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationSendResult"
+        "400":
+          description: Invalid notification input
+        "401":
+          description: Firebase authentication is required
+        "403":
+          description: Admin access is required
+  /notifications/token/register:
+    post:
+      operationId: registerPushToken
+      tags: [notifications]
+      summary: Register the signed-in user's browser push token
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PushTokenInput"
+      responses:
+        "200":
+          description: Push token registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationActionResult"
+        "400":
+          description: Invalid push token
+        "401":
+          description: Firebase authentication is required
+  /notifications/token/revoke:
+    post:
+      operationId: revokePushTokens
+      tags: [notifications]
+      summary: Disable push notifications for the signed-in user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Push tokens removed and notifications disabled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationActionResult"
+        "401":
+          description: Firebase authentication is required
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +106,58 @@ components:
           type: string
       required:
         - status
+    NotificationSendInput:
+      type: object
+      required: [recipients, type, message]
+      properties:
+        recipients:
+          type: array
+          minItems: 1
+          maxItems: 1000
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+            maxLength: 128
+        type:
+          type: string
+          enum: [coin, xp, system, contest, gift, message, announcement]
+        message:
+          type: string
+          minLength: 1
+          maxLength: 1000
+    NotificationSendResult:
+      type: object
+      required: [writtenRecipients, pushSent, pushFailed, noPushToken]
+      properties:
+        writtenRecipients:
+          type: number
+          multipleOf: 1
+          minimum: 0
+        pushSent:
+          type: number
+          multipleOf: 1
+          minimum: 0
+        pushFailed:
+          type: number
+          multipleOf: 1
+          minimum: 0
+        noPushToken:
+          type: number
+          multipleOf: 1
+          minimum: 0
+    PushTokenInput:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          minLength: 20
+          maxLength: 4096
+    NotificationActionResult:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
 

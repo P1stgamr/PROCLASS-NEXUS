@@ -36,6 +36,7 @@ import PracticeResultPage from "@/pages/PracticeResultPage";
 import PracticeHubPage from "@/pages/PracticeHubPage";
 import ProfileSetupPage from "@/pages/ProfileSetupPage";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
+import { NotificationPushListener } from "@/components/NotificationPushListener";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const queryClient = new QueryClient();
 function Router() {
   return (
     <>
+      <NotificationPushListener />
       <Switch>
         <Route path="/" component={SplashPage} />
         <Route path="/onboarding" component={OnboardingPage} />

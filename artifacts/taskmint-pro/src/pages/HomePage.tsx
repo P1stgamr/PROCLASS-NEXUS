@@ -78,7 +78,10 @@ export default function HomePage() {
     const notifRef = ref(db, `notifications/${currentUser.uid}`);
     const unsubNotif = onValue(notifRef, (snap) => {
       const data = snap.val();
-      if (data) setNotifCount(Object.values(data).filter((n: any) => !n.read).length);
+      setNotifCount(data ? Object.values(data).filter((n: any) => !n.read).length : 0);
+    }, (error) => {
+      console.error("Could not load notification count:", error);
+      setNotifCount(0);
     });
     // Load daily missions from Firebase
     const missionsRef = ref(db, "dailyMissions");
@@ -91,7 +94,7 @@ export default function HomePage() {
       }
       setMissionsLoading(false);
     });
-    return () => { off(lbRef); off(notifRef); off(missionsRef); };
+    return () => { off(lbRef); unsubNotif(); off(missionsRef); };
   }, [currentUser]);
 
   const hour = new Date().getHours();

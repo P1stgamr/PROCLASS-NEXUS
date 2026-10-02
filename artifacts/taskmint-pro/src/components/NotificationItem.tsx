@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
-import { Bell, Coins, Trophy, Zap, MessageSquare } from "lucide-react";
+import { Bell, Coins, Trophy, Zap, MessageSquare, Gift } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface NotificationItemProps {
-  type: "coin" | "xp" | "system" | "contest" | "message";
+  type: "coin" | "xp" | "system" | "contest" | "message" | "gift" | "announcement";
   message: string;
   timestamp: number;
   read: boolean;
@@ -18,6 +18,7 @@ export function NotificationItem({ type, message, timestamp, read, onClick }: No
       case "xp": return <Zap className="w-4 h-4 text-primary" />;
       case "contest": return <Trophy className="w-4 h-4 text-amber-500" />;
       case "message": return <MessageSquare className="w-4 h-4 text-blue-500" />;
+      case "gift": return <Gift className="w-4 h-4 text-emerald-400" />;
       default: return <Bell className="w-4 h-4 text-muted-foreground" />;
     }
   };

@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ref, push, update, runTransaction } from "firebase/database";
+import { ref, update, runTransaction } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { logAdminAction } from "@/lib/adminLog";
 import { Badge } from "@/components/ui/badge";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
+import { sendNotifications } from "@/lib/notifications";
+import type { NotificationSendInput } from "@workspace/api-client-react";
 import { CheckCircle2, XCircle, Clock, CreditCard, Wallet, TrendingUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -31,18 +33,35 @@ export default function PaymentsSection({ paymentRequests, withdrawRequests, mem
 
   const getUserName = (uid: string) => users.find(u => u.uid === uid)?.name || uid.slice(0, 8);
 
+  const notifyUser = async (
+    uid: string,
+    type: NotificationSendInput["type"],
+    message: string,
+  ) => {
+    if (!currentUser) return;
+    try {
+      await sendNotifications(currentUser, { recipients: [uid], type, message });
+    } catch (error: any) {
+      toast({
+        title: "Action completed, but notification failed",
+        description: error?.message || "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // ── Exam Payment handlers ──
   const approvePayment = async (req: any) => {
     await update(ref(db, `paymentRequests/${req.id}`), { status: "approved", processedAt: Date.now() });
     await update(ref(db, `examEntries/${req.uid}/${req.examId}`), { approved: true, paidAt: Date.now() });
-    await push(ref(db, `notifications/${req.uid}`), { type: "contest", message: `Payment approved! "${req.examTitle}" exam access granted.`, timestamp: Date.now(), read: false });
+    await notifyUser(req.uid, "contest", `Payment approved! "${req.examTitle}" exam access granted.`);
     await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "payment.approve", req.id, { uid: req.uid, exam: req.examTitle });
     toast({ title: "Payment approved ✅" });
   };
 
   const rejectPayment = async (req: any) => {
     await update(ref(db, `paymentRequests/${req.id}`), { status: "rejected", processedAt: Date.now() });
-    await push(ref(db, `notifications/${req.uid}`), { type: "system", message: `Payment rejected for "${req.examTitle}".`, timestamp: Date.now(), read: false });
+    await notifyUser(req.uid, "system", `Payment rejected for "${req.examTitle}".`);
     await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "payment.reject", req.id, { uid: req.uid });
     toast({ title: "Payment rejected." });
   };
@@ -71,19 +90,19 @@ export default function PaymentsSection({ paymentRequests, withdrawRequests, mem
     });
     if (!debit.committed) {
       await update(requestRef, { status: "rejected", processedAt: Date.now(), rejectionReason: "Insufficient balance" });
-      await push(ref(db, `notifications/${uid}`), { type: "system", message: "Withdrawal rejected because your available balance was insufficient.", timestamp: Date.now(), read: false });
+      await notifyUser(uid, "system", "Withdrawal rejected because your available balance was insufficient.");
       toast({ title: "Rejected: insufficient live balance", variant: "destructive" });
       return;
     }
 
-    await push(ref(db, `notifications/${uid}`), { type: "coin", message: `৳${amount} bKash-এ পাঠানো হয়েছে ✅`, timestamp: Date.now(), read: false });
+    await notifyUser(uid, "coin", `৳${amount} bKash-এ পাঠানো হয়েছে ✅`);
     await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "withdraw.approve", req.id, { uid, amount });
     toast({ title: `৳${amount} withdrawal approved ✅` });
   };
 
   const rejectWithdraw = async (req: any) => {
     await update(ref(db, `withdrawRequests/${req.id}`), { status: "rejected", processedAt: Date.now() });
-    await push(ref(db, `notifications/${req.uid}`), { type: "system", message: `Withdrawal request (৳${req.amount}) rejected.`, timestamp: Date.now(), read: false });
+    await notifyUser(req.uid, "system", `Withdrawal request (৳${req.amount}) rejected.`);
     await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "withdraw.reject", req.id, { uid: req.uid, amount: req.amount });
     toast({ title: "Withdrawal rejected." });
   };
@@ -93,14 +112,14 @@ export default function PaymentsSection({ paymentRequests, withdrawRequests, mem
     const expiry = Date.now() + (req.durationDays || 30) * 24 * 60 * 60 * 1000;
     await update(ref(db, `membershipRequests/${req.id}`), { status: "approved", processedAt: Date.now() });
     await update(ref(db, `users/${req.uid}`), { membership: req.planId || "silver", membershipExpiry: expiry });
-    await push(ref(db, `notifications/${req.uid}`), { type: "system", message: `🎉 Membership activated! Enjoy your ${req.planName || "premium"} plan.`, timestamp: Date.now(), read: false });
+    await notifyUser(req.uid, "system", `🎉 Membership activated! Enjoy your ${req.planName || "premium"} plan.`);
     await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "payment.approve", req.id, { uid: req.uid, plan: req.planName });
     toast({ title: "Membership approved ✅" });
   };
 
   const rejectMembership = async (req: any) => {
     await update(ref(db, `membershipRequests/${req.id}`), { status: "rejected", processedAt: Date.now() });
-    await push(ref(db, `notifications/${req.uid}`), { type: "system", message: `Membership request rejected.`, timestamp: Date.now(), read: false });
+    await notifyUser(req.uid, "system", "Membership request rejected.");
     toast({ title: "Membership rejected." });
   };
 

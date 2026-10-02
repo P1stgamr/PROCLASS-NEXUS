@@ -22,6 +22,7 @@ export interface UserProfile {
   membershipExpiry?: number;
   membershipPlanId?: string;
   membershipBenefits?: string[];
+  pushNotificationsEnabled?: boolean;
   profileComplete?: boolean;
   phone?: string;
   schoolName?: string;

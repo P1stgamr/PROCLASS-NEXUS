@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
+import { sendNotifications } from "@/lib/notifications";
+import type { NotificationSendInput } from "@workspace/api-client-react";
 import { Bell, Gift, Send, Users } from "lucide-react";
 
 const CARD = "glass-card p-4 rounded-2xl border border-white/10";
@@ -23,7 +25,7 @@ export default function NotifySection({ users, isSuperAdmin }: Props) {
 
   // Broadcast notification
   const [notifMsg, setNotifMsg] = useState("");
-  const [notifType, setNotifType] = useState("system");
+  const [notifType, setNotifType] = useState<NotificationSendInput["type"]>("system");
   const [targetRole, setTargetRole] = useState("all");
   const [sending, setSending] = useState(false);
 
@@ -36,20 +38,32 @@ export default function NotifySection({ users, isSuperAdmin }: Props) {
   const [sendingXp, setSendingXp] = useState(false);
 
   const sendNotification = async () => {
-    if (!notifMsg.trim()) return;
+    if (!notifMsg.trim() || !currentUser) return;
     setSending(true);
     try {
       const targets = targetRole === "all" ? users : users.filter(u => u.role === targetRole);
-      const updates: Record<string, any> = {};
-      const ts = Date.now();
-      targets.forEach(u => {
-        updates[`notifications/${u.uid}/${ts}_${u.uid}`] = { type: notifType, message: notifMsg, timestamp: ts, read: false };
+      const result = await sendNotifications(currentUser, {
+        recipients: targets.map((user) => user.uid),
+        type: notifType,
+        message: notifMsg.trim(),
       });
-      await update(ref(db), updates);
-      await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "notification.send", undefined, { message: notifMsg.slice(0, 80), count: targets.length });
-      toast({ title: `Notification sent to ${targets.length} user${targets.length !== 1 ? "s" : ""} ✅` });
+      await logAdminAction(currentUser.uid, userProfile?.name || "Admin", "notification.send", undefined, { message: notifMsg.slice(0, 80), count: result.writtenRecipients });
+      toast({
+        title: `Notification sent to ${result.writtenRecipients} user${result.writtenRecipients !== 1 ? "s" : ""} ✅`,
+        description: result.pushSent
+          ? `Push alert delivered to ${result.pushSent} device${result.pushSent !== 1 ? "s" : ""}.${result.pushFailed ? ` ${result.pushFailed} failed.` : ""}`
+          : `${result.noPushToken} user${result.noPushToken !== 1 ? "s" : ""} have no enabled push device; the in-app inbox was updated.`,
+      });
       setNotifMsg("");
-    } finally { setSending(false); }
+    } catch (error: any) {
+      toast({
+        title: "Notification could not be sent",
+        description: error?.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   const sendGift = async () => {
@@ -59,9 +73,24 @@ export default function NotifySection({ users, isSuperAdmin }: Props) {
       const user = users.find(u => u.uid === gift.uid);
       if (!user) { toast({ title: "User not found", variant: "destructive" }); return; }
       await push(ref(db, `gifts/${gift.uid}`), { coins: parseInt(gift.coins), message: gift.message || "Admin থেকে বিশেষ উপহার 🎁", sentAt: Date.now(), claimed: false, senderName: userProfile?.name || "Admin" });
-      await push(ref(db, `notifications/${gift.uid}`), { type: "gift", message: `🎁 আপনার জন্য gift এসেছে! Gifts page-এ claim করুন।`, timestamp: Date.now(), read: false });
+      let notificationError = "";
+      if (currentUser) {
+        try {
+          await sendNotifications(currentUser, {
+            recipients: [gift.uid],
+            type: "gift",
+            message: "🎁 আপনার জন্য gift এসেছে! Gifts page-এ claim করুন।",
+          });
+        } catch (error: any) {
+          notificationError = error?.message || "Notification could not be delivered.";
+        }
+      }
       await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "gift.send", gift.uid, { coins: gift.coins });
-      toast({ title: `${gift.coins} coins gift sent to ${user.name} ✅` });
+      toast({
+        title: `${gift.coins} coins gift sent to ${user.name} ✅`,
+        description: notificationError ? `Gift saved, but notification failed: ${notificationError}` : undefined,
+        variant: notificationError ? "destructive" : "default",
+      });
       setGift({ uid: "", coins: "", message: "" });
     } finally { setSendingGift(false); }
   };
@@ -74,8 +103,23 @@ export default function NotifySection({ users, isSuperAdmin }: Props) {
       if (!user) { toast({ title: "User not found", variant: "destructive" }); return; }
       const newXP = (user.xp || 0) + parseInt(xpAward.xp);
       await update(ref(db, `users/${xpAward.uid}`), { xp: newXP });
-      await push(ref(db, `notifications/${xpAward.uid}`), { type: "xp", message: `⚡ +${xpAward.xp} XP awarded by admin${xpAward.reason ? ` — ${xpAward.reason}` : ""}!`, timestamp: Date.now(), read: false });
-      toast({ title: `${xpAward.xp} XP awarded to ${user.name} ✅` });
+      let notificationError = "";
+      if (currentUser) {
+        try {
+          await sendNotifications(currentUser, {
+            recipients: [xpAward.uid],
+            type: "xp",
+            message: `⚡ +${xpAward.xp} XP awarded by admin${xpAward.reason ? ` — ${xpAward.reason}` : ""}!`,
+          });
+        } catch (error: any) {
+          notificationError = error?.message || "Notification could not be delivered.";
+        }
+      }
+      toast({
+        title: `${xpAward.xp} XP awarded to ${user.name} ✅`,
+        description: notificationError ? `XP saved, but notification failed: ${notificationError}` : undefined,
+        variant: notificationError ? "destructive" : "default",
+      });
       setXpAward({ uid: "", xp: "", reason: "" });
     } finally { setSendingXp(false); }
   };
@@ -97,7 +141,7 @@ export default function NotifySection({ users, isSuperAdmin }: Props) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label className="text-xs text-muted-foreground mb-1 block">Type</Label>
-            <select value={notifType} onChange={e => setNotifType(e.target.value)} className="w-full h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
+            <select value={notifType} onChange={e => setNotifType(e.target.value as NotificationSendInput["type"])} className="w-full h-9 bg-white/5 border border-white/10 rounded-xl px-3 text-sm text-white appearance-none">
               {["system","contest","coin","gift","xp","announcement"].map(t => <option key={t} value={t} className="bg-gray-900">{t}</option>)}
             </select>
           </div>

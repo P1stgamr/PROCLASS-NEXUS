@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { signOut, updatePassword, updateProfile, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
@@ -12,6 +12,7 @@ import { GlowButton } from "@/components/GlowButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { disablePushNotifications, enablePushNotifications } from "@/lib/notifications";
 import {
   Settings, Bell, Shield, LogOut, ChevronRight,
   Moon, User, X, Eye, EyeOff, Save, Camera,
@@ -22,8 +23,39 @@ export default function SettingsPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const [notifications, setNotifications] = useState(true);
+  const [notifications, setNotifications] = useState(
+    userProfile?.pushNotificationsEnabled === true,
+  );
+  const [notificationsBusy, setNotificationsBusy] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
+
+  useEffect(() => {
+    setNotifications(userProfile?.pushNotificationsEnabled === true);
+  }, [userProfile?.uid, userProfile?.pushNotificationsEnabled]);
+
+  const handleNotificationsChange = async (enabled: boolean) => {
+    if (!currentUser) return;
+    setNotificationsBusy(true);
+    try {
+      if (enabled) await enablePushNotifications(currentUser);
+      else await disablePushNotifications(currentUser);
+      setNotifications(enabled);
+      toast({
+        title: enabled ? "Push notifications enabled" : "Push notifications disabled",
+        description: enabled
+          ? "এই browser-এ নতুন alert আসবে।"
+          : "এই account-এর push alert বন্ধ হয়েছে।",
+      });
+    } catch (error: any) {
+      toast({
+        title: enabled ? "Notification চালু হয়নি" : "Notification বন্ধ হয়নি",
+        description: error?.message || "আবার চেষ্টা করুন।",
+        variant: "destructive",
+      });
+    } finally {
+      setNotificationsBusy(false);
+    }
+  };
 
   const [editModal, setEditModal] = useState(false);
   const [securityModal, setSecurityModal] = useState(false);
@@ -165,7 +197,15 @@ export default function SettingsPage() {
           <div className="glass-card rounded-2xl divide-y divide-white/5 overflow-hidden">
             {[
               { icon: Moon, label: "Dark Mode", desc: "সর্বদা চালু থাকে", value: darkMode, onChange: setDarkMode },
-              { icon: Bell, label: "Notifications", desc: "Contest ও reward এর notification", value: notifications, onChange: setNotifications },
+              {
+                icon: Bell,
+                label: "Notifications",
+                desc: import.meta.env.VITE_FIREBASE_VAPID_KEY
+                  ? "ফোন/browser push alert; inbox notification সবসময় থাকবে"
+                  : "Push setup-এর public key বাকি; inbox notification চলবে",
+                value: notifications,
+                onChange: handleNotificationsChange,
+              },
             ].map((item, i) => (
               <div key={i} className="flex items-center gap-4 w-full p-4">
                 <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
@@ -175,7 +215,11 @@ export default function SettingsPage() {
                   <p className="font-medium text-sm">{item.label}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{item.desc}</p>
                 </div>
-                <Switch checked={item.value} onCheckedChange={item.onChange} />
+                <Switch
+                  checked={item.value}
+                  onCheckedChange={item.onChange}
+                  disabled={item.label === "Notifications" && notificationsBusy}
+                />
               </div>
             ))}
           </div>
