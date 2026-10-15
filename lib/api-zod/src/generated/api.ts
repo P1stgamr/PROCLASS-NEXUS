@@ -79,4 +79,3 @@ export const RegisterPushTokenResponse = zod.object({
 export const RevokePushTokensResponse = zod.object({
   "ok": zod.boolean()
 })
-

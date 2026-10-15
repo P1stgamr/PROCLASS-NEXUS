@@ -365,4 +365,3 @@ export const useRevokePushTokens = <TError = ErrorType<void>,
       > => {
       return useMutation(getRevokePushTokensMutationOptions(options));
     }
-
