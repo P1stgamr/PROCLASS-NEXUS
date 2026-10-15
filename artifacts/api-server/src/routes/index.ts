@@ -3,6 +3,8 @@ import healthRouter from "./health";
 import aiRouter from "./ai";
 import rewardedAdsRouter from "./rewardedAds";
 import notificationsRouter from "./notifications";
+import communityCoursesRouter from "./communityCourses";
+import examSessionsRouter from "./examSessions";
 
 const router: IRouter = Router();
 
@@ -10,5 +12,7 @@ router.use(healthRouter);
 router.use(aiRouter);
 router.use(rewardedAdsRouter);
 router.use(notificationsRouter);
+router.use(communityCoursesRouter);
+router.use(examSessionsRouter);
 
 export default router;

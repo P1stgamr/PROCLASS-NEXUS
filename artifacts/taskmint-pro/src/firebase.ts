@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getDatabase } from "firebase/database";
 import { getStorage } from "firebase/storage";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDEJ74wHklDp-7r0DvHDm4-Ea-pXty1fk4",
@@ -16,6 +17,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+setAuthTokenGetter(() => auth.currentUser?.getIdToken() ?? null);
 export const provider = new GoogleAuthProvider();
 export const db = getDatabase(app);
 export const storage = getStorage(app);

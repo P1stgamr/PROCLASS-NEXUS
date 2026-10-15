@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { SkeletonCard } from "@/components/SkeletonCard";
 import {
   BookOpen, Crown, Star, Users, Clock, ChevronRight,
-  Lock, Play, Filter, Zap, Code2, FlaskConical,
+  Play, Filter, Zap, Code2, FlaskConical,
   Calculator, Globe, Palette, Music
 } from "lucide-react";
 
@@ -42,6 +42,7 @@ export default function CoursesPage() {
   const [gradeFilter, setGradeFilter] = useState("all");
   const [fbCourses, setFbCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (userProfile?.grade) setGradeFilter(normalizeGrade(userProfile.grade));
@@ -51,15 +52,14 @@ export default function CoursesPage() {
     const coursesRef = ref(db, "courses");
     const unsub = onValue(coursesRef, (snap) => {
       const data = snap.val();
-      if (data) {
-         setFbCourses(Object.entries(data).map(([id, course]) => ({ id, ...(course as any) })));
-      }
+      setFbCourses(data ? Object.entries(data).map(([id, course]) => ({ id, ...(course as any) })) : []);
       setLoading(false);
-    });
-    return () => off(coursesRef);
+      setLoadError(false);
+    }, () => { setLoadError(true); setLoading(false); });
+    return () => { off(coursesRef); unsub(); };
   }, []);
 
-  const allCourses = fbCourses;
+  const allCourses = fbCourses.filter((course: any) => !isCommunityCourse(course) || course.status === "published");
 
   const filtered = allCourses.filter((c: any) => {
     const courseGrade = normalizeGrade(c.grade || c.class || c.gradeLevel);
@@ -152,23 +152,23 @@ export default function CoursesPage() {
               {filtered.length === 0 && (
                 <div className="py-16 text-center">
                   <BookOpen className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">এই category-তে কোনো course নেই এখনো</p>
+                   <p className="text-muted-foreground">{loadError ? "Courses could not load." : "এই category-তে কোনো course নেই এখনো"}</p>
+                   {loadError && <button onClick={() => window.location.reload()} className="mt-3 text-xs text-primary">Try again</button>}
                 </div>
               )}
               {filtered.map((course: any, i: number) => {
                 const isPremiumCourse = course.type === "premium";
-                const isLocked = isPremiumCourse && !isPremium;
                 const CatIcon = CATEGORY_ICONS[course.category] || BookOpen;
 
                 return (
                   <motion.div key={course.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.05 }}
                     className="glass-card rounded-2xl p-4 flex gap-4 cursor-pointer hover:bg-white/[0.08] transition-all active:scale-[0.98]"
-                    onClick={() => isLocked && setLocation("/membership")}>
+                    onClick={() => setLocation(`/courses/${course.id}`)}>
                     {/* Thumbnail */}
                     <div className={`w-16 h-16 rounded-xl flex items-center justify-center shrink-0 text-3xl
                       ${isPremiumCourse ? "bg-gradient-to-br from-yellow-500/20 to-orange-500/10 border border-yellow-500/20" : "bg-gradient-to-br from-blue-500/20 to-violet-500/10 border border-blue-500/20"}`}>
-                       {course.thumbnail ? <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover rounded-xl" /> : (course.emoji || "📚")}
+                       {course.thumbnail ? <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover rounded-xl" /> : <CatIcon className="w-7 h-7 text-primary" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
@@ -179,19 +179,18 @@ export default function CoursesPage() {
                           <Badge className="shrink-0 text-[9px] bg-green-500/20 text-green-400 border-green-500/20">Free</Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{course.desc}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{course.description || course.desc || "Explore lessons from this course."}</p>
                       <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                        <span className="flex items-center gap-0.5"><Star className="w-2.5 h-2.5 text-yellow-400" />{course.rating}</span>
-                        <span className="flex items-center gap-0.5"><Users className="w-2.5 h-2.5" />{(course.students || 0).toLocaleString()}</span>
-                        <span className="flex items-center gap-0.5"><Play className="w-2.5 h-2.5" />{course.lessons} lessons</span>
+                        {isCommunityCourse(course) ? <span className="flex items-center gap-1"><Users className="w-2.5 h-2.5" />{course.communityName || course.community?.name || course.instructor || "Community course"}</span> : <>
+                          <span className="flex items-center gap-0.5"><Star className="w-2.5 h-2.5 text-yellow-400" />{course.rating || "New"}</span>
+                          <span className="flex items-center gap-0.5"><Users className="w-2.5 h-2.5" />{(course.students || 0).toLocaleString()}</span>
+                        </>}
+                        <span className="flex items-center gap-0.5"><Play className="w-2.5 h-2.5" />{course.lessons || countLessons(course)} lessons</span>
                       </div>
+                      {isCommunityCourse(course) && <div className="mt-2 flex items-center gap-2 text-[10px] text-muted-foreground">{(course.communityLogo || course.community?.logo) && <img src={course.communityLogo || course.community.logo} alt="" className="w-4 h-4 rounded-full object-cover" />}<span>{course.communityName || course.community?.name || course.instructor || "Community academy"}</span><span>·</span><span>{course.instructor || "Instructor"}</span></div>}
                     </div>
                     <div className="flex items-center self-center">
-                      {isLocked ? (
-                        <Lock className="w-4 h-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                      )}
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     </div>
                   </motion.div>
                 );
@@ -222,4 +221,12 @@ export default function CoursesPage() {
       </div>
     </div>
   );
+}
+
+function isCommunityCourse(course: any) {
+  return Boolean(course.communityId || course.communityName || course.communityLogo || course.community || course.ownerType === "community" || course.createdBy === "community");
+}
+
+function countLessons(course: any) {
+  return Array.isArray(course.modules) ? course.modules.reduce((count: number, module: any) => count + (Array.isArray(module.lessons) ? module.lessons.length : 0), 0) : 0;
 }

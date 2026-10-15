@@ -14,6 +14,7 @@ import {
 import { MCQ_SUBJECT_LABELS } from "@/lib/mcqSubjects";
 import { AdModal } from "@/components/AdModal";
 import { consumeRewardedAdUnlock } from "@/lib/rewardedAds";
+import { endExamMode, startExamMode } from "@/lib/examMode";
 
 type Question = {
   id: string;
@@ -179,16 +180,18 @@ export default function ModelTestPage() {
       }
       const selected = shuffle(available).slice(0, Math.min(Number(loadedConfig.questionCount) || 25, 100));
       if (!cancelled) {
+        const durationSeconds = (Number(loadedConfig.durationMinutes || loadedConfig.duration) || 30) * 60;
+        startExamMode(testId, durationSeconds * 1000 + 2 * 60 * 1000, location);
         setConfig(loadedConfig);
         setQuestions(selected);
-        setTimeLeft((Number(loadedConfig.durationMinutes || loadedConfig.duration) || 30) * 60);
+        setTimeLeft(durationSeconds);
         setStartedAt(Date.now());
         setLoading(false);
       }
     }
     load().catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [testId, isPremium, isDaily, isSubjectPractice, querySubject, currentUser?.uid, adUnlocked, unlockId]);
+  }, [testId, isPremium, isDaily, isSubjectPractice, querySubject, currentUser?.uid, adUnlocked, unlockId, location]);
 
   useEffect(() => {
     if (!testId || !currentUser || !questions.length) return;
@@ -293,6 +296,7 @@ export default function ModelTestPage() {
     try {
       await set(ref(db, `examResults/${testId}/${currentUser.uid}`), result);
       localStorage.removeItem(`taskmint:attempt:${currentUser.uid}:${testId}`);
+      endExamMode(testId);
       setLocation(`/practice-result/${testId}`);
     } catch (error: any) {
       submittedRef.current = false;

@@ -1,4 +1,6 @@
 import { Router } from "express";
+import { adminDb } from "../lib/firebaseAdmin";
+import { requireFirebaseAuth, type AuthenticatedRequest } from "../lib/firebaseAuth";
 
 const router = Router();
 
@@ -6,14 +8,22 @@ const SYSTEM_PROMPT = `You are TaskMint AI — an intelligent assistant built in
 
 Help with SSC, HSC and university study, programming, notes, essays, study plans, quizzes and competition preparation. Use Markdown, be concise but thorough, explain math step-by-step, and encourage students.`;
 
-router.post("/ai/chat", async (req, res) => {
+router.post("/ai/chat", requireFirebaseAuth, async (req: AuthenticatedRequest, res) => {
   const apiKey = process.env.GEMINI_API_KEY;
   const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
   const userText = typeof req.body?.userText === "string" ? req.body.userText.trim() : "";
   const history = Array.isArray(req.body?.history) ? req.body.history : [];
 
-  if (req.body?.activeExamId || req.body?.examActive === true) {
-    return res.status(403).json({ error: "AI is unavailable while an exam is active." });
+  const examSessionSnapshot = await adminDb
+    .ref(`activeExamSessions/${req.firebaseUser!.uid}`)
+    .get();
+  const examSession = examSessionSnapshot.val();
+  if (
+    (examSession && Number(examSession.expiresAt) > Date.now()) ||
+    req.body?.activeExamId ||
+    req.body?.examActive === true
+  ) {
+    return res.status(403).json({ error: "পরীক্ষা চলাকালীন AI Assistant ব্যবহার করা যাবে না" });
   }
   if (!apiKey) {
     return res.status(503).json({ error: "Gemini is not configured. Add GEMINI_API_KEY in Replit Secrets." });

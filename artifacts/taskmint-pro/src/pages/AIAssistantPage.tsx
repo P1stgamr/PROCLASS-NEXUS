@@ -5,7 +5,7 @@ import { ref, onValue, off, push, set, remove, update } from "firebase/database"
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { streamGemini } from "@/lib/gemini";
-import { getActiveExam } from "@/lib/examMode";
+import { useExamMode } from "@/lib/examMode";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
@@ -116,17 +116,10 @@ export default function AIAssistantPage() {
   const [streaming, setStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState("");
   const [showSidebar, setShowSidebar] = useState(false);
-  const [activeExam, setActiveExam] = useState(getActiveExam);
+  const activeExam = useExamMode();
   const [chatError, setChatError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    const checkExamMode = () => setActiveExam(getActiveExam());
-    checkExamMode();
-    const interval = window.setInterval(checkExamMode, 1000);
-    return () => window.clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (!currentUser) return;

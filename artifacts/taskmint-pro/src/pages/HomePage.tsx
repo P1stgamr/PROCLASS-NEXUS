@@ -4,6 +4,7 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 import { ref, onValue, off, query, orderByChild, equalTo } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { useExamMode } from "@/lib/examMode";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { SkeletonCard } from "@/components/SkeletonCard";
@@ -55,6 +56,7 @@ const ACHIEVEMENTS = [
 
 export default function HomePage() {
   const { currentUser, userProfile } = useAuth();
+  const activeExam = useExamMode();
   const [, setLocation] = useLocation();
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [lbLoading, setLbLoading] = useState(true);
@@ -225,7 +227,7 @@ export default function HomePage() {
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <h3 className="font-bold text-sm text-muted-foreground uppercase tracking-widest mb-3">Quick Actions</h3>
           <div className="grid grid-cols-3 gap-2.5">
-            {QUICK_ACTIONS.map((a, i) => (
+            {QUICK_ACTIONS.filter((action) => action.path !== "/ai" || !activeExam).map((a, i) => (
               <motion.button
                 key={a.label}
                 initial={{ opacity: 0, scale: 0.9 }}

@@ -9,6 +9,35 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Register the authenticated user's active timed exam
+ */
+export const startExamSessionBodyExamIdMax = 128;
+
+
+export const startExamSessionBodyReturnPathMax = 512;
+
+
+
+export const StartExamSessionBody = zod.object({
+  "examId": zod.string().min(1).max(startExamSessionBodyExamIdMax),
+  "expiresAt": zod.number().min(1),
+  "returnPath": zod.string().min(1).max(startExamSessionBodyReturnPathMax)
+})
+
+export const StartExamSessionResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+/**
+ * @summary Clear the authenticated user's active exam session
+ */
+export const EndExamSessionResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+/**
  * Returns server health status
  * @summary Health check
  */
@@ -79,3 +108,412 @@ export const RegisterPushTokenResponse = zod.object({
 export const RevokePushTokensResponse = zod.object({
   "ok": zod.boolean()
 })
+
+
+/**
+ * @summary Create a course owned by the authenticated community owner
+ */
+export const createCommunityCourseBodyTitleMax = 160;
+
+export const createCommunityCourseBodyDescriptionMax = 5000;
+
+export const createCommunityCourseBodyInstructorMax = 160;
+
+export const createCommunityCourseBodyPriceMin = 0;
+export const createCommunityCourseBodyPriceMax = 1000000;
+
+export const createCommunityCourseBodyTagMax = 80;
+
+export const createCommunityCourseBodyGradeMax = 40;
+
+export const createCommunityCourseBodyDurationMax = 80;
+
+export const createCommunityCourseBodyThumbnailMax = 2048;
+
+export const createCommunityCourseBodyModulesItemTitleMax = 200;
+
+export const createCommunityCourseBodyModulesItemLessonsItemTitleMax = 200;
+
+export const createCommunityCourseBodyModulesItemLessonsItemContentMax = 20000;
+
+export const createCommunityCourseBodyModulesItemLessonsItemVideoUrlMax = 2048;
+
+export const createCommunityCourseBodyModulesItemLessonsItemPdfUrlMax = 2048;
+
+export const createCommunityCourseBodyModulesItemLessonsItemDurationMin = 0;
+export const createCommunityCourseBodyModulesItemLessonsItemDurationMax = 10000;
+export const createCommunityCourseBodyModulesItemLessonsItemDurationMultipleOf = 1;
+
+export const createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemQuestionMax = 2000;
+
+export const createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsItemMax = 500;
+
+export const createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsMin = 2;
+export const createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsMax = 8;
+
+export const createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMin = 0;
+export const createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMultipleOf = 1;
+
+export const createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemExplanationMax = 2000;
+
+export const createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsMax = 100;
+
+export const createCommunityCourseBodyModulesItemLessonsItemFlashcardsItemFrontMax = 2000;
+
+export const createCommunityCourseBodyModulesItemLessonsItemFlashcardsItemBackMax = 4000;
+
+export const createCommunityCourseBodyModulesItemLessonsItemFlashcardsMax = 100;
+
+export const createCommunityCourseBodyModulesItemLessonsMax = 100;
+
+export const createCommunityCourseBodyModulesMax = 50;
+
+
+
+export const CreateCommunityCourseBody = zod.object({
+  "title": zod.string().min(1).max(createCommunityCourseBodyTitleMax),
+  "description": zod.string().max(createCommunityCourseBodyDescriptionMax),
+  "instructor": zod.string().max(createCommunityCourseBodyInstructorMax),
+  "type": zod.enum(['free', 'premium']),
+  "price": zod.number().min(createCommunityCourseBodyPriceMin).max(createCommunityCourseBodyPriceMax),
+  "tag": zod.string().max(createCommunityCourseBodyTagMax),
+  "grade": zod.string().max(createCommunityCourseBodyGradeMax),
+  "duration": zod.string().max(createCommunityCourseBodyDurationMax),
+  "thumbnail": zod.string().max(createCommunityCourseBodyThumbnailMax).nullable(),
+  "modules": zod.array(zod.object({
+  "title": zod.string().min(1).max(createCommunityCourseBodyModulesItemTitleMax),
+  "lessons": zod.array(zod.object({
+  "title": zod.string().min(1).max(createCommunityCourseBodyModulesItemLessonsItemTitleMax),
+  "type": zod.enum(['video', 'pdf', 'quiz', 'flashcard', 'text']),
+  "content": zod.string().max(createCommunityCourseBodyModulesItemLessonsItemContentMax).optional(),
+  "videoUrl": zod.string().max(createCommunityCourseBodyModulesItemLessonsItemVideoUrlMax).optional(),
+  "pdfUrl": zod.string().max(createCommunityCourseBodyModulesItemLessonsItemPdfUrlMax).optional(),
+  "duration": zod.number().min(createCommunityCourseBodyModulesItemLessonsItemDurationMin).max(createCommunityCourseBodyModulesItemLessonsItemDurationMax).multipleOf(createCommunityCourseBodyModulesItemLessonsItemDurationMultipleOf).optional(),
+  "quizQuestions": zod.array(zod.object({
+  "question": zod.string().min(1).max(createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemQuestionMax),
+  "options": zod.array(zod.string().max(createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsItemMax)).min(createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsMin).max(createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsMax),
+  "correctAnswer": zod.number().min(createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMin).multipleOf(createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMultipleOf),
+  "explanation": zod.string().max(createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemExplanationMax).optional()
+})).max(createCommunityCourseBodyModulesItemLessonsItemQuizQuestionsMax).optional(),
+  "flashcards": zod.array(zod.object({
+  "front": zod.string().min(1).max(createCommunityCourseBodyModulesItemLessonsItemFlashcardsItemFrontMax),
+  "back": zod.string().min(1).max(createCommunityCourseBodyModulesItemLessonsItemFlashcardsItemBackMax)
+})).max(createCommunityCourseBodyModulesItemLessonsItemFlashcardsMax).optional()
+})).min(1).max(createCommunityCourseBodyModulesItemLessonsMax)
+})).min(1).max(createCommunityCourseBodyModulesMax)
+})
+
+export const CreateCommunityCourseResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.enum(['published', 'pending']),
+  "approvalRequired": zod.boolean()
+})
+
+
+/**
+ * @summary Update a course owned by the authenticated community owner
+ */
+
+
+
+export const UpdateCommunityCourseParams = zod.object({
+  "courseId": zod.coerce.string().min(1)
+})
+
+export const updateCommunityCourseBodyTitleMax = 160;
+
+export const updateCommunityCourseBodyDescriptionMax = 5000;
+
+export const updateCommunityCourseBodyInstructorMax = 160;
+
+export const updateCommunityCourseBodyPriceMin = 0;
+export const updateCommunityCourseBodyPriceMax = 1000000;
+
+export const updateCommunityCourseBodyTagMax = 80;
+
+export const updateCommunityCourseBodyGradeMax = 40;
+
+export const updateCommunityCourseBodyDurationMax = 80;
+
+export const updateCommunityCourseBodyThumbnailMax = 2048;
+
+export const updateCommunityCourseBodyModulesItemTitleMax = 200;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemTitleMax = 200;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemContentMax = 20000;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemVideoUrlMax = 2048;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemPdfUrlMax = 2048;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemDurationMin = 0;
+export const updateCommunityCourseBodyModulesItemLessonsItemDurationMax = 10000;
+export const updateCommunityCourseBodyModulesItemLessonsItemDurationMultipleOf = 1;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemQuestionMax = 2000;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsItemMax = 500;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsMin = 2;
+export const updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsMax = 8;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMin = 0;
+export const updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMultipleOf = 1;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemExplanationMax = 2000;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsMax = 100;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemFlashcardsItemFrontMax = 2000;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemFlashcardsItemBackMax = 4000;
+
+export const updateCommunityCourseBodyModulesItemLessonsItemFlashcardsMax = 100;
+
+export const updateCommunityCourseBodyModulesItemLessonsMax = 100;
+
+export const updateCommunityCourseBodyModulesMax = 50;
+
+
+
+export const UpdateCommunityCourseBody = zod.object({
+  "title": zod.string().min(1).max(updateCommunityCourseBodyTitleMax),
+  "description": zod.string().max(updateCommunityCourseBodyDescriptionMax),
+  "instructor": zod.string().max(updateCommunityCourseBodyInstructorMax),
+  "type": zod.enum(['free', 'premium']),
+  "price": zod.number().min(updateCommunityCourseBodyPriceMin).max(updateCommunityCourseBodyPriceMax),
+  "tag": zod.string().max(updateCommunityCourseBodyTagMax),
+  "grade": zod.string().max(updateCommunityCourseBodyGradeMax),
+  "duration": zod.string().max(updateCommunityCourseBodyDurationMax),
+  "thumbnail": zod.string().max(updateCommunityCourseBodyThumbnailMax).nullable(),
+  "modules": zod.array(zod.object({
+  "title": zod.string().min(1).max(updateCommunityCourseBodyModulesItemTitleMax),
+  "lessons": zod.array(zod.object({
+  "title": zod.string().min(1).max(updateCommunityCourseBodyModulesItemLessonsItemTitleMax),
+  "type": zod.enum(['video', 'pdf', 'quiz', 'flashcard', 'text']),
+  "content": zod.string().max(updateCommunityCourseBodyModulesItemLessonsItemContentMax).optional(),
+  "videoUrl": zod.string().max(updateCommunityCourseBodyModulesItemLessonsItemVideoUrlMax).optional(),
+  "pdfUrl": zod.string().max(updateCommunityCourseBodyModulesItemLessonsItemPdfUrlMax).optional(),
+  "duration": zod.number().min(updateCommunityCourseBodyModulesItemLessonsItemDurationMin).max(updateCommunityCourseBodyModulesItemLessonsItemDurationMax).multipleOf(updateCommunityCourseBodyModulesItemLessonsItemDurationMultipleOf).optional(),
+  "quizQuestions": zod.array(zod.object({
+  "question": zod.string().min(1).max(updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemQuestionMax),
+  "options": zod.array(zod.string().max(updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsItemMax)).min(updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsMin).max(updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemOptionsMax),
+  "correctAnswer": zod.number().min(updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMin).multipleOf(updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMultipleOf),
+  "explanation": zod.string().max(updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsItemExplanationMax).optional()
+})).max(updateCommunityCourseBodyModulesItemLessonsItemQuizQuestionsMax).optional(),
+  "flashcards": zod.array(zod.object({
+  "front": zod.string().min(1).max(updateCommunityCourseBodyModulesItemLessonsItemFlashcardsItemFrontMax),
+  "back": zod.string().min(1).max(updateCommunityCourseBodyModulesItemLessonsItemFlashcardsItemBackMax)
+})).max(updateCommunityCourseBodyModulesItemLessonsItemFlashcardsMax).optional()
+})).min(1).max(updateCommunityCourseBodyModulesItemLessonsMax)
+})).min(1).max(updateCommunityCourseBodyModulesMax)
+})
+
+export const UpdateCommunityCourseResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.enum(['published', 'pending']),
+  "approvalRequired": zod.boolean()
+})
+
+
+/**
+ * @summary Read lessons after enrollment or as the course owner
+ */
+
+
+
+export const GetCommunityCourseContentParams = zod.object({
+  "courseId": zod.coerce.string().min(1)
+})
+
+export const getCommunityCourseContentResponseModulesItemTitleMax = 200;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemTitleMax = 200;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemContentMax = 20000;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemVideoUrlMax = 2048;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemPdfUrlMax = 2048;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemDurationMin = 0;
+export const getCommunityCourseContentResponseModulesItemLessonsItemDurationMax = 10000;
+export const getCommunityCourseContentResponseModulesItemLessonsItemDurationMultipleOf = 1;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemQuestionMax = 2000;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemOptionsItemMax = 500;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemOptionsMin = 2;
+export const getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemOptionsMax = 8;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMin = 0;
+export const getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMultipleOf = 1;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemExplanationMax = 2000;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsMax = 100;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemFlashcardsItemFrontMax = 2000;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemFlashcardsItemBackMax = 4000;
+
+export const getCommunityCourseContentResponseModulesItemLessonsItemFlashcardsMax = 100;
+
+export const getCommunityCourseContentResponseModulesItemLessonsMax = 100;
+
+
+
+export const GetCommunityCourseContentResponse = zod.object({
+  "modules": zod.array(zod.object({
+  "title": zod.string().min(1).max(getCommunityCourseContentResponseModulesItemTitleMax),
+  "lessons": zod.array(zod.object({
+  "title": zod.string().min(1).max(getCommunityCourseContentResponseModulesItemLessonsItemTitleMax),
+  "type": zod.enum(['video', 'pdf', 'quiz', 'flashcard', 'text']),
+  "content": zod.string().max(getCommunityCourseContentResponseModulesItemLessonsItemContentMax).optional(),
+  "videoUrl": zod.string().max(getCommunityCourseContentResponseModulesItemLessonsItemVideoUrlMax).optional(),
+  "pdfUrl": zod.string().max(getCommunityCourseContentResponseModulesItemLessonsItemPdfUrlMax).optional(),
+  "duration": zod.number().min(getCommunityCourseContentResponseModulesItemLessonsItemDurationMin).max(getCommunityCourseContentResponseModulesItemLessonsItemDurationMax).multipleOf(getCommunityCourseContentResponseModulesItemLessonsItemDurationMultipleOf).optional(),
+  "quizQuestions": zod.array(zod.object({
+  "question": zod.string().min(1).max(getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemQuestionMax),
+  "options": zod.array(zod.string().max(getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemOptionsItemMax)).min(getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemOptionsMin).max(getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemOptionsMax),
+  "correctAnswer": zod.number().min(getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMin).multipleOf(getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemCorrectAnswerMultipleOf),
+  "explanation": zod.string().max(getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsItemExplanationMax).optional()
+})).max(getCommunityCourseContentResponseModulesItemLessonsItemQuizQuestionsMax).optional(),
+  "flashcards": zod.array(zod.object({
+  "front": zod.string().min(1).max(getCommunityCourseContentResponseModulesItemLessonsItemFlashcardsItemFrontMax),
+  "back": zod.string().min(1).max(getCommunityCourseContentResponseModulesItemLessonsItemFlashcardsItemBackMax)
+})).max(getCommunityCourseContentResponseModulesItemLessonsItemFlashcardsMax).optional()
+})).min(1).max(getCommunityCourseContentResponseModulesItemLessonsMax)
+}))
+})
+
+
+/**
+ * @summary Enroll in a free community course
+ */
+
+
+
+export const EnrollInFreeCommunityCourseParams = zod.object({
+  "courseId": zod.coerce.string().min(1)
+})
+
+export const EnrollInFreeCommunityCourseResponse = zod.object({
+  "status": zod.enum(['enrolled'])
+})
+
+
+/**
+ * @summary Submit a bKash payment request for a community course
+ */
+
+
+
+export const CreateCommunityCoursePurchaseRequestParams = zod.object({
+  "courseId": zod.coerce.string().min(1)
+})
+
+export const createCommunityCoursePurchaseRequestBodyBkashNumberMin = 8;
+export const createCommunityCoursePurchaseRequestBodyBkashNumberMax = 24;
+
+export const createCommunityCoursePurchaseRequestBodyTransactionIdMin = 4;
+export const createCommunityCoursePurchaseRequestBodyTransactionIdMax = 128;
+
+
+
+export const CreateCommunityCoursePurchaseRequestBody = zod.object({
+  "bkashNumber": zod.string().min(createCommunityCoursePurchaseRequestBodyBkashNumberMin).max(createCommunityCoursePurchaseRequestBodyBkashNumberMax),
+  "transactionId": zod.string().min(createCommunityCoursePurchaseRequestBodyTransactionIdMin).max(createCommunityCoursePurchaseRequestBodyTransactionIdMax)
+})
+
+export const CreateCommunityCoursePurchaseRequestResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.enum(['pending'])
+})
+
+
+/**
+ * @summary Approve or reject a community course payment
+ */
+
+
+
+export const DecideCommunityCoursePaymentParams = zod.object({
+  "requestId": zod.coerce.string().min(1)
+})
+
+export const DecideCommunityCoursePaymentBody = zod.object({
+  "action": zod.enum(['approve', 'reject'])
+})
+
+export const DecideCommunityCoursePaymentResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.enum(['approved', 'rejected'])
+})
+
+
+/**
+ * @summary Request a withdrawal from a community revenue source
+ */
+export const requestCommunityWithdrawalBodyAmountMin = 100;
+export const requestCommunityWithdrawalBodyAmountMax = 1000000;
+export const requestCommunityWithdrawalBodyAmountMultipleOf = 1;
+
+export const requestCommunityWithdrawalBodyBkashNumberMin = 8;
+export const requestCommunityWithdrawalBodyBkashNumberMax = 24;
+
+
+
+export const RequestCommunityWithdrawalBody = zod.object({
+  "revenueSource": zod.enum(['commission', 'course']),
+  "amount": zod.number().min(requestCommunityWithdrawalBodyAmountMin).max(requestCommunityWithdrawalBodyAmountMax).multipleOf(requestCommunityWithdrawalBodyAmountMultipleOf),
+  "bkashNumber": zod.string().min(requestCommunityWithdrawalBodyBkashNumberMin).max(requestCommunityWithdrawalBodyBkashNumberMax)
+})
+
+export const RequestCommunityWithdrawalResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'rejected']),
+  "revenueSource": zod.enum(['commission', 'course'])
+})
+
+
+/**
+ * @summary Read the authenticated community owner's course-sales balance
+ */
+export const getCommunityRevenueResponseBalanceMin = 0;
+
+export const getCommunityRevenueResponseTotalEarnedMin = 0;
+
+
+
+export const GetCommunityRevenueResponse = zod.object({
+  "balance": zod.number().min(getCommunityRevenueResponseBalanceMin),
+  "totalEarned": zod.number().min(getCommunityRevenueResponseTotalEarnedMin)
+})
+
+
+/**
+ * @summary Approve or reject a community revenue withdrawal
+ */
+
+
+
+
+export const DecideCommunityWithdrawalParams = zod.object({
+  "communityId": zod.coerce.string().min(1),
+  "requestId": zod.coerce.string().min(1)
+})
+
+export const DecideCommunityWithdrawalBody = zod.object({
+  "action": zod.enum(['approve', 'reject'])
+})
+
+export const DecideCommunityWithdrawalResponse = zod.object({
+  "id": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'rejected']),
+  "revenueSource": zod.enum(['commission', 'course'])
+})
+
+

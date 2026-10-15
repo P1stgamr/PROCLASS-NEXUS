@@ -8,7 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
 import { sendNotifications } from "@/lib/notifications";
-import type { NotificationSendInput } from "@workspace/api-client-react";
+import {
+  useDecideCommunityCoursePayment,
+  type NotificationSendInput,
+} from "@workspace/api-client-react";
 import { CheckCircle2, XCircle, Clock, CreditCard, Wallet, TrendingUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -30,6 +33,7 @@ export default function PaymentsSection({ paymentRequests, withdrawRequests, mem
   const { currentUser, userProfile } = useAuth();
   const { toast } = useToast();
   const [visibleCount, setVisibleCount] = useState(25);
+  const decideCoursePayment = useDecideCommunityCoursePayment();
 
   const getUserName = (uid: string) => users.find(u => u.uid === uid)?.name || uid.slice(0, 8);
 
@@ -52,6 +56,16 @@ export default function PaymentsSection({ paymentRequests, withdrawRequests, mem
 
   // ── Exam Payment handlers ──
   const approvePayment = async (req: any) => {
+    if (req.type === "course" && req.sellerType === "community") {
+      await decideCoursePayment.mutateAsync({
+        requestId: req.id,
+        data: { action: "approve" },
+      });
+      await notifyUser(req.uid, "system", `Payment approved! "${req.courseTitle}" course access granted.`);
+      await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "payment.approve", req.id, { uid: req.uid, courseId: req.courseId });
+      toast({ title: "Course payment approved" });
+      return;
+    }
     await update(ref(db, `paymentRequests/${req.id}`), { status: "approved", processedAt: Date.now() });
     await update(ref(db, `examEntries/${req.uid}/${req.examId}`), { approved: true, paidAt: Date.now() });
     await notifyUser(req.uid, "contest", `Payment approved! "${req.examTitle}" exam access granted.`);
@@ -60,6 +74,16 @@ export default function PaymentsSection({ paymentRequests, withdrawRequests, mem
   };
 
   const rejectPayment = async (req: any) => {
+    if (req.type === "course" && req.sellerType === "community") {
+      await decideCoursePayment.mutateAsync({
+        requestId: req.id,
+        data: { action: "reject" },
+      });
+      await notifyUser(req.uid, "system", `Payment rejected for "${req.courseTitle}".`);
+      await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "payment.reject", req.id, { uid: req.uid, courseId: req.courseId });
+      toast({ title: "Course payment rejected." });
+      return;
+    }
     await update(ref(db, `paymentRequests/${req.id}`), { status: "rejected", processedAt: Date.now() });
     await notifyUser(req.uid, "system", `Payment rejected for "${req.examTitle}".`);
     await logAdminAction(currentUser!.uid, userProfile?.name || "Admin", "payment.reject", req.id, { uid: req.uid });
@@ -140,7 +164,7 @@ export default function PaymentsSection({ paymentRequests, withdrawRequests, mem
           <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
           <p className="text-sm font-bold text-primary mt-1">{amountLabel}</p>
           {req.bkashNumber && <p className="text-[10px] text-muted-foreground mt-0.5">bKash: {req.bkashNumber}</p>}
-          {req.transactionId && <p className="text-[10px] text-muted-foreground">TxID: {req.transactionId}</p>}
+          {(req.transactionId || req.txnId) && <p className="text-[10px] text-muted-foreground">TxID: {req.transactionId || req.txnId}</p>}
           <p className="text-[10px] text-muted-foreground mt-0.5">
             {req.createdAt || req.requestedAt ? formatDistanceToNow(req.createdAt || req.requestedAt, { addSuffix: true }) : ""}
           </p>
@@ -188,14 +212,14 @@ export default function PaymentsSection({ paymentRequests, withdrawRequests, mem
       {/* Exam Payments */}
       <div>
         <p className="text-xs text-muted-foreground font-semibold uppercase tracking-widest mb-3 flex items-center gap-2">
-          <CreditCard className="w-3 h-3" /> Exam Payments ({paymentRequests.length})
+          <CreditCard className="w-3 h-3" /> Payments ({paymentRequests.length})
         </p>
         {paymentRequests.length === 0
           ? <p className="text-center py-4 text-sm text-muted-foreground">No payment requests.</p>
           : paymentRequests.slice(0, visibleCount).map(req => (
               <RequestCard key={req.id} req={req}
                 onApprove={approvePayment} onReject={rejectPayment}
-                label={req.examTitle || "Exam payment"}
+              label={req.type === "course" ? `${req.courseTitle || "Course"} · ${req.communityId ? "Community course" : "Course payment"}` : req.examTitle || "Exam payment"}
                 amountLabel={`৳${req.amount || req.entryFee || 0}`}
               />
             ))}

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { push, ref, runTransaction, update } from "firebase/database";
+import { push, ref, update } from "firebase/database";
 import { db } from "@/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { logAdminAction } from "@/lib/adminLog";
+import { useDecideCommunityWithdrawal } from "@workspace/api-client-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { GlowButton } from "@/components/GlowButton";
@@ -24,6 +25,7 @@ export default function CommunityAdminSection({
   const { currentUser, userProfile } = useAuth();
   const { toast } = useToast();
   const [rateDrafts, setRateDrafts] = useState<Record<string, string>>({});
+  const decideCommunityWithdrawal = useDecideCommunityWithdrawal();
 
   const approveRequest = async (request: any) => {
     if (!currentUser) return;
@@ -79,29 +81,16 @@ export default function CommunityAdminSection({
 
   const processWithdrawal = async (request: any, status: "approved" | "rejected") => {
     if (!currentUser) return;
-    const requestRef = ref(db, `communityWithdrawals/${request.communityId}/${request.id}`);
-    const claim = await runTransaction(requestRef, (current: any) => {
-      if (!current || current.status !== "pending") return;
-      return { ...current, status, processedAt: Date.now(), processedBy: currentUser.uid };
+    await decideCommunityWithdrawal.mutateAsync({
+      communityId: request.communityId,
+      requestId: request.id,
+      data: { action: status === "approved" ? "approve" : "reject" },
     });
-    if (!claim.committed) {
-      toast({ title: "Request already processed", variant: "destructive" });
-      return;
-    }
-    if (status === "approved") {
-      const balance = await runTransaction(ref(db, `communityBalances/${request.communityId}/balance`), (current: any) => {
-        const amount = Number(request.amount);
-        const available = Number(current || 0);
-        if (!Number.isFinite(amount) || available < amount) return;
-        return available - amount;
-      });
-      if (!balance.committed) {
-        await update(requestRef, { status: "rejected", rejectionReason: "Insufficient balance", processedAt: Date.now() });
-        toast({ title: "Rejected: insufficient community balance", variant: "destructive" });
-        return;
-      }
-    }
-    await logAdminAction(currentUser.uid, userProfile?.name || "Admin", `community.withdraw.${status}`, request.id, { communityId: request.communityId, amount: request.amount });
+    await logAdminAction(currentUser.uid, userProfile?.name || "Admin", `community.withdraw.${status}`, request.id, {
+      communityId: request.communityId,
+      amount: request.amount,
+      revenueSource: request.revenueSource || "commission",
+    });
     toast({ title: `Community withdrawal ${status} ✅` });
   };
 
@@ -152,7 +141,7 @@ export default function CommunityAdminSection({
         <h3 className="text-xs text-muted-foreground font-semibold uppercase tracking-widest">Community withdrawals ({pendingWithdrawals.length} pending)</h3>
         {withdrawals.length === 0 ? <p className="text-sm text-muted-foreground">No community withdrawal requests.</p> : withdrawals.map((request) => (
           <div key={`${request.communityId}-${request.id}`} className={CARD}>
-            <div className="flex items-start gap-3"><Coins className="w-5 h-5 text-yellow-400 mt-1" /><div className="flex-1"><p className="font-bold text-sm">{request.communityName}</p><p className="text-xs text-muted-foreground">৳{request.amount} · bKash {request.bkashNumber}</p><Badge className="mt-2 text-[9px]">{request.status}</Badge></div>{request.status === "pending" && <div className="flex gap-1"><button onClick={() => processWithdrawal(request, "approved")} className="p-2 rounded-xl bg-green-500/10 text-green-400"><CheckCircle2 className="w-4 h-4" /></button><button onClick={() => processWithdrawal(request, "rejected")} className="p-2 rounded-xl bg-red-500/10 text-red-400"><XCircle className="w-4 h-4" /></button></div>}</div>
+            <div className="flex items-start gap-3"><Coins className="w-5 h-5 text-yellow-400 mt-1" /><div className="flex-1"><p className="font-bold text-sm">{request.communityName}</p><p className="text-xs text-muted-foreground">৳{request.amount} · bKash {request.bkashNumber}</p><Badge className="mt-2 text-[9px]">{request.revenueSource === "course" ? "Course sales" : "Commission"} · {request.status}</Badge></div>{request.status === "pending" && <div className="flex gap-1"><button onClick={() => processWithdrawal(request, "approved")} className="p-2 rounded-xl bg-green-500/10 text-green-400"><CheckCircle2 className="w-4 h-4" /></button><button onClick={() => processWithdrawal(request, "rejected")} className="p-2 rounded-xl bg-red-500/10 text-red-400"><XCircle className="w-4 h-4" /></button></div>}</div>
           </div>
         ))}
       </section>

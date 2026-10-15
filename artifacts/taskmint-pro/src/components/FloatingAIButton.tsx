@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { Bot } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { isExamModeActive } from "@/lib/examMode";
+import { useExamMode } from "@/lib/examMode";
 
 const POSITION_STORAGE_KEY = "taskmint-ai-button-position";
 const BUTTON_SIZE = 56;
@@ -52,6 +52,7 @@ function readSavedPosition(): Position {
 export function FloatingAIButton() {
   const [location, setLocation] = useLocation();
   const { currentUser } = useAuth();
+  const activeExam = useExamMode();
   const [position, setPosition] = useState<Position | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<DragState | null>(null);
@@ -60,7 +61,7 @@ export function FloatingAIButton() {
   const hiddenPaths = ["/", "/login", "/signup", "/onboarding", "/ai"];
   const isHidden =
     !currentUser ||
-    isExamModeActive() ||
+    Boolean(activeExam) ||
     hiddenPaths.includes(location) ||
     location.startsWith("/exam-room/") ||
     location.startsWith("/ai");

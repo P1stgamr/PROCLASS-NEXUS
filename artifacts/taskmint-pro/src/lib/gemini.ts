@@ -1,7 +1,13 @@
+import { isExamModeActive } from "@/lib/examMode";
+import { auth } from "@/firebase";
+
 export async function* streamGemini(
   history: Array<{ role: "user" | "assistant"; content: string }>,
   userText: string
 ): AsyncGenerator<string> {
+  if (isExamModeActive()) {
+    throw new Error("পরীক্ষা চলাকালীন AI Assistant ব্যবহার করা যাবে না");
+  }
   const activeExam = typeof window !== "undefined"
     ? window.localStorage.getItem("taskmint-active-exam")
     : null;
@@ -10,9 +16,13 @@ export async function* streamGemini(
   let response: Response;
   try {
     const apiBase = import.meta.env.VITE_API_BASE_URL || "/api";
+    const token = await auth.currentUser?.getIdToken();
     response = await fetch(`${apiBase}/ai/chat`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({ history, userText, activeExamId: activeExam ? "active" : undefined }),
       signal: controller.signal,
     });

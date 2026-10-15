@@ -20,6 +20,20 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CommunityCourseContentResult,
+  CommunityCourseEnrollmentResult,
+  CommunityCourseInput,
+  CommunityCoursePaymentDecisionInput,
+  CommunityCoursePaymentResult,
+  CommunityCoursePurchaseInput,
+  CommunityCoursePurchaseResult,
+  CommunityCourseResult,
+  CommunityRevenueResult,
+  CommunityWithdrawalDecisionInput,
+  CommunityWithdrawalInput,
+  CommunityWithdrawalResult,
+  ExamSessionInput,
+  ExamSessionResult,
   HealthStatus,
   NotificationActionResult,
   NotificationSendInput,
@@ -53,6 +67,160 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getStartExamSessionUrl = () => {
+
+
+
+
+  return `/api/exam-sessions/current`
+}
+
+/**
+ * @summary Register the authenticated user's active timed exam
+ */
+export const startExamSession = async (examSessionInput: ExamSessionInput, options?: Parameters<typeof customFetch>[1]): Promise<ExamSessionResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Array.isArray(h)) return Object.fromEntries(h);
+    return h;
+  };
+return customFetch<ExamSessionResult>(getStartExamSessionUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(examSessionInput)
+  }
+);}
+
+
+
+
+
+export const getStartExamSessionMutationKey = () => ['startExamSession'] as const;
+
+export const getStartExamSessionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startExamSession>>, TError,StartExamSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startExamSession>>, TError,StartExamSessionMutationVariables, TContext> => {
+
+const mutationKey = getStartExamSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startExamSession>>, StartExamSessionMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  startExamSession(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartExamSessionMutationResult = NonNullable<Awaited<ReturnType<typeof startExamSession>>>
+    export type StartExamSessionMutationBody = BodyType<ExamSessionInput>
+    export type StartExamSessionMutationError = ErrorType<void>
+    export type StartExamSessionMutationVariables = {data: BodyType<ExamSessionInput>}
+
+    /**
+ * @summary Register the authenticated user's active timed exam
+ */
+export const useStartExamSession = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startExamSession>>, TError,StartExamSessionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startExamSession>>,
+        TError,
+        StartExamSessionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getStartExamSessionMutationOptions(options));
+    }
+
+export const getEndExamSessionUrl = () => {
+
+
+
+
+  return `/api/exam-sessions/current`
+}
+
+/**
+ * @summary Clear the authenticated user's active exam session
+ */
+export const endExamSession = async ( options?: Parameters<typeof customFetch>[1]): Promise<ExamSessionResult> => {
+
+  return customFetch<ExamSessionResult>(getEndExamSessionUrl(),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getEndExamSessionMutationKey = () => ['endExamSession'] as const;
+
+export const getEndExamSessionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endExamSession>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof endExamSession>>, TError,void, TContext> => {
+
+const mutationKey = getEndExamSessionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof endExamSession>>, void> = () => {
+
+
+          return  endExamSession(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EndExamSessionMutationResult = NonNullable<Awaited<ReturnType<typeof endExamSession>>>
+
+    export type EndExamSessionMutationError = ErrorType<void>
+
+
+    /**
+ * @summary Clear the authenticated user's active exam session
+ */
+export const useEndExamSession = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof endExamSession>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof endExamSession>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getEndExamSessionMutationOptions(options));
+    }
 
 export const getHealthCheckUrl = () => {
 
@@ -365,3 +533,718 @@ export const useRevokePushTokens = <TError = ErrorType<void>,
       > => {
       return useMutation(getRevokePushTokensMutationOptions(options));
     }
+
+export const getCreateCommunityCourseUrl = () => {
+
+
+
+
+  return `/api/community/courses`
+}
+
+/**
+ * @summary Create a course owned by the authenticated community owner
+ */
+export const createCommunityCourse = async (communityCourseInput: CommunityCourseInput, options?: Parameters<typeof customFetch>[1]): Promise<CommunityCourseResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Array.isArray(h)) return Object.fromEntries(h);
+    return h;
+  };
+return customFetch<CommunityCourseResult>(getCreateCommunityCourseUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(communityCourseInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCommunityCourseMutationKey = () => ['createCommunityCourse'] as const;
+
+export const getCreateCommunityCourseMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCommunityCourse>>, TError,CreateCommunityCourseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCommunityCourse>>, TError,CreateCommunityCourseMutationVariables, TContext> => {
+
+const mutationKey = getCreateCommunityCourseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCommunityCourse>>, CreateCommunityCourseMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createCommunityCourse(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCommunityCourseMutationResult = NonNullable<Awaited<ReturnType<typeof createCommunityCourse>>>
+    export type CreateCommunityCourseMutationBody = BodyType<CommunityCourseInput>
+    export type CreateCommunityCourseMutationError = ErrorType<void>
+    export type CreateCommunityCourseMutationVariables = {data: BodyType<CommunityCourseInput>}
+
+    /**
+ * @summary Create a course owned by the authenticated community owner
+ */
+export const useCreateCommunityCourse = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCommunityCourse>>, TError,CreateCommunityCourseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCommunityCourse>>,
+        TError,
+        CreateCommunityCourseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateCommunityCourseMutationOptions(options));
+    }
+
+export const getUpdateCommunityCourseUrl = (courseId: string,) => {
+
+
+
+
+  return `/api/community/courses/${courseId}`
+}
+
+/**
+ * @summary Update a course owned by the authenticated community owner
+ */
+export const updateCommunityCourse = async (courseId: string,
+    communityCourseInput: CommunityCourseInput, options?: Parameters<typeof customFetch>[1]): Promise<CommunityCourseResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Array.isArray(h)) return Object.fromEntries(h);
+    return h;
+  };
+return customFetch<CommunityCourseResult>(getUpdateCommunityCourseUrl(courseId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(communityCourseInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateCommunityCourseMutationKey = () => ['updateCommunityCourse'] as const;
+
+export const getUpdateCommunityCourseMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCommunityCourse>>, TError,UpdateCommunityCourseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateCommunityCourse>>, TError,UpdateCommunityCourseMutationVariables, TContext> => {
+
+const mutationKey = getUpdateCommunityCourseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateCommunityCourse>>, UpdateCommunityCourseMutationVariables> = (props) => {
+          const {courseId,data} = props ?? {};
+
+          return  updateCommunityCourse(courseId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateCommunityCourseMutationResult = NonNullable<Awaited<ReturnType<typeof updateCommunityCourse>>>
+    export type UpdateCommunityCourseMutationBody = BodyType<CommunityCourseInput>
+    export type UpdateCommunityCourseMutationError = ErrorType<void>
+    export type UpdateCommunityCourseMutationVariables = {courseId: string;data: BodyType<CommunityCourseInput>}
+
+    /**
+ * @summary Update a course owned by the authenticated community owner
+ */
+export const useUpdateCommunityCourse = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateCommunityCourse>>, TError,UpdateCommunityCourseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateCommunityCourse>>,
+        TError,
+        UpdateCommunityCourseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateCommunityCourseMutationOptions(options));
+    }
+
+export const getGetCommunityCourseContentUrl = (courseId: string,) => {
+
+
+
+
+  return `/api/community/courses/${courseId}/content`
+}
+
+/**
+ * @summary Read lessons after enrollment or as the course owner
+ */
+export const getCommunityCourseContent = async (courseId: string, options?: Parameters<typeof customFetch>[1]): Promise<CommunityCourseContentResult> => {
+
+  return customFetch<CommunityCourseContentResult>(getGetCommunityCourseContentUrl(courseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCommunityCourseContentQueryKey = (courseId: string,) => {
+    return [
+    `/api/community/courses/${courseId}/content`
+    ] as const;
+    }
+
+
+export const getGetCommunityCourseContentQueryOptions = <TData = Awaited<ReturnType<typeof getCommunityCourseContent>>, TError = ErrorType<void>>(courseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCommunityCourseContent>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCommunityCourseContentQueryKey(courseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCommunityCourseContent>>> = ({ signal }) => getCommunityCourseContent(courseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: courseId !== null && courseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCommunityCourseContent>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCommunityCourseContentQueryResult = NonNullable<Awaited<ReturnType<typeof getCommunityCourseContent>>>
+export type GetCommunityCourseContentQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read lessons after enrollment or as the course owner
+ */
+
+export function useGetCommunityCourseContent<TData = Awaited<ReturnType<typeof getCommunityCourseContent>>, TError = ErrorType<void>>(
+ courseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCommunityCourseContent>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCommunityCourseContentQueryOptions(courseId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getEnrollInFreeCommunityCourseUrl = (courseId: string,) => {
+
+
+
+
+  return `/api/community/courses/${courseId}/enroll`
+}
+
+/**
+ * @summary Enroll in a free community course
+ */
+export const enrollInFreeCommunityCourse = async (courseId: string, options?: Parameters<typeof customFetch>[1]): Promise<CommunityCourseEnrollmentResult> => {
+
+  return customFetch<CommunityCourseEnrollmentResult>(getEnrollInFreeCommunityCourseUrl(courseId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getEnrollInFreeCommunityCourseMutationKey = () => ['enrollInFreeCommunityCourse'] as const;
+
+export const getEnrollInFreeCommunityCourseMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enrollInFreeCommunityCourse>>, TError,EnrollInFreeCommunityCourseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof enrollInFreeCommunityCourse>>, TError,EnrollInFreeCommunityCourseMutationVariables, TContext> => {
+
+const mutationKey = getEnrollInFreeCommunityCourseMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof enrollInFreeCommunityCourse>>, EnrollInFreeCommunityCourseMutationVariables> = (props) => {
+          const {courseId} = props ?? {};
+
+          return  enrollInFreeCommunityCourse(courseId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EnrollInFreeCommunityCourseMutationResult = NonNullable<Awaited<ReturnType<typeof enrollInFreeCommunityCourse>>>
+
+    export type EnrollInFreeCommunityCourseMutationError = ErrorType<void>
+    export type EnrollInFreeCommunityCourseMutationVariables = {courseId: string}
+
+    /**
+ * @summary Enroll in a free community course
+ */
+export const useEnrollInFreeCommunityCourse = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enrollInFreeCommunityCourse>>, TError,EnrollInFreeCommunityCourseMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof enrollInFreeCommunityCourse>>,
+        TError,
+        EnrollInFreeCommunityCourseMutationVariables,
+        TContext
+      > => {
+      return useMutation(getEnrollInFreeCommunityCourseMutationOptions(options));
+    }
+
+export const getCreateCommunityCoursePurchaseRequestUrl = (courseId: string,) => {
+
+
+
+
+  return `/api/community/courses/${courseId}/purchase-requests`
+}
+
+/**
+ * @summary Submit a bKash payment request for a community course
+ */
+export const createCommunityCoursePurchaseRequest = async (courseId: string,
+    communityCoursePurchaseInput: CommunityCoursePurchaseInput, options?: Parameters<typeof customFetch>[1]): Promise<CommunityCoursePurchaseResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Array.isArray(h)) return Object.fromEntries(h);
+    return h;
+  };
+return customFetch<CommunityCoursePurchaseResult>(getCreateCommunityCoursePurchaseRequestUrl(courseId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(communityCoursePurchaseInput)
+  }
+);}
+
+
+
+
+
+export const getCreateCommunityCoursePurchaseRequestMutationKey = () => ['createCommunityCoursePurchaseRequest'] as const;
+
+export const getCreateCommunityCoursePurchaseRequestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCommunityCoursePurchaseRequest>>, TError,CreateCommunityCoursePurchaseRequestMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createCommunityCoursePurchaseRequest>>, TError,CreateCommunityCoursePurchaseRequestMutationVariables, TContext> => {
+
+const mutationKey = getCreateCommunityCoursePurchaseRequestMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createCommunityCoursePurchaseRequest>>, CreateCommunityCoursePurchaseRequestMutationVariables> = (props) => {
+          const {courseId,data} = props ?? {};
+
+          return  createCommunityCoursePurchaseRequest(courseId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateCommunityCoursePurchaseRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createCommunityCoursePurchaseRequest>>>
+    export type CreateCommunityCoursePurchaseRequestMutationBody = BodyType<CommunityCoursePurchaseInput>
+    export type CreateCommunityCoursePurchaseRequestMutationError = ErrorType<void>
+    export type CreateCommunityCoursePurchaseRequestMutationVariables = {courseId: string;data: BodyType<CommunityCoursePurchaseInput>}
+
+    /**
+ * @summary Submit a bKash payment request for a community course
+ */
+export const useCreateCommunityCoursePurchaseRequest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createCommunityCoursePurchaseRequest>>, TError,CreateCommunityCoursePurchaseRequestMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createCommunityCoursePurchaseRequest>>,
+        TError,
+        CreateCommunityCoursePurchaseRequestMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateCommunityCoursePurchaseRequestMutationOptions(options));
+    }
+
+export const getDecideCommunityCoursePaymentUrl = (requestId: string,) => {
+
+
+
+
+  return `/api/admin/course-payment-requests/${requestId}`
+}
+
+/**
+ * @summary Approve or reject a community course payment
+ */
+export const decideCommunityCoursePayment = async (requestId: string,
+    communityCoursePaymentDecisionInput: CommunityCoursePaymentDecisionInput, options?: Parameters<typeof customFetch>[1]): Promise<CommunityCoursePaymentResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Array.isArray(h)) return Object.fromEntries(h);
+    return h;
+  };
+return customFetch<CommunityCoursePaymentResult>(getDecideCommunityCoursePaymentUrl(requestId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(communityCoursePaymentDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getDecideCommunityCoursePaymentMutationKey = () => ['decideCommunityCoursePayment'] as const;
+
+export const getDecideCommunityCoursePaymentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideCommunityCoursePayment>>, TError,DecideCommunityCoursePaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof decideCommunityCoursePayment>>, TError,DecideCommunityCoursePaymentMutationVariables, TContext> => {
+
+const mutationKey = getDecideCommunityCoursePaymentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideCommunityCoursePayment>>, DecideCommunityCoursePaymentMutationVariables> = (props) => {
+          const {requestId,data} = props ?? {};
+
+          return  decideCommunityCoursePayment(requestId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DecideCommunityCoursePaymentMutationResult = NonNullable<Awaited<ReturnType<typeof decideCommunityCoursePayment>>>
+    export type DecideCommunityCoursePaymentMutationBody = BodyType<CommunityCoursePaymentDecisionInput>
+    export type DecideCommunityCoursePaymentMutationError = ErrorType<void>
+    export type DecideCommunityCoursePaymentMutationVariables = {requestId: string;data: BodyType<CommunityCoursePaymentDecisionInput>}
+
+    /**
+ * @summary Approve or reject a community course payment
+ */
+export const useDecideCommunityCoursePayment = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideCommunityCoursePayment>>, TError,DecideCommunityCoursePaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof decideCommunityCoursePayment>>,
+        TError,
+        DecideCommunityCoursePaymentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDecideCommunityCoursePaymentMutationOptions(options));
+    }
+
+export const getRequestCommunityWithdrawalUrl = () => {
+
+
+
+
+  return `/api/community/withdrawals`
+}
+
+/**
+ * @summary Request a withdrawal from a community revenue source
+ */
+export const requestCommunityWithdrawal = async (communityWithdrawalInput: CommunityWithdrawalInput, options?: Parameters<typeof customFetch>[1]): Promise<CommunityWithdrawalResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Array.isArray(h)) return Object.fromEntries(h);
+    return h;
+  };
+return customFetch<CommunityWithdrawalResult>(getRequestCommunityWithdrawalUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(communityWithdrawalInput)
+  }
+);}
+
+
+
+
+
+export const getRequestCommunityWithdrawalMutationKey = () => ['requestCommunityWithdrawal'] as const;
+
+export const getRequestCommunityWithdrawalMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestCommunityWithdrawal>>, TError,RequestCommunityWithdrawalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestCommunityWithdrawal>>, TError,RequestCommunityWithdrawalMutationVariables, TContext> => {
+
+const mutationKey = getRequestCommunityWithdrawalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestCommunityWithdrawal>>, RequestCommunityWithdrawalMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  requestCommunityWithdrawal(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestCommunityWithdrawalMutationResult = NonNullable<Awaited<ReturnType<typeof requestCommunityWithdrawal>>>
+    export type RequestCommunityWithdrawalMutationBody = BodyType<CommunityWithdrawalInput>
+    export type RequestCommunityWithdrawalMutationError = ErrorType<void>
+    export type RequestCommunityWithdrawalMutationVariables = {data: BodyType<CommunityWithdrawalInput>}
+
+    /**
+ * @summary Request a withdrawal from a community revenue source
+ */
+export const useRequestCommunityWithdrawal = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestCommunityWithdrawal>>, TError,RequestCommunityWithdrawalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof requestCommunityWithdrawal>>,
+        TError,
+        RequestCommunityWithdrawalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRequestCommunityWithdrawalMutationOptions(options));
+    }
+
+export const getGetCommunityRevenueUrl = () => {
+
+
+
+
+  return `/api/community/revenue`
+}
+
+/**
+ * @summary Read the authenticated community owner's course-sales balance
+ */
+export const getCommunityRevenue = async ( options?: Parameters<typeof customFetch>[1]): Promise<CommunityRevenueResult> => {
+
+  return customFetch<CommunityRevenueResult>(getGetCommunityRevenueUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCommunityRevenueQueryKey = () => {
+    return [
+    `/api/community/revenue`
+    ] as const;
+    }
+
+
+export const getGetCommunityRevenueQueryOptions = <TData = Awaited<ReturnType<typeof getCommunityRevenue>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCommunityRevenue>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCommunityRevenueQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCommunityRevenue>>> = ({ signal }) => getCommunityRevenue({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCommunityRevenue>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCommunityRevenueQueryResult = NonNullable<Awaited<ReturnType<typeof getCommunityRevenue>>>
+export type GetCommunityRevenueQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read the authenticated community owner's course-sales balance
+ */
+
+export function useGetCommunityRevenue<TData = Awaited<ReturnType<typeof getCommunityRevenue>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCommunityRevenue>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCommunityRevenueQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDecideCommunityWithdrawalUrl = (communityId: string,
+    requestId: string,) => {
+
+
+
+
+  return `/api/admin/community-withdrawals/${communityId}/${requestId}`
+}
+
+/**
+ * @summary Approve or reject a community revenue withdrawal
+ */
+export const decideCommunityWithdrawal = async (communityId: string,
+    requestId: string,
+    communityWithdrawalDecisionInput: CommunityWithdrawalDecisionInput, options?: Parameters<typeof customFetch>[1]): Promise<CommunityWithdrawalResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Array.isArray(h)) return Object.fromEntries(h);
+    return h;
+  };
+return customFetch<CommunityWithdrawalResult>(getDecideCommunityWithdrawalUrl(communityId,requestId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(communityWithdrawalDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getDecideCommunityWithdrawalMutationKey = () => ['decideCommunityWithdrawal'] as const;
+
+export const getDecideCommunityWithdrawalMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideCommunityWithdrawal>>, TError,DecideCommunityWithdrawalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof decideCommunityWithdrawal>>, TError,DecideCommunityWithdrawalMutationVariables, TContext> => {
+
+const mutationKey = getDecideCommunityWithdrawalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideCommunityWithdrawal>>, DecideCommunityWithdrawalMutationVariables> = (props) => {
+          const {communityId,requestId,data} = props ?? {};
+
+          return  decideCommunityWithdrawal(communityId,requestId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DecideCommunityWithdrawalMutationResult = NonNullable<Awaited<ReturnType<typeof decideCommunityWithdrawal>>>
+    export type DecideCommunityWithdrawalMutationBody = BodyType<CommunityWithdrawalDecisionInput>
+    export type DecideCommunityWithdrawalMutationError = ErrorType<void>
+    export type DecideCommunityWithdrawalMutationVariables = {communityId: string;requestId: string;data: BodyType<CommunityWithdrawalDecisionInput>}
+
+    /**
+ * @summary Approve or reject a community revenue withdrawal
+ */
+export const useDecideCommunityWithdrawal = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideCommunityWithdrawal>>, TError,DecideCommunityWithdrawalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof decideCommunityWithdrawal>>,
+        TError,
+        DecideCommunityWithdrawalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDecideCommunityWithdrawalMutationOptions(options));
+    }
+

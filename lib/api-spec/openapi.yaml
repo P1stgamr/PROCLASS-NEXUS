@@ -12,7 +12,50 @@ tags:
     description: Health operations
   - name: notifications
     description: In-app and browser push notifications
+  - name: community-courses
+    description: Community course publishing, purchases, and owner revenue
+  - name: exam-sessions
+    description: Timed exam session state used to restrict AI access
 paths:
+  /exam-sessions/current:
+    put:
+      operationId: startExamSession
+      tags: [exam-sessions]
+      summary: Register the authenticated user's active timed exam
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExamSessionInput"
+      responses:
+        "200":
+          description: Active exam session registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamSessionResult"
+        "400":
+          description: Invalid exam session details
+        "401":
+          description: Firebase authentication is required
+    delete:
+      operationId: endExamSession
+      tags: [exam-sessions]
+      summary: Clear the authenticated user's active exam session
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Active exam session cleared
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExamSessionResult"
+        "401":
+          description: Firebase authentication is required
   /healthz:
     get:
       operationId: healthCheck
@@ -92,6 +135,278 @@ paths:
                 $ref: "#/components/schemas/NotificationActionResult"
         "401":
           description: Firebase authentication is required
+  /community/courses:
+    post:
+      operationId: createCommunityCourse
+      tags: [community-courses]
+      summary: Create a course owned by the authenticated community owner
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityCourseInput"
+      responses:
+        "201":
+          description: Course created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityCourseResult"
+        "400":
+          description: Invalid course details
+        "401":
+          description: Firebase authentication is required
+        "403":
+          description: An active community owner account is required
+  /community/courses/{courseId}:
+    patch:
+      operationId: updateCommunityCourse
+      tags: [community-courses]
+      summary: Update a course owned by the authenticated community owner
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityCourseInput"
+      responses:
+        "200":
+          description: Course updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityCourseResult"
+        "400":
+          description: Invalid course details
+        "401":
+          description: Firebase authentication is required
+        "403":
+          description: The course is not owned by the authenticated community owner
+        "404":
+          description: Course not found
+  /community/courses/{courseId}/content:
+    get:
+      operationId: getCommunityCourseContent
+      tags: [community-courses]
+      summary: Read lessons after enrollment or as the course owner
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Course modules and lessons
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityCourseContentResult"
+        "401":
+          description: Firebase authentication is required
+        "403":
+          description: Enrollment is required
+        "404":
+          description: Course not found
+  /community/courses/{courseId}/enroll:
+    post:
+      operationId: enrollInFreeCommunityCourse
+      tags: [community-courses]
+      summary: Enroll in a free community course
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Enrollment confirmed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityCourseEnrollmentResult"
+        "401":
+          description: Firebase authentication is required
+        "404":
+          description: Course not found
+        "409":
+          description: Course requires payment or is not published
+  /community/courses/{courseId}/purchase-requests:
+    post:
+      operationId: createCommunityCoursePurchaseRequest
+      tags: [community-courses]
+      summary: Submit a bKash payment request for a community course
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityCoursePurchaseInput"
+      responses:
+        "201":
+          description: Payment request submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityCoursePurchaseResult"
+        "400":
+          description: Invalid payment details
+        "401":
+          description: Firebase authentication is required
+        "404":
+          description: Course is unavailable
+        "409":
+          description: A request or enrollment already exists
+  /admin/course-payment-requests/{requestId}:
+    patch:
+      operationId: decideCommunityCoursePayment
+      tags: [community-courses]
+      summary: Approve or reject a community course payment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityCoursePaymentDecisionInput"
+      responses:
+        "200":
+          description: Payment decision applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityCoursePaymentResult"
+        "401":
+          description: Firebase authentication is required
+        "403":
+          description: Admin access is required
+        "404":
+          description: Payment request not found
+        "409":
+          description: Payment request has already been processed
+  /community/withdrawals:
+    post:
+      operationId: requestCommunityWithdrawal
+      tags: [community-courses]
+      summary: Request a withdrawal from a community revenue source
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityWithdrawalInput"
+      responses:
+        "201":
+          description: Withdrawal request created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityWithdrawalResult"
+        "400":
+          description: Invalid withdrawal details
+        "401":
+          description: Firebase authentication is required
+        "403":
+          description: An active community owner account is required
+        "409":
+          description: Insufficient available balance
+  /community/revenue:
+    get:
+      operationId: getCommunityRevenue
+      tags: [community-courses]
+      summary: Read the authenticated community owner's course-sales balance
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Community course-sales summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityRevenueResult"
+        "401":
+          description: Firebase authentication is required
+        "403":
+          description: An active community owner account is required
+  /admin/community-withdrawals/{communityId}/{requestId}:
+    patch:
+      operationId: decideCommunityWithdrawal
+      tags: [community-courses]
+      summary: Approve or reject a community revenue withdrawal
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: communityId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommunityWithdrawalDecisionInput"
+      responses:
+        "200":
+          description: Withdrawal decision applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityWithdrawalResult"
+        "401":
+          description: Firebase authentication is required
+        "403":
+          description: Admin access is required
+        "404":
+          description: Withdrawal request not found
+        "409":
+          description: Withdrawal request has already been processed
 components:
   securitySchemes:
     bearerAuth:
@@ -106,6 +421,27 @@ components:
           type: string
       required:
         - status
+    ExamSessionInput:
+      type: object
+      required: [examId, expiresAt, returnPath]
+      properties:
+        examId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        expiresAt:
+          type: number
+          minimum: 1
+        returnPath:
+          type: string
+          minLength: 1
+          maxLength: 512
+    ExamSessionResult:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
     NotificationSendInput:
       type: object
       required: [recipients, type, message]
@@ -160,4 +496,234 @@ components:
       properties:
         ok:
           type: boolean
+    CommunityCourseQuestionInput:
+      type: object
+      required: [question, options, correctAnswer]
+      properties:
+        question:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        options:
+          type: array
+          minItems: 2
+          maxItems: 8
+          items:
+            type: string
+            maxLength: 500
+        correctAnswer:
+          type: number
+          multipleOf: 1
+          minimum: 0
+        explanation:
+          type: string
+          maxLength: 2000
+    CommunityCourseFlashcardInput:
+      type: object
+      required: [front, back]
+      properties:
+        front:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        back:
+          type: string
+          minLength: 1
+          maxLength: 4000
+    CommunityCourseLessonInput:
+      type: object
+      required: [title, type]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        type:
+          type: string
+          enum: [video, pdf, quiz, flashcard, text]
+        content:
+          type: string
+          maxLength: 20000
+        videoUrl:
+          type: string
+          maxLength: 2048
+        pdfUrl:
+          type: string
+          maxLength: 2048
+        duration:
+          type: number
+          multipleOf: 1
+          minimum: 0
+          maximum: 10000
+        quizQuestions:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/CommunityCourseQuestionInput"
+        flashcards:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/CommunityCourseFlashcardInput"
+    CommunityCourseModuleInput:
+      type: object
+      required: [title, lessons]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        lessons:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/CommunityCourseLessonInput"
+    CommunityCourseInput:
+      type: object
+      required: [title, description, instructor, type, price, tag, grade, duration, thumbnail, modules]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        description:
+          type: string
+          maxLength: 5000
+        instructor:
+          type: string
+          maxLength: 160
+        type:
+          type: string
+          enum: [free, premium]
+        price:
+          type: number
+          minimum: 0
+          maximum: 1000000
+        tag:
+          type: string
+          maxLength: 80
+        grade:
+          type: string
+          maxLength: 40
+        duration:
+          type: string
+          maxLength: 80
+        thumbnail:
+          type: ["string", "null"]
+          maxLength: 2048
+        modules:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/CommunityCourseModuleInput"
+    CommunityCourseResult:
+      type: object
+      required: [id, status, approvalRequired]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [published, pending]
+        approvalRequired:
+          type: boolean
+    CommunityCourseContentResult:
+      type: object
+      required: [modules]
+      properties:
+        modules:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommunityCourseModuleInput"
+    CommunityCourseEnrollmentResult:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [enrolled]
+    CommunityCoursePurchaseInput:
+      type: object
+      required: [bkashNumber, transactionId]
+      properties:
+        bkashNumber:
+          type: string
+          minLength: 8
+          maxLength: 24
+        transactionId:
+          type: string
+          minLength: 4
+          maxLength: 128
+    CommunityCoursePurchaseResult:
+      type: object
+      required: [id, status]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [pending]
+    CommunityCoursePaymentDecisionInput:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [approve, reject]
+    CommunityCoursePaymentResult:
+      type: object
+      required: [id, status]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [approved, rejected]
+    CommunityWithdrawalInput:
+      type: object
+      required: [revenueSource, amount, bkashNumber]
+      properties:
+        revenueSource:
+          type: string
+          enum: [commission, course]
+        amount:
+          type: number
+          multipleOf: 1
+          minimum: 100
+          maximum: 1000000
+        bkashNumber:
+          type: string
+          minLength: 8
+          maxLength: 24
+    CommunityWithdrawalDecisionInput:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [approve, reject]
+    CommunityRevenueResult:
+      type: object
+      required: [balance, totalEarned]
+      properties:
+        balance:
+          type: number
+          minimum: 0
+        totalEarned:
+          type: number
+          minimum: 0
+    CommunityWithdrawalResult:
+      type: object
+      required: [id, status, revenueSource]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+        revenueSource:
+          type: string
+          enum: [commission, course]
 

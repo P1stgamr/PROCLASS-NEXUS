@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -29,6 +29,7 @@ import AIAssistantPage from "@/pages/AIAssistantPage";
 import CommunityPage from "@/pages/CommunityPage";
 import GiftsPage from "@/pages/GiftsPage";
 import CoursesPage from "@/pages/CoursesPage";
+import CourseDetailPage from "@/pages/CourseDetailPage";
 import MembershipPage from "@/pages/MembershipPage";
 import ProgrammingPage from "@/pages/ProgrammingPage";
 import ModelTestPage from "@/pages/ModelTestPage";
@@ -38,8 +39,35 @@ import ProfileSetupPage from "@/pages/ProfileSetupPage";
 import { FloatingAIButton } from "@/components/FloatingAIButton";
 import { NotificationPushListener } from "@/components/NotificationPushListener";
 import NotFound from "@/pages/not-found";
+import { getExamReturnPath, useExamMode } from "@/lib/examMode";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
+
+function ExamRestrictedAIRoute() {
+  const activeExam = useExamMode();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!activeExam) return;
+    const message = "পরীক্ষা চলাকালীন AI Assistant ব্যবহার করা যাবে না";
+    toast({ title: message, variant: "destructive" });
+    setLocation(getExamReturnPath(activeExam));
+  }, [activeExam?.examId, activeExam?.expiresAt, activeExam?.returnPath, setLocation, toast]);
+
+  if (activeExam) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-6 text-center">
+        <p className="glass-card rounded-2xl p-6 text-sm font-semibold text-yellow-300">
+          পরীক্ষা চলাকালীন AI Assistant ব্যবহার করা যাবে না
+        </p>
+      </div>
+    );
+  }
+  return <ProtectedRoute studentOnly><AIAssistantPage /></ProtectedRoute>;
+}
 
 function Router() {
   return (
@@ -116,13 +144,19 @@ function Router() {
           <ProtectedRoute requireAdmin><AdminPage /></ProtectedRoute>
         </Route>
         <Route path="/ai">
-          <ProtectedRoute studentOnly><AIAssistantPage /></ProtectedRoute>
+          <ExamRestrictedAIRoute />
+        </Route>
+        <Route path="/ai-assistant">
+          <ExamRestrictedAIRoute />
         </Route>
         <Route path="/gifts">
           <ProtectedRoute studentOnly><GiftsPage /></ProtectedRoute>
         </Route>
         <Route path="/courses">
           <ProtectedRoute studentOnly><CoursesPage /></ProtectedRoute>
+        </Route>
+        <Route path="/courses/:courseId">
+          {(params) => <ProtectedRoute studentOnly><CourseDetailPage /></ProtectedRoute>}
         </Route>
         <Route path="/community">
           <ProtectedRoute><CommunityPage /></ProtectedRoute>

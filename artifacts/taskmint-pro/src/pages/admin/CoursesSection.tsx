@@ -82,6 +82,25 @@ export default function CoursesSection({ courses }: { courses: any[] }) {
     toast({ title: "Course deleted." });
   };
 
+  const changeCommunityCourseVisibility = async (course: any) => {
+    if (!currentUser || course.sellerType !== "community") return;
+    const status = course.status === "published" ? "unpublished" : "published";
+    await update(ref(db, `courses/${course.id}`), {
+      status,
+      reviewedAt: Date.now(),
+      reviewedBy: currentUser.uid,
+      updatedAt: Date.now(),
+    });
+    await logAdminAction(
+      currentUser.uid,
+      userProfile?.name || "Admin",
+      "course.edit",
+      course.id,
+      { title: course.title, communityId: course.communityId },
+    );
+    toast({ title: status === "published" ? "Community course published" : "Community course unpublished" });
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-start justify-between">
@@ -176,12 +195,14 @@ export default function CoursesSection({ courses }: { courses: any[] }) {
                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                   <Badge className={`text-[9px] px-1.5 py-0 ${c.type === "premium" ? "bg-yellow-500/15 text-yellow-400" : "bg-green-500/15 text-green-400"}`}>{c.type}</Badge>
                   {c.type === "premium" && <span className="text-[10px] text-muted-foreground">৳{c.price}</span>}
+                  {c.sellerType === "community" && <Badge className="text-[9px] px-1.5 py-0 bg-violet-500/15 text-violet-300">Community · {c.status || "published"}</Badge>}
                   {c.instructor && <span className="text-[10px] text-muted-foreground">{c.instructor}</span>}
                   <span className="text-[10px] text-muted-foreground">{c.lessons} lessons</span>
                   {c.students > 0 && <span className="text-[10px] text-muted-foreground">{c.students} enrolled</span>}
                 </div>
               </div>
               <div className="flex gap-1.5 shrink-0">
+                {c.sellerType === "community" && <button onClick={() => changeCommunityCourseVisibility(c)} className="px-2 py-1.5 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-300 text-[10px] transition-colors">{c.status === "published" ? "Unpublish" : "Publish"}</button>}
                 <button onClick={() => startEdit(c)} className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
                 <button onClick={() => deleteCourse(c.id, c.title)} className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
               </div>

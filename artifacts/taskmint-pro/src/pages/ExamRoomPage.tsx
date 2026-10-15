@@ -47,18 +47,26 @@ export default function ExamRoomPage() {
 
   useEffect(() => {
     if (isTeacher) return;
-    startExamMode(examId);
+    startExamMode(examId, 3 * 60 * 60 * 1000, `/exam-room/${encodeURIComponent(examId)}`);
     const dbRef = ref(db, `premiumExams/${examId}`);
     const unsub = onValue(dbRef, (snap) => {
       const data = snap.val();
       if (data) {
-        startExamMode(examId, Math.max(60, Number(data.duration || 180)) * 60 * 1000);
+        startExamMode(
+          examId,
+          Math.max(60, Number(data.duration || 180)) * 60 * 1000,
+          `/exam-room/${encodeURIComponent(examId)}`,
+        );
         setExamData(data);
         setExamTitle(data.title);
         setTimeLeft(data.duration * 60);
          if (data.questions) setQuestions(Object.entries(data.questions).map(([id, value]: [string, any]) => ({ id, ...value })));
-       }
+       } else {
+        endExamMode(examId);
+        setExamEnded(true);
+      }
     }, () => {
+      endExamMode(examId);
       toast({ title: "Exam could not be loaded", description: "Please return to the exam list and try again.", variant: "destructive" });
       setExamEnded(true);
     });
@@ -116,14 +124,17 @@ export default function ExamRoomPage() {
 
   const handleSubmitExam = async () => {
     if (timerRef.current) clearInterval(timerRef.current);
-    endExamMode(examId);
     let total = 0;
     questions.forEach((q) => {
       if (answers[q.id] === q.correct) total += q.points;
     });
     setScore(total);
 
-    if (!currentUser) { setExamEnded(true); return; }
+    if (!currentUser) {
+      endExamMode(examId);
+      setExamEnded(true);
+      return;
+    }
 
     try {
       await set(ref(db, `examResults/${examId}/${currentUser.uid}`), {
@@ -149,6 +160,7 @@ export default function ExamRoomPage() {
         setMyPrize(getRankPrize(rank, totalPool));
       }
     } catch {}
+    endExamMode(examId);
     setExamEnded(true);
   };
 

@@ -26,6 +26,7 @@ interface PlatformSettings {
   supportEmail: string;
   announcementBanner: string;
   announcementEnabled: boolean;
+  requireApprovalCommunityCourses: boolean;
 }
 
 const defaultCooldown: WithdrawalCooldown = {
@@ -48,6 +49,7 @@ const defaults: PlatformSettings = {
   supportEmail: "",
   announcementBanner: "",
   announcementEnabled: false,
+  requireApprovalCommunityCourses: true,
 };
 
 export default function SettingsSection() {
@@ -174,6 +176,18 @@ export default function SettingsSection() {
         </div>
         <ToggleRow label="Maintenance Mode" desc="Blocks all user access (admin bypass)" settingKey="maintenanceMode" />
         <ToggleRow label="Open Registration" desc="Allow new users to sign up" settingKey="registrationOpen" />
+      </div>
+
+      <div className={CARD + " space-y-4"}>
+        <div className="flex items-center gap-2">
+          <LockKeyhole className="w-4 h-4 text-amber-400" />
+          <h3 className="font-bold text-sm">Community courses</h3>
+        </div>
+        <ToggleRow
+          label="Require approval for community-created courses"
+          desc="New courses and owner edits stay hidden until an admin publishes them."
+          settingKey="requireApprovalCommunityCourses"
+        />
       </div>
 
       {/* AI settings */}

@@ -9,6 +9,25 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface ExamSessionInput {
+  /**
+     * @minLength 1
+     * @maxLength 128
+     */
+  examId: string;
+  /** @minimum 1 */
+  expiresAt: number;
+  /**
+     * @minLength 1
+     * @maxLength 512
+     */
+  returnPath: string;
+}
+
+export interface ExamSessionResult {
+  ok: boolean;
+}
+
 export type NotificationSendInputType = typeof NotificationSendInputType[keyof typeof NotificationSendInputType];
 
 
@@ -60,3 +79,268 @@ export interface PushTokenInput {
 export interface NotificationActionResult {
   ok: boolean;
 }
+
+export interface CommunityCourseQuestionInput {
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  question: string;
+  /**
+     * @minItems 2
+     * @maxItems 8
+     * @items.maxLength 500
+     */
+  options: string[];
+  /** @minimum 0 */
+  correctAnswer: number;
+  /** @maxLength 2000 */
+  explanation?: string;
+}
+
+export interface CommunityCourseFlashcardInput {
+  /**
+     * @minLength 1
+     * @maxLength 2000
+     */
+  front: string;
+  /**
+     * @minLength 1
+     * @maxLength 4000
+     */
+  back: string;
+}
+
+export type CommunityCourseLessonInputType = typeof CommunityCourseLessonInputType[keyof typeof CommunityCourseLessonInputType];
+
+
+export const CommunityCourseLessonInputType = {
+  video: 'video',
+  pdf: 'pdf',
+  quiz: 'quiz',
+  flashcard: 'flashcard',
+  text: 'text',
+} as const;
+
+export interface CommunityCourseLessonInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title: string;
+  type: CommunityCourseLessonInputType;
+  /** @maxLength 20000 */
+  content?: string;
+  /** @maxLength 2048 */
+  videoUrl?: string;
+  /** @maxLength 2048 */
+  pdfUrl?: string;
+  /**
+     * @minimum 0
+     * @maximum 10000
+     */
+  duration?: number;
+  /** @maxItems 100 */
+  quizQuestions?: CommunityCourseQuestionInput[];
+  /** @maxItems 100 */
+  flashcards?: CommunityCourseFlashcardInput[];
+}
+
+export interface CommunityCourseModuleInput {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  title: string;
+  /**
+     * @minItems 1
+     * @maxItems 100
+     */
+  lessons: CommunityCourseLessonInput[];
+}
+
+export type CommunityCourseInputType = typeof CommunityCourseInputType[keyof typeof CommunityCourseInputType];
+
+
+export const CommunityCourseInputType = {
+  free: 'free',
+  premium: 'premium',
+} as const;
+
+export interface CommunityCourseInput {
+  /**
+     * @minLength 1
+     * @maxLength 160
+     */
+  title: string;
+  /** @maxLength 5000 */
+  description: string;
+  /** @maxLength 160 */
+  instructor: string;
+  type: CommunityCourseInputType;
+  /**
+     * @minimum 0
+     * @maximum 1000000
+     */
+  price: number;
+  /** @maxLength 80 */
+  tag: string;
+  /** @maxLength 40 */
+  grade: string;
+  /** @maxLength 80 */
+  duration: string;
+  /**
+     * @maxLength 2048
+     * @nullable
+     */
+  thumbnail: string | null;
+  /**
+     * @minItems 1
+     * @maxItems 50
+     */
+  modules: CommunityCourseModuleInput[];
+}
+
+export type CommunityCourseResultStatus = typeof CommunityCourseResultStatus[keyof typeof CommunityCourseResultStatus];
+
+
+export const CommunityCourseResultStatus = {
+  published: 'published',
+  pending: 'pending',
+} as const;
+
+export interface CommunityCourseResult {
+  id: string;
+  status: CommunityCourseResultStatus;
+  approvalRequired: boolean;
+}
+
+export interface CommunityCourseContentResult {
+  modules: CommunityCourseModuleInput[];
+}
+
+export type CommunityCourseEnrollmentResultStatus = typeof CommunityCourseEnrollmentResultStatus[keyof typeof CommunityCourseEnrollmentResultStatus];
+
+
+export const CommunityCourseEnrollmentResultStatus = {
+  enrolled: 'enrolled',
+} as const;
+
+export interface CommunityCourseEnrollmentResult {
+  status: CommunityCourseEnrollmentResultStatus;
+}
+
+export interface CommunityCoursePurchaseInput {
+  /**
+     * @minLength 8
+     * @maxLength 24
+     */
+  bkashNumber: string;
+  /**
+     * @minLength 4
+     * @maxLength 128
+     */
+  transactionId: string;
+}
+
+export type CommunityCoursePurchaseResultStatus = typeof CommunityCoursePurchaseResultStatus[keyof typeof CommunityCoursePurchaseResultStatus];
+
+
+export const CommunityCoursePurchaseResultStatus = {
+  pending: 'pending',
+} as const;
+
+export interface CommunityCoursePurchaseResult {
+  id: string;
+  status: CommunityCoursePurchaseResultStatus;
+}
+
+export type CommunityCoursePaymentDecisionInputAction = typeof CommunityCoursePaymentDecisionInputAction[keyof typeof CommunityCoursePaymentDecisionInputAction];
+
+
+export const CommunityCoursePaymentDecisionInputAction = {
+  approve: 'approve',
+  reject: 'reject',
+} as const;
+
+export interface CommunityCoursePaymentDecisionInput {
+  action: CommunityCoursePaymentDecisionInputAction;
+}
+
+export type CommunityCoursePaymentResultStatus = typeof CommunityCoursePaymentResultStatus[keyof typeof CommunityCoursePaymentResultStatus];
+
+
+export const CommunityCoursePaymentResultStatus = {
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export interface CommunityCoursePaymentResult {
+  id: string;
+  status: CommunityCoursePaymentResultStatus;
+}
+
+export type CommunityWithdrawalInputRevenueSource = typeof CommunityWithdrawalInputRevenueSource[keyof typeof CommunityWithdrawalInputRevenueSource];
+
+
+export const CommunityWithdrawalInputRevenueSource = {
+  commission: 'commission',
+  course: 'course',
+} as const;
+
+export interface CommunityWithdrawalInput {
+  revenueSource: CommunityWithdrawalInputRevenueSource;
+  /**
+     * @minimum 100
+     * @maximum 1000000
+     */
+  amount: number;
+  /**
+     * @minLength 8
+     * @maxLength 24
+     */
+  bkashNumber: string;
+}
+
+export type CommunityWithdrawalDecisionInputAction = typeof CommunityWithdrawalDecisionInputAction[keyof typeof CommunityWithdrawalDecisionInputAction];
+
+
+export const CommunityWithdrawalDecisionInputAction = {
+  approve: 'approve',
+  reject: 'reject',
+} as const;
+
+export interface CommunityWithdrawalDecisionInput {
+  action: CommunityWithdrawalDecisionInputAction;
+}
+
+export interface CommunityRevenueResult {
+  /** @minimum 0 */
+  balance: number;
+  /** @minimum 0 */
+  totalEarned: number;
+}
+
+export type CommunityWithdrawalResultStatus = typeof CommunityWithdrawalResultStatus[keyof typeof CommunityWithdrawalResultStatus];
+
+
+export const CommunityWithdrawalResultStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export type CommunityWithdrawalResultRevenueSource = typeof CommunityWithdrawalResultRevenueSource[keyof typeof CommunityWithdrawalResultRevenueSource];
+
+
+export const CommunityWithdrawalResultRevenueSource = {
+  commission: 'commission',
+  course: 'course',
+} as const;
+
+export interface CommunityWithdrawalResult {
+  id: string;
+  status: CommunityWithdrawalResultStatus;
+  revenueSource: CommunityWithdrawalResultRevenueSource;
+}
+
