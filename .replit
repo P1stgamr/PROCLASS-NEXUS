@@ -36,3 +36,8 @@ externalPort = 80
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+VITE_FIREBASE_VAPID_KEY = "BI6gP-uKqoCuIJnSz_tDczFLUZoz_T2jUS1Uxg8gvoRzvHGpN0nz_lZrCRuEQ6gYUJvnQr_YREWeUCuNVHc0Fys"
