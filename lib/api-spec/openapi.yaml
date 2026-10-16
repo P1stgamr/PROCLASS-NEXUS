@@ -196,6 +196,33 @@ paths:
           description: The course is not owned by the authenticated community owner
         "404":
           description: Course not found
+  /community/courses/{courseId}/access:
+    get:
+      operationId: getCommunityCourseAccess
+      tags: [community-courses]
+      summary: Check whether the authenticated student is enrolled or has a pending purchase
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Enrollment and pending purchase state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityCourseAccessResult"
+        "401":
+          description: Firebase authentication is required
+        "403":
+          description: Student or course owner access is required
+        "404":
+          description: Course not found or not available
   /community/courses/{courseId}/content:
     get:
       operationId: getCommunityCourseContent
@@ -637,6 +664,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CommunityCourseModuleInput"
+    CommunityCourseAccessResult:
+      type: object
+      required: [enrolled, purchasePending]
+      properties:
+        enrolled:
+          type: boolean
+        purchasePending:
+          type: boolean
     CommunityCourseEnrollmentResult:
       type: object
       required: [status]
@@ -706,12 +741,32 @@ components:
           enum: [approve, reject]
     CommunityRevenueResult:
       type: object
-      required: [balance, totalEarned]
+      required: [balance, totalEarned, sales]
       properties:
         balance:
           type: number
           minimum: 0
         totalEarned:
+          type: number
+          minimum: 0
+        sales:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommunityCourseSaleLineItem"
+    CommunityCourseSaleLineItem:
+      type: object
+      required: [id, courseId, courseTitle, amount, createdAt]
+      properties:
+        id:
+          type: string
+        courseId:
+          type: string
+        courseTitle:
+          type: string
+        amount:
+          type: number
+          minimum: 0
+        createdAt:
           type: number
           minimum: 0
     CommunityWithdrawalResult:

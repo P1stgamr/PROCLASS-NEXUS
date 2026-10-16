@@ -8,6 +8,7 @@ import {
   DecideCommunityCoursePaymentResponse,
   DecideCommunityWithdrawalBody,
   DecideCommunityWithdrawalResponse,
+  GetCommunityCourseAccessResponse,
   EnrollInFreeCommunityCourseResponse,
   GetCommunityCourseContentResponse,
   GetCommunityRevenueResponse,
@@ -69,7 +70,7 @@ function validateCourseInput(data: ReturnType<typeof CreateCommunityCourseBody.p
 function courseFields(
   data: ReturnType<typeof CreateCommunityCourseBody.parse>,
   ownerUid: string,
-  communityId: string,
+  community: Record<string, any> & { id: string },
   status: "pending" | "published",
 ) {
   const lessonCount = data.modules.reduce((total, module) => total + module.lessons.length, 0);
@@ -87,11 +88,19 @@ function courseFields(
     moduleCount: data.modules.length,
     thumbnail: data.thumbnail,
     ownerUid,
-    communityId,
+    communityId: community.id,
+    communityName: String(community.name || "Community academy"),
+    communityLogo: community.logo || null,
     sellerType: "community",
     status,
     updatedAt: Date.now(),
   };
+}
+
+function hasCourseEnrollment(value: any) {
+  return value?.status === "enrolled" ||
+    value?.paymentStatus === "free" ||
+    value?.paymentStatus === "approved";
 }
 
 async function countCourseEnrollment(courseId: string, uid: string) {
@@ -149,7 +158,7 @@ router.post(
     }
 
     const course = {
-      ...courseFields(parsed.data, req.firebaseUser!.uid, community.id, status),
+      ...courseFields(parsed.data, req.firebaseUser!.uid, community, status),
       students: 0,
       rating: 5,
       createdAt: Date.now(),
@@ -213,7 +222,7 @@ router.patch(
       ? approvalSnapshot.val() === true
       : true;
     const status = approvalRequired ? "pending" : "published";
-    const fields = courseFields(parsed.data, req.firebaseUser!.uid, community.id, status);
+    const fields = courseFields(parsed.data, req.firebaseUser!.uid, community, status);
     await adminDb.ref().update({
       [`courses/${courseId}`]: { ...course, ...fields },
       [`communityCourseContents/${courseId}`]: {
@@ -223,6 +232,58 @@ router.patch(
       },
     });
     res.json(UpdateCommunityCourseResponse.parse({ id: courseId, status, approvalRequired }));
+  },
+);
+
+router.get(
+  "/community/courses/:courseId/access",
+  requireFirebaseAuth,
+  async (req: AuthenticatedRequest, res): Promise<void> => {
+    const courseId = param(req.params.courseId);
+    if (!courseId || !isValidCourseId(courseId)) {
+      res.status(400).json({ error: "Invalid course ID" });
+      return;
+    }
+    const uid = req.firebaseUser!.uid;
+    const [courseSnapshot, enrollmentSnapshot, profile, adminAccess] = await Promise.all([
+      adminDb.ref(`courses/${courseId}`).get(),
+      adminDb.ref(`courseEnrollments/${courseId}/${uid}`).get(),
+      getProfile(uid),
+      hasAdminAccess(uid),
+    ]);
+    const course = courseSnapshot.val();
+    if (!course || course.sellerType !== "community") {
+      res.status(404).json({ error: "Course not found" });
+      return;
+    }
+    const isOwner = course.ownerUid === uid;
+    if (course.status !== "published" && !isOwner && !adminAccess) {
+      res.status(404).json({ error: "Course is not available" });
+      return;
+    }
+    if (!isOwner && !adminAccess && String(profile?.role || "") !== "student") {
+      res.status(403).json({ error: "Student access is required" });
+      return;
+    }
+
+    const enrolled = hasCourseEnrollment(enrollmentSnapshot.val());
+    let purchasePending = false;
+    if (!enrolled && !isOwner && !adminAccess) {
+      const paymentSnapshot = await adminDb
+        .ref("paymentRequests")
+        .orderByChild("uid")
+        .equalTo(uid)
+        .get();
+      const requests = paymentSnapshot.val() as Record<string, any> | null;
+      purchasePending = Object.values(requests || {}).some(
+        (request) =>
+          request?.courseId === courseId &&
+          request?.type === "course" &&
+          request?.sellerType === "community" &&
+          request?.status === "pending",
+      );
+    }
+    res.json(GetCommunityCourseAccessResponse.parse({ enrolled, purchasePending }));
   },
 );
 
@@ -250,7 +311,7 @@ router.get(
       res.status(404).json({ error: "Course is not available" });
       return;
     }
-    if (!isOwner && !adminAccess && !enrollmentSnapshot.exists()) {
+    if (!isOwner && !adminAccess && !hasCourseEnrollment(enrollmentSnapshot.val())) {
       res.status(403).json({ error: "Enrollment is required" });
       return;
     }
@@ -294,6 +355,7 @@ router.post(
       uid: req.firebaseUser!.uid,
       courseId,
       communityId: course.communityId,
+      status: "enrolled",
       paymentStatus: "free",
       enrolledAt: Date.now(),
     });
@@ -444,6 +506,7 @@ router.patch(
           [requestId]: {
             amount,
             courseId: request.courseId,
+            courseTitle: String(request.courseTitle || course.title || "Community course"),
             createdAt: timestamp,
           },
         },
@@ -459,6 +522,7 @@ router.patch(
       uid: request.uid,
       courseId: request.courseId,
       communityId: request.communityId,
+      status: "enrolled",
       paymentStatus: "approved",
       paymentRequestId: requestId,
       paidAmount: amount,
@@ -486,9 +550,21 @@ router.get(
     }
     const snapshot = await adminDb.ref(`communityCourseRevenue/${community.id}`).get();
     const revenue = snapshot.val() || {};
+    const sales = Object.entries(revenue.credits || {})
+      .map(([id, value]: [string, any]) => ({
+        id,
+        courseId: String(value?.courseId || ""),
+        courseTitle: String(value?.courseTitle || "Community course"),
+        amount: Number(value?.amount || 0),
+        createdAt: Number(value?.createdAt || 0),
+      }))
+      .filter((item) => item.courseId && item.amount > 0)
+      .sort((left, right) => right.createdAt - left.createdAt)
+      .slice(0, 20);
     res.json(GetCommunityRevenueResponse.parse({
       balance: Number(revenue.availableBalance || 0),
       totalEarned: Number(revenue.totalEarned || 0),
+      sales,
     }));
   },
 );

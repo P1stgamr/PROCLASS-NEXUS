@@ -9,10 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { GlowButton } from "@/components/GlowButton";
 import { useToast } from "@/hooks/use-toast";
+import { BKASH_NUMBER } from "@/lib/payments";
 import {
+  getGetCommunityCourseAccessQueryKey,
   getGetCommunityCourseContentQueryKey,
   useCreateCommunityCoursePurchaseRequest,
   useEnrollInFreeCommunityCourse,
+  useGetCommunityCourseAccess,
   useGetCommunityCourseContent,
 } from "@workspace/api-client-react";
 import type { CommunityCourseModuleInput } from "@workspace/api-client-react";
@@ -27,8 +30,6 @@ export default function CourseDetailPage() {
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [enrollment, setEnrollment] = useState<any>(null);
-  const [enrollmentLoading, setEnrollmentLoading] = useState(true);
   const [paymentForm, setPaymentForm] = useState({ transactionId: "", bkashNumber: "" });
   const [purchasePending, setPurchasePending] = useState(false);
   const [locallyEnrolled, setLocallyEnrolled] = useState(false);
@@ -50,27 +51,22 @@ export default function CourseDetailPage() {
   useEffect(() => {
     setLocallyEnrolled(false);
     setPurchasePending(false);
-    setEnrollment(null);
-    setEnrollmentLoading(true);
   }, [courseId]);
-
-  useEffect(() => {
-    if (!courseId || !currentUser?.uid || !isCommunityCourse(course)) {
-      setEnrollment(null);
-      setEnrollmentLoading(false);
-      return;
-    }
-    setEnrollmentLoading(true);
-    const enrollmentRef = ref(db, `courseEnrollments/${courseId}/${currentUser.uid}`);
-    const unsubscribe = onValue(enrollmentRef, (snapshot) => { setEnrollment(snapshot.val() || null); setEnrollmentLoading(false); }, () => { setEnrollment(null); setEnrollmentLoading(false); });
-    return () => { off(enrollmentRef); unsubscribe(); };
-  }, [courseId, currentUser?.uid, course]);
 
   const isCommunity = isCommunityCourse(course);
   const isPremiumMember = !!userProfile?.membership && userProfile.membership !== "free" &&
     (!userProfile.membershipExpiry || userProfile.membershipExpiry > Date.now());
   const isOwner = !!currentUser?.uid && (course?.ownerUid === currentUser.uid || course?.communityOwnerUid === currentUser.uid);
-  const enrolled = locallyEnrolled || enrollment?.status === "enrolled" || enrollment === "enrolled";
+  const accessQuery = useGetCommunityCourseAccess(courseId, {
+    query: {
+      enabled: Boolean(courseId && currentUser?.uid && isCommunity && !isOwner),
+      queryKey: getGetCommunityCourseAccessQueryKey(courseId),
+      refetchInterval: (query) => query.state.data?.purchasePending ? 8_000 : false,
+    },
+  });
+  const enrolled = locallyEnrolled || accessQuery.data?.enrolled === true;
+  const hasPendingPurchase = purchasePending || accessQuery.data?.purchasePending === true;
+  const enrollmentLoading = isCommunity && !!currentUser?.uid && !isOwner && accessQuery.isLoading;
   const canAccess = isCommunity && (enrolled || isOwner);
   const contentQuery = useGetCommunityCourseContent(courseId, {
     query: { enabled: canAccess, queryKey: getGetCommunityCourseContentQueryKey(courseId) },
@@ -80,6 +76,7 @@ export default function CourseDetailPage() {
     try {
       await freeEnroll.mutateAsync({ courseId });
       setLocallyEnrolled(true);
+      void accessQuery.refetch();
       toast({ title: "You're enrolled", description: "Course lessons are now unlocked." });
     } catch (error: any) {
       toast({ title: "Enrollment failed", description: error?.message || "Please try again.", variant: "destructive" });
@@ -91,6 +88,7 @@ export default function CourseDetailPage() {
     try {
       await purchase.mutateAsync({ courseId, data: { transactionId: paymentForm.transactionId.trim(), bkashNumber: paymentForm.bkashNumber.trim() } });
       setPurchasePending(true);
+      void accessQuery.refetch();
       setPaymentForm({ transactionId: "", bkashNumber: "" });
       toast({ title: "Payment submitted", description: "Your bKash payment is waiting for approval." });
     } catch (error: any) {
@@ -131,18 +129,18 @@ export default function CourseDetailPage() {
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
             {isCommunity ? <span className="flex items-center gap-2">{(course.communityLogo || course.community?.logo) && <img src={course.communityLogo || course.community.logo} alt="" className="w-7 h-7 rounded-full object-cover" />}<span><b className="block text-foreground">{communityName}</b>{course.instructor || "Course instructor"}</span></span> : <span className="flex items-center gap-1"><ShieldCheck className="w-4 h-4 text-primary" />Platform course</span>}
             {course.duration && <span className="flex items-center gap-1"><Clock3 className="w-3.5 h-3.5" />{course.duration}</span>}
-            {course.modules?.length > 0 && <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" />{course.modules.length} modules</span>}
+            {(course.moduleCount || course.modules?.length) > 0 && <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5" />{course.moduleCount || course.modules.length} modules</span>}
           </div>
           {isPendingApproval ? <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">This course is waiting for approval and is not open for enrollment yet.</div> :
             isCommunity && enrollmentLoading && !isOwner ? <div className="skeleton h-11 rounded-xl" /> :
             isCommunity && enrolled ? <div className="rounded-xl border border-green-400/20 bg-green-400/10 p-3 flex items-center gap-2 text-sm text-green-200" data-testid="status-enrolled"><CheckCircle2 className="w-4 h-4" />Already enrolled · lessons unlocked</div> :
             isCommunity && !isOwner ? isFree ? <GlowButton onClick={enrollFree} disabled={freeEnroll.isPending}>{freeEnroll.isPending ? "Enrolling…" : "Enroll free"}</GlowButton> :
               <form onSubmit={submitPayment} className="rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-3">
-                <div><h3 className="text-sm font-bold">Pay ৳{price} with bKash</h3><p className="text-xs text-muted-foreground">Send payment, then share the transaction details for approval.</p></div>
-                {purchasePending && <p className="text-xs text-amber-200">Payment request submitted · pending approval</p>}
+                 <div><h3 className="text-sm font-bold">Pay ৳{price} with bKash</h3><p className="text-xs text-muted-foreground">Send ৳{price} to <strong className="text-foreground">{BKASH_NUMBER}</strong>, then share your bKash number and transaction ID for approval.</p></div>
+                {hasPendingPurchase && <p className="text-xs text-amber-200">Payment request submitted · pending approval</p>}
                 <Input value={paymentForm.bkashNumber} onChange={(e) => setPaymentForm({ ...paymentForm, bkashNumber: e.target.value })} required minLength={8} maxLength={24} placeholder="Your bKash number" aria-label="bKash number" />
                 <Input value={paymentForm.transactionId} onChange={(e) => setPaymentForm({ ...paymentForm, transactionId: e.target.value })} required minLength={4} maxLength={128} placeholder="Transaction ID" aria-label="Transaction ID" />
-                <GlowButton type="submit" disabled={purchase.isPending}>{purchase.isPending ? "Submitting…" : purchasePending ? "Submit another request" : "Request enrollment"}</GlowButton>
+                <GlowButton type="submit" disabled={purchase.isPending || hasPendingPurchase}>{purchase.isPending ? "Submitting…" : hasPendingPurchase ? "Payment approval pending" : "Request enrollment"}</GlowButton>
               </form> :
             !isCommunity && course.type === "premium" && !isPremiumMember ? <div className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 flex items-center gap-3"><Lock className="w-5 h-5 text-amber-300" /><div className="flex-1 text-sm">Platform premium course · membership required.</div><button onClick={() => setLocation("/membership")} className="text-xs text-amber-200">View plans</button></div> : null}
         </div>

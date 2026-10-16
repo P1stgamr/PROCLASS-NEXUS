@@ -1,10 +1,14 @@
-import { isExamModeActive } from "@/lib/examMode";
+import { isExamModeActive, waitForExamModeSync } from "@/lib/examMode";
 import { auth } from "@/firebase";
 
 export async function* streamGemini(
   history: Array<{ role: "user" | "assistant"; content: string }>,
   userText: string
 ): AsyncGenerator<string> {
+  if (isExamModeActive()) {
+    throw new Error("পরীক্ষা চলাকালীন AI Assistant ব্যবহার করা যাবে না");
+  }
+  await waitForExamModeSync();
   if (isExamModeActive()) {
     throw new Error("পরীক্ষা চলাকালীন AI Assistant ব্যবহার করা যাবে না");
   }

@@ -219,6 +219,11 @@ export interface CommunityCourseContentResult {
   modules: CommunityCourseModuleInput[];
 }
 
+export interface CommunityCourseAccessResult {
+  enrolled: boolean;
+  purchasePending: boolean;
+}
+
 export type CommunityCourseEnrollmentResultStatus = typeof CommunityCourseEnrollmentResultStatus[keyof typeof CommunityCourseEnrollmentResultStatus];
 
 
@@ -314,11 +319,22 @@ export interface CommunityWithdrawalDecisionInput {
   action: CommunityWithdrawalDecisionInputAction;
 }
 
+export interface CommunityCourseSaleLineItem {
+  id: string;
+  courseId: string;
+  courseTitle: string;
+  /** @minimum 0 */
+  amount: number;
+  /** @minimum 0 */
+  createdAt: number;
+}
+
 export interface CommunityRevenueResult {
   /** @minimum 0 */
   balance: number;
   /** @minimum 0 */
   totalEarned: number;
+  sales: CommunityCourseSaleLineItem[];
 }
 
 export type CommunityWithdrawalResultStatus = typeof CommunityWithdrawalResultStatus[keyof typeof CommunityWithdrawalResultStatus];

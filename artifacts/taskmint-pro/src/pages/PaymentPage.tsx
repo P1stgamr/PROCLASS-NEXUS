@@ -9,8 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Copy, CheckCircle2, Clock, Shield, Smartphone } from "lucide-react";
-
-const BKASH_NUMBER = "01757098701";
+import { BKASH_NUMBER } from "@/lib/payments";
 
 const SAMPLE_EXAMS: Record<string, any> = {
   exam1: { title: "SSC Math Championship", entryFee: 20, prizePool: 500 },

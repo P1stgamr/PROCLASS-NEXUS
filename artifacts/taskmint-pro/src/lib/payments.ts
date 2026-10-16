@@ -1,0 +1,1 @@
+export const BKASH_NUMBER = "01757098701";

@@ -74,7 +74,7 @@ export default function ExamRoomPage() {
   }, [examId, isTeacher, toast]);
 
   useEffect(() => {
-    if (isTeacher) return;
+    if (isTeacher || !questions.length || examEnded) return;
     timerRef.current = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
@@ -86,7 +86,7 @@ export default function ExamRoomPage() {
       });
     }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [isTeacher]);
+  }, [isTeacher, questions.length, examEnded]);
 
   if (isTeacher) {
     return (

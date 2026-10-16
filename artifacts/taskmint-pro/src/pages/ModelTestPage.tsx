@@ -181,7 +181,9 @@ export default function ModelTestPage() {
       const selected = shuffle(available).slice(0, Math.min(Number(loadedConfig.questionCount) || 25, 100));
       if (!cancelled) {
         const durationSeconds = (Number(loadedConfig.durationMinutes || loadedConfig.duration) || 30) * 60;
-        startExamMode(testId, durationSeconds * 1000 + 2 * 60 * 1000, location);
+        if (selected.length > 0) {
+          startExamMode(testId, durationSeconds * 1000 + 2 * 60 * 1000, location);
+        }
         setConfig(loadedConfig);
         setQuestions(selected);
         setTimeLeft(durationSeconds);

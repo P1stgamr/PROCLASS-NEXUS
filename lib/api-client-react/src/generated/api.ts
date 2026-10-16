@@ -20,6 +20,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  CommunityCourseAccessResult,
   CommunityCourseContentResult,
   CommunityCourseEnrollmentResult,
   CommunityCourseInput,
@@ -694,6 +695,83 @@ export const useUpdateCommunityCourse = <TError = ErrorType<void>,
       > => {
       return useMutation(getUpdateCommunityCourseMutationOptions(options));
     }
+
+export const getGetCommunityCourseAccessUrl = (courseId: string,) => {
+
+
+
+
+  return `/api/community/courses/${courseId}/access`
+}
+
+/**
+ * @summary Check whether the authenticated student is enrolled or has a pending purchase
+ */
+export const getCommunityCourseAccess = async (courseId: string, options?: Parameters<typeof customFetch>[1]): Promise<CommunityCourseAccessResult> => {
+
+  return customFetch<CommunityCourseAccessResult>(getGetCommunityCourseAccessUrl(courseId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCommunityCourseAccessQueryKey = (courseId: string,) => {
+    return [
+    `/api/community/courses/${courseId}/access`
+    ] as const;
+    }
+
+
+export const getGetCommunityCourseAccessQueryOptions = <TData = Awaited<ReturnType<typeof getCommunityCourseAccess>>, TError = ErrorType<void>>(courseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCommunityCourseAccess>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCommunityCourseAccessQueryKey(courseId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCommunityCourseAccess>>> = ({ signal }) => getCommunityCourseAccess(courseId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: courseId !== null && courseId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCommunityCourseAccess>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCommunityCourseAccessQueryResult = NonNullable<Awaited<ReturnType<typeof getCommunityCourseAccess>>>
+export type GetCommunityCourseAccessQueryError = ErrorType<void>
+
+
+/**
+ * @summary Check whether the authenticated student is enrolled or has a pending purchase
+ */
+
+export function useGetCommunityCourseAccess<TData = Awaited<ReturnType<typeof getCommunityCourseAccess>>, TError = ErrorType<void>>(
+ courseId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCommunityCourseAccess>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCommunityCourseAccessQueryOptions(courseId,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetCommunityCourseContentUrl = (courseId: string,) => {
 

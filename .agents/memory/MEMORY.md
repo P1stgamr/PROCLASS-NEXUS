@@ -3,3 +3,4 @@
 - [Package firewall and stale locks](package-firewall-and-stale-locks.md) — an outdated pinned generator package blocked install; updating the direct dependency and lockfile restored installation.
 - [Firebase Admin workspace installation](firebase-admin-workspace-install.md) — add server auth dependencies to the API package, not the monorepo root, then restore the workspace install.
 - [Firebase rules settings key](firebase-rules-settings-key.md) — keep all settings branches under one JSON settings object; duplicate keys silently discard earlier rules when parsed.
+- [OpenAPI integer schemas](openapi-integer-schemas.md) — express integer-constrained values as `number` with `multipleOf: 1` to avoid unsupported generated Zod validators.

@@ -318,6 +318,22 @@ export const UpdateCommunityCourseResponse = zod.object({
 
 
 /**
+ * @summary Check whether the authenticated student is enrolled or has a pending purchase
+ */
+
+
+
+export const GetCommunityCourseAccessParams = zod.object({
+  "courseId": zod.coerce.string().min(1)
+})
+
+export const GetCommunityCourseAccessResponse = zod.object({
+  "enrolled": zod.boolean(),
+  "purchasePending": zod.boolean()
+})
+
+
+/**
  * @summary Read lessons after enrollment or as the course owner
  */
 
@@ -486,11 +502,22 @@ export const getCommunityRevenueResponseBalanceMin = 0;
 
 export const getCommunityRevenueResponseTotalEarnedMin = 0;
 
+export const getCommunityRevenueResponseSalesItemAmountMin = 0;
+
+export const getCommunityRevenueResponseSalesItemCreatedAtMin = 0;
+
 
 
 export const GetCommunityRevenueResponse = zod.object({
   "balance": zod.number().min(getCommunityRevenueResponseBalanceMin),
-  "totalEarned": zod.number().min(getCommunityRevenueResponseTotalEarnedMin)
+  "totalEarned": zod.number().min(getCommunityRevenueResponseTotalEarnedMin),
+  "sales": zod.array(zod.object({
+  "id": zod.string(),
+  "courseId": zod.string(),
+  "courseTitle": zod.string(),
+  "amount": zod.number().min(getCommunityRevenueResponseSalesItemAmountMin),
+  "createdAt": zod.number().min(getCommunityRevenueResponseSalesItemCreatedAtMin)
+}))
 })
 
 

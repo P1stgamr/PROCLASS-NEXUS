@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './communityCourseAccessResult';
 export * from './communityCourseContentResult';
 export * from './communityCourseEnrollmentResult';
 export * from './communityCourseEnrollmentResultStatus';
@@ -25,6 +26,7 @@ export * from './communityCoursePurchaseResultStatus';
 export * from './communityCourseQuestionInput';
 export * from './communityCourseResult';
 export * from './communityCourseResultStatus';
+export * from './communityCourseSaleLineItem';
 export * from './communityRevenueResult';
 export * from './communityWithdrawalDecisionInput';
 export * from './communityWithdrawalDecisionInputAction';

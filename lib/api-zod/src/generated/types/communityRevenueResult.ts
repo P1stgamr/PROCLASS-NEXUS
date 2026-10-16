@@ -5,10 +5,12 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { CommunityCourseSaleLineItem } from './communityCourseSaleLineItem';
 
 export interface CommunityRevenueResult {
   /** @minimum 0 */
   balance: number;
   /** @minimum 0 */
   totalEarned: number;
+  sales: CommunityCourseSaleLineItem[];
 }

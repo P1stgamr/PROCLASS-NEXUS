@@ -49,7 +49,9 @@ export default function CommunityPage() {
   const [balance, setBalance] = useState(0);
   const [withdraws, setWithdraws] = useState<any[]>([]);
   const [withdrawForm, setWithdrawForm] = useState({ amount: "", bkashNumber: "", revenueSource: "commission" as "commission" | "course" });
-  const { data: courseRevenue, isLoading: revenueLoading, isError: revenueError } = useGetCommunityRevenue();
+  const { data: courseRevenue, isLoading: revenueLoading, isError: revenueError } = useGetCommunityRevenue({
+    query: { enabled: Boolean(community), queryKey: getGetCommunityRevenueQueryKey() },
+  });
   const withdrawalMutation = useRequestCommunityWithdrawal();
   const queryClient = useQueryClient();
 
@@ -356,6 +358,13 @@ export default function CommunityPage() {
             <div className="rounded-xl bg-white/5 p-3"><p className="text-[10px] text-muted-foreground">Commission balance</p><p className="font-bold">৳{balance.toLocaleString()}</p></div>
             <div className="rounded-xl bg-white/5 p-3"><p className="text-[10px] text-muted-foreground">Course sales · total earned</p><p className="font-bold">{revenueLoading ? "Loading…" : revenueError ? "Unavailable" : `৳${Number(courseRevenue?.totalEarned || 0).toLocaleString()}`}</p><p className="text-[10px] text-muted-foreground mt-1">Available: ৳{Number(courseRevenue?.balance || 0).toLocaleString()}</p></div>
           </div>
+          {courseRevenue?.sales?.length ? <div className="space-y-2">
+            <p className="text-xs font-semibold">Recent course sales</p>
+            {courseRevenue.sales.slice(0, 5).map((sale) => <div key={sale.id} className="flex items-center justify-between gap-3 border-b border-white/5 pb-2 text-xs">
+              <div className="min-w-0"><p className="truncate font-medium">{sale.courseTitle}</p><p className="text-[10px] text-muted-foreground">{sale.createdAt ? formatDistanceToNow(sale.createdAt, { addSuffix: true }) : ""}</p></div>
+              <span className="shrink-0 font-bold text-green-400">+৳{Number(sale.amount).toLocaleString()}</span>
+            </div>)}
+          </div> : null}
           <form onSubmit={requestWithdraw} className="grid sm:grid-cols-2 gap-3">
             <select aria-label="Revenue source" value={withdrawForm.revenueSource} onChange={(event) => setWithdrawForm({ ...withdrawForm, revenueSource: event.target.value as "commission" | "course", amount: "" })} className="rounded-xl bg-background border border-white/10 px-3 text-sm">
               <option value="commission">Commission</option><option value="course">Course sales</option>
@@ -387,12 +396,14 @@ function blankCourse(): CourseDraft {
 
 function CommunityCourseManager({ community }: { community: Community }) {
   const { toast } = useToast();
+  const { currentUser } = useAuth();
   const createCourse = useCreateCommunityCourse();
   const updateCourse = useUpdateCommunityCourse();
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<CourseDraft>(blankCourse());
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [open, setOpen] = useState(false);
   const saving = createCourse.isPending || updateCourse.isPending;
 
@@ -411,6 +422,7 @@ function CommunityCourseManager({ community }: { community: Community }) {
 
   const editCourse = (course: any) => {
     setEditingId(course.id);
+    setThumbnailFile(null);
     setDraft({
       title: course.title || "", description: course.description || course.desc || "",
       instructor: course.instructor || "", type: course.type === "premium" ? "premium" : "free",
@@ -428,22 +440,35 @@ function CommunityCourseManager({ community }: { community: Community }) {
       toast({ title: "Add a title and at least one titled lesson per module", variant: "destructive" });
       return;
     }
-    const payload: CommunityCourseInput = {
-      ...draft,
-      title: draft.title.trim(), description: draft.description.trim(), instructor: draft.instructor.trim(),
-      tag: draft.tag.trim(), grade: draft.grade.trim(), duration: draft.duration.trim(),
-      price: draft.type === "free" ? 0 : Number(draft.price || 0),
-      thumbnail: draft.thumbnail?.trim() || null,
-      modules: draft.modules.map((module) => ({
-        ...module, title: module.title.trim(),
-        lessons: module.lessons.map((lesson) => cleanLesson(lesson)),
-      })),
-    };
     try {
+      let thumbnail = draft.thumbnail?.trim() || null;
+      if (thumbnailFile) {
+        if (!currentUser) throw new Error("Sign in again to upload the thumbnail");
+        if (!thumbnailFile.type.startsWith("image/") || thumbnailFile.size >= 5 * 1024 * 1024) {
+          throw new Error("Choose an image smaller than 5 MB");
+        }
+        const safeName = thumbnailFile.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const uploaded = await uploadBytes(
+          storageRef(storage, `course-thumbnails/${community.id}/${Date.now()}-${safeName}`),
+          thumbnailFile,
+        );
+        thumbnail = await getDownloadURL(uploaded.ref);
+      }
+      const payload: CommunityCourseInput = {
+        ...draft,
+        title: draft.title.trim(), description: draft.description.trim(), instructor: draft.instructor.trim(),
+        tag: draft.tag.trim(), grade: draft.grade.trim(), duration: draft.duration.trim(),
+        price: draft.type === "free" ? 0 : Number(draft.price || 0),
+        thumbnail,
+        modules: draft.modules.map((module) => ({
+          ...module, title: module.title.trim(),
+          lessons: module.lessons.map((lesson) => cleanLesson(lesson)),
+        })),
+      };
       if (editingId) await updateCourse.mutateAsync({ courseId: editingId, data: payload });
       else await createCourse.mutateAsync({ data: payload });
       toast({ title: editingId ? "Course updated" : "Course submitted", description: "Your course is pending review or published based on approval." });
-      setOpen(false); setEditingId(null); setDraft(blankCourse());
+      setOpen(false); setEditingId(null); setDraft(blankCourse()); setThumbnailFile(null);
     } catch (error: any) {
       toast({ title: "Could not save course", description: error?.message || "Try again in a moment.", variant: "destructive" });
     }
@@ -457,7 +482,16 @@ function CommunityCourseManager({ community }: { community: Community }) {
   return <section className={`${CARD} p-5 space-y-4`}>
     <div className="flex items-center justify-between gap-3">
       <div><h3 className="font-bold">আপনার courses</h3><p className="text-xs text-muted-foreground">Structured lessons publish করুন, students আপনার academy-র নাম দেখবে।</p></div>
-      <GlowButton type="button" size="sm" onClick={() => { setEditingId(null); setDraft(blankCourse()); setOpen((value) => !value); }}>{open ? "Close" : "Create course"}</GlowButton>
+      <GlowButton type="button" size="sm" onClick={() => {
+        if (open) {
+          setOpen(false);
+        } else {
+          setEditingId(null);
+          setDraft(blankCourse());
+          setThumbnailFile(null);
+          setOpen(true);
+        }
+      }}>{open ? "Close" : "Create course"}</GlowButton>
     </div>
     {open && <form onSubmit={save} className="space-y-4 rounded-2xl border border-white/10 bg-black/10 p-4">
       <div className="grid sm:grid-cols-2 gap-3">
@@ -466,7 +500,12 @@ function CommunityCourseManager({ community }: { community: Community }) {
         <Field label="Category"><Input value={draft.tag} onChange={(e) => setDraft({ ...draft, tag: e.target.value })} maxLength={80} placeholder="Physics, Math…" /></Field>
         <Field label="Class / grade"><Input value={draft.grade} onChange={(e) => setDraft({ ...draft, grade: e.target.value })} maxLength={40} placeholder="SSC, HSC, Class 9" /></Field>
         <Field label="Duration"><Input value={draft.duration} onChange={(e) => setDraft({ ...draft, duration: e.target.value })} placeholder="যেমন: 6 weeks" /></Field>
-        <Field label="Thumbnail URL"><Input value={draft.thumbnail || ""} onChange={(e) => setDraft({ ...draft, thumbnail: e.target.value || null })} placeholder="https://…" /></Field>
+        <Field label="Thumbnail URL (optional)"><Input value={draft.thumbnail || ""} onChange={(e) => setDraft({ ...draft, thumbnail: e.target.value || null })} placeholder="https://…" /></Field>
+        <label className="flex min-h-10 items-center gap-2 rounded-xl border border-dashed border-white/15 px-3 text-xs text-muted-foreground cursor-pointer hover:bg-white/5">
+          <Upload className="w-4 h-4" /> Upload thumbnail
+          <input type="file" accept="image/*" className="hidden" onChange={(event) => setThumbnailFile(event.target.files?.[0] || null)} />
+          {thumbnailFile && <span className="text-primary truncate">{thumbnailFile.name}</span>}
+        </label>
         <Field label="Price"><div className="flex gap-2"><select value={draft.type} onChange={(e) => setDraft({ ...draft, type: e.target.value as "free" | "premium", price: e.target.value === "free" ? 0 : draft.price || 100 })} className="rounded-xl bg-background border border-white/10 px-3 text-sm"><option value="free">Free</option><option value="premium">Paid</option></select>{draft.type === "premium" && <Input type="number" min="1" value={draft.price || ""} onChange={(e) => setDraft({ ...draft, price: Number(e.target.value) })} placeholder="৳ Price" />}</div></Field>
         <Field label="Description"><Textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} maxLength={5000} rows={2} placeholder="কোর্সে কী শিখবে?" /></Field>
       </div>
@@ -478,7 +517,7 @@ function CommunityCourseManager({ community }: { community: Community }) {
           <button type="button" onClick={() => setModule(mi, { ...module, lessons: [...module.lessons, { title: "", type: "text", content: "" }] })} className="text-xs text-primary">+ Add lesson</button>
         </div>)}
       </div>
-      <div className="flex gap-2"><GlowButton type="submit" disabled={saving}>{saving ? "Saving…" : editingId ? "Save changes" : "Submit course"}</GlowButton><button type="button" onClick={() => { setOpen(false); setEditingId(null); }} className="px-4 text-sm text-muted-foreground">Cancel</button></div>
+      <div className="flex gap-2"><GlowButton type="submit" disabled={saving}>{saving ? "Saving…" : editingId ? "Save changes" : "Submit course"}</GlowButton><button type="button" onClick={() => { setOpen(false); setEditingId(null); setThumbnailFile(null); }} className="px-4 text-sm text-muted-foreground">Cancel</button></div>
     </form>}
     {loading ? <div className="skeleton h-16 rounded-xl" /> : courses.length === 0 ? <div className="rounded-xl border border-dashed border-white/10 p-5 text-center text-xs text-muted-foreground">এখনো course নেই। প্রথম course তৈরি করুন।</div> :
       <div className="space-y-2">{courses.map((course) => <div key={course.id} className="flex items-center gap-3 rounded-xl bg-white/5 p-3" data-testid={`community-course-${course.id}`}>

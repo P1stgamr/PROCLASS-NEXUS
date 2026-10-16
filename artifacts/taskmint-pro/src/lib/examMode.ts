@@ -25,6 +25,10 @@ function queueRemoteSessionSync(operation: () => Promise<unknown>) {
     .catch(() => undefined);
 }
 
+export async function waitForExamModeSync() {
+  await sessionSyncQueue;
+}
+
 export function startExamMode(
   examId: string,
   durationMs = 3 * 60 * 60 * 1000,

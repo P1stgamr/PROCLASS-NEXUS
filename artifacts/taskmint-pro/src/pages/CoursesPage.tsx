@@ -9,7 +9,7 @@ import { SkeletonCard } from "@/components/SkeletonCard";
 import {
   BookOpen, Crown, Star, Users, Clock, ChevronRight,
   Play, Filter, Zap, Code2, FlaskConical,
-  Calculator, Globe, Palette, Music
+  Calculator, Globe, Palette, Music, ShieldCheck
 } from "lucide-react";
 
 type CourseFilter = "all" | "free" | "premium" | "ssc" | "hsc" | "programming" | "olympiad";
@@ -181,7 +181,8 @@ export default function CoursesPage() {
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-1 mb-2">{course.description || course.desc || "Explore lessons from this course."}</p>
                       <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                        {isCommunityCourse(course) ? <span className="flex items-center gap-1"><Users className="w-2.5 h-2.5" />{course.communityName || course.community?.name || course.instructor || "Community course"}</span> : <>
+                        {isCommunityCourse(course) ? null : <>
+                          <span className="flex items-center gap-1 text-primary"><ShieldCheck className="w-2.5 h-2.5" />Platform course</span>
                           <span className="flex items-center gap-0.5"><Star className="w-2.5 h-2.5 text-yellow-400" />{course.rating || "New"}</span>
                           <span className="flex items-center gap-0.5"><Users className="w-2.5 h-2.5" />{(course.students || 0).toLocaleString()}</span>
                         </>}
